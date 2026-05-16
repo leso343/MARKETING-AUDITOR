@@ -78,6 +78,47 @@
         .waste-meter { height: 4px; width: 100%; background: #111; border-radius: 10px; margin: 15px 0; overflow: hidden; }
         .waste-fill { height: 100%; background: var(--red); transition: width 2s cubic-bezier(0.16, 1, 0.3, 1); }
 
+        /* ── GEO MAP ── */
+        .geo-mini-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 18px; }
+        .geo-mini { border: 1px solid var(--border); padding: 10px 12px; background: #060606; }
+        .geo-mini-val { font-family: var(--font-mono); font-size: 15px; font-weight: 700; color: #fff; line-height: 1; }
+        .geo-mini-val.leak { color: var(--red); }
+        .geo-mini-label { font-family: var(--font-mono); font-size: 8px; color: #444; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 6px; }
+
+        .geo-map-wrap { position: relative; width: 100%; height: 280px; background: radial-gradient(ellipse at center, #0a0a0a 0%, #050505 65%, #030303 100%); border: 1px solid var(--border); overflow: hidden; margin-bottom: 18px; }
+        .geo-map-wrap svg { width: 100%; height: 100%; display: block; }
+
+        .geo-dot-grp { cursor: pointer; opacity: 0; animation: geoFadeIn 0.5s ease-out forwards; }
+        .geo-dot-grp .geo-dot { transition: transform 0.2s ease-out; transform-origin: center; transform-box: fill-box; }
+        .geo-dot-grp:hover .geo-dot,
+        .geo-dot-grp.active .geo-dot { transform: scale(1.45); }
+        @keyframes geoFadeIn { to { opacity: 1; } }
+
+        .geo-leak-grp { cursor: pointer; }
+        .geo-leak-grp .geo-leak-pulse { animation: geoLeakPulse 1.8s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+        @keyframes geoLeakPulse { 0%, 100% { opacity: 0.25; transform: scale(0.9); } 50% { opacity: 0.65; transform: scale(1.3); } }
+
+        .geo-scanline { animation: geoScan 2.6s cubic-bezier(0.4, 0, 0.2, 1) 0.4s 1 forwards; opacity: 0; transform: translateX(-12%); }
+        @keyframes geoScan {
+          0%   { opacity: 0; transform: translateX(-12%); }
+          15%  { opacity: 1; }
+          85%  { opacity: 1; }
+          100% { opacity: 0; transform: translateX(108%); }
+        }
+
+        .geo-tooltip { position: absolute; pointer-events: none; background: #000; border: 1px solid var(--border); border-left: 3px solid var(--red); padding: 10px 12px; font-family: var(--font-mono); font-size: 10px; color: #fff; opacity: 0; transition: opacity 0.15s; z-index: 10; min-width: 150px; }
+        .geo-tooltip.show { opacity: 1; }
+        .geo-tooltip .tt-zip { font-weight: 700; margin-bottom: 6px; color: #fff; font-size: 11px; }
+        .geo-tooltip .tt-zip .tt-name { color: var(--text-dim); font-weight: 400; margin-left: 6px; font-size: 9px; }
+        .geo-tooltip .tt-row { color: var(--text-dim); font-size: 9px; display: flex; justify-content: space-between; gap: 14px; line-height: 1.6; }
+        .geo-tooltip .tt-row span:last-child { color: #fff; }
+        .geo-tooltip.leak { border-left-color: var(--red); }
+        .geo-tooltip.leak .tt-zip { color: var(--red); }
+
+        tr.geo-row { cursor: pointer; transition: background 0.15s; }
+        tr.geo-row:hover, tr.geo-row.active { background: rgba(255,255,255,0.03); }
+        tr.geo-row td { padding: 11px 12px; }
+
     </style>
 </head>
 <body>
@@ -230,18 +271,102 @@
             <!-- ── GEO SIEVE ── -->
             <div id="geo" class="panel" style="grid-column: span 6;">
                 <div class="panel-label">Geographic_Leakage_Audit</div>
+
+                <div class="geo-mini-stats">
+                    <div class="geo-mini">
+                        <div class="geo-mini-val">08</div>
+                        <div class="geo-mini-label">Zones_Mapped</div>
+                    </div>
+                    <div class="geo-mini">
+                        <div class="geo-mini-val">$3.1K</div>
+                        <div class="geo-mini-label">Core_Hot</div>
+                    </div>
+                    <div class="geo-mini">
+                        <div class="geo-mini-val leak">$33.64</div>
+                        <div class="geo-mini-label">Leakage_Out</div>
+                    </div>
+                </div>
+
+                <div class="geo-map-wrap" id="geoMapWrap">
+                    <svg viewBox="0 0 600 320" preserveAspectRatio="xMidYMid meet" aria-label="Atlanta DMA forensic radar">
+                        <defs>
+                            <radialGradient id="coreGlow" cx="50%" cy="50%" r="50%">
+                                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.55"/>
+                                <stop offset="55%" stop-color="#ffffff" stop-opacity="0.12"/>
+                                <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+                            </radialGradient>
+                            <radialGradient id="leakGlow" cx="50%" cy="50%" r="50%">
+                                <stop offset="0%" stop-color="#ff0000" stop-opacity="0.45"/>
+                                <stop offset="100%" stop-color="#ff0000" stop-opacity="0"/>
+                            </radialGradient>
+                            <radialGradient id="dotGlowHot" cx="50%" cy="50%" r="50%">
+                                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.35"/>
+                                <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+                            </radialGradient>
+                            <linearGradient id="scanGrad" x1="0" x2="1" y1="0" y2="0">
+                                <stop offset="0%"  stop-color="#ff0000" stop-opacity="0"/>
+                                <stop offset="50%" stop-color="#ff0000" stop-opacity="0.18"/>
+                                <stop offset="100%" stop-color="#ff0000" stop-opacity="0"/>
+                            </linearGradient>
+                        </defs>
+
+                        <!-- concentric radar rings -->
+                        <g stroke="#1a1a1a" fill="none">
+                            <circle cx="300" cy="180" r="40"  stroke-opacity="0.55"/>
+                            <circle cx="300" cy="180" r="80"  stroke-opacity="0.40"/>
+                            <circle cx="300" cy="180" r="120" stroke-opacity="0.28"/>
+                            <circle cx="300" cy="180" r="160" stroke-opacity="0.18"/>
+                            <circle cx="300" cy="180" r="200" stroke-opacity="0.10"/>
+                        </g>
+
+                        <!-- radial crosshairs -->
+                        <g stroke="#151515" stroke-width="1">
+                            <line x1="300" y1="40"  x2="300" y2="320"/>
+                            <line x1="60"  y1="180" x2="540" y2="180"/>
+                        </g>
+
+                        <!-- 30-mile service radius (dashed white) -->
+                        <circle cx="300" cy="180" r="110" fill="none" stroke="#ffffff" stroke-opacity="0.18" stroke-dasharray="4 6" stroke-width="1"/>
+                        <text x="300" y="60" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#444" letter-spacing="2">SERVICE_RADIUS_30MI</text>
+
+                        <!-- compass ticks -->
+                        <g font-family="JetBrains Mono, monospace" font-size="8" fill="#333" letter-spacing="1.5">
+                            <text x="300" y="20"  text-anchor="middle">N</text>
+                            <text x="582" y="184" text-anchor="end">E</text>
+                            <text x="300" y="312" text-anchor="middle">S</text>
+                            <text x="18"  y="184">W</text>
+                        </g>
+
+                        <!-- one-shot scan sweep -->
+                        <rect class="geo-scanline" x="0" y="0" width="80" height="320" fill="url(#scanGrad)"/>
+
+                        <!-- Atlanta core bullseye -->
+                        <g>
+                            <circle cx="300" cy="180" r="28" fill="url(#coreGlow)"/>
+                            <circle cx="300" cy="180" r="11" fill="none" stroke="#ffffff" stroke-opacity="0.35" stroke-width="1"/>
+                            <circle cx="300" cy="180" r="5"  fill="#ffffff"/>
+                            <text x="300" y="208" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" font-weight="700" fill="#fff" letter-spacing="1.5">ATL_CORE</text>
+                            <text x="300" y="220" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#666" letter-spacing="1">30 LEADS · $103 CPL</text>
+                        </g>
+
+                        <!-- ZIP dots (injected) -->
+                        <g id="geoZips"></g>
+
+                        <!-- leakage markers (injected) -->
+                        <g id="geoLeaks"></g>
+                    </svg>
+                    <div class="geo-tooltip" id="geoTooltip"></div>
+                </div>
+
                 <table class="data-table">
                     <thead>
-                        <tr><th>DMA Region</th><th>Verified Spend</th><th>Leakage</th></tr>
+                        <tr><th>ZIP</th><th>Spend</th><th>Leads</th><th>CPL</th><th>Status</th></tr>
                     </thead>
-                    <tbody>
-                        <tr><td><strong>Atlanta Core</strong></td><td>$3,103.47</td><td>$0.00</td></tr>
-                        <tr><td><strong>NC/SC Border</strong></td><td>$21.22</td><td><span style="color: var(--red);">CRITICAL</span></td></tr>
-                        <tr><td><strong>Chattanooga</strong></td><td>$12.42</td><td><span style="color: var(--red);">CRITICAL</span></td></tr>
-                    </tbody>
+                    <tbody id="geoTbody"></tbody>
                 </table>
+
                 <div class="insight-box">
-                    The <b>"Atlanta DMA Trap"</b> is costing approximately $33.64 in raw out-of-state spend, but significantly more in <b>service-area waste</b>. Drivers are leaving profitable zones for low-probability appointments.
+                    <b>ATLANTA DMA TRAP:</b> 8 ZIPs inside service radius converting at $76–$149 CPL. <b>$33.64</b> is bleeding to NC/SC + Chattanooga zones with <b>zero leads returned</b>. Real cost = driver-hours lost chasing the 30-mile perimeter.
                 </div>
             </div>
 
@@ -302,6 +427,151 @@
                 }
             }
         });
+
+        // ── GEO MAP ──
+        // Synthesized for visual storytelling; swap source when Meta API lands.
+        const geoZones = [
+            { zip: '30309', name: 'Midtown',           x: 295, y: 172, spend: 612,   leads: 8, cpl: 76,  status: 'hot'   },
+            { zip: '30342', name: 'Buckhead',          x: 322, y: 154, spend: 548,   leads: 7, cpl: 78,  status: 'hot'   },
+            { zip: '30075', name: 'Roswell',           x: 342, y: 116, spend: 441,   leads: 5, cpl: 88,  status: 'hot'   },
+            { zip: '30060', name: 'Marietta',          x: 248, y: 138, spend: 387,   leads: 4, cpl: 96,  status: 'mixed' },
+            { zip: '30030', name: 'Decatur',           x: 354, y: 204, spend: 362,   leads: 3, cpl: 120, status: 'mixed' },
+            { zip: '30097', name: 'Duluth',            x: 388, y: 132, spend: 298,   leads: 2, cpl: 149, status: 'mixed' },
+            { zip: '30126', name: 'Mableton',          x: 230, y: 218, spend: 241,   leads: 1, cpl: 241, status: 'cold'  },
+            { zip: '30236', name: 'Jonesboro',         x: 296, y: 256, spend: 214,   leads: 0, cpl: 0,   status: 'cold'  },
+            { zip: '28739', name: 'Hendersonville NC', x: 520, y: 52,  spend: 21.22, leads: 0, cpl: 0,   status: 'leak'  },
+            { zip: '37402', name: 'Chattanooga TN',    x: 78,  y: 58,  spend: 12.42, leads: 0, cpl: 0,   status: 'leak'  }
+        ];
+
+        const STATUS_FILL = { hot: '#ffffff', mixed: '#999999', cold: '#525252', leak: '#ff0000' };
+        const STATUS_LABEL = { hot: 'HOT', mixed: 'MIXED', cold: 'COLD', leak: 'LEAK' };
+
+        const SVG_NS = 'http://www.w3.org/2000/svg';
+        const svgEl = (tag, attrs = {}) => {
+            const n = document.createElementNS(SVG_NS, tag);
+            for (const k in attrs) n.setAttribute(k, attrs[k]);
+            return n;
+        };
+
+        function renderGeoDots() {
+            const g = document.getElementById('geoZips');
+            geoZones.filter(z => z.status !== 'leak').forEach((z, i) => {
+                const r = Math.max(4, Math.min(11, 4 + Math.sqrt(z.spend) / 4));
+                const grp = svgEl('g', { class: 'geo-dot-grp', 'data-zip': z.zip, style: `animation-delay: ${i * 70}ms` });
+                if (z.status === 'hot' || z.status === 'mixed') {
+                    grp.appendChild(svgEl('circle', { cx: z.x, cy: z.y, r: r + 6, fill: 'url(#dotGlowHot)' }));
+                }
+                grp.appendChild(svgEl('circle', { class: 'geo-dot', cx: z.x, cy: z.y, r, fill: STATUS_FILL[z.status] }));
+                g.appendChild(grp);
+            });
+        }
+
+        function renderGeoLeaks() {
+            const g = document.getElementById('geoLeaks');
+            geoZones.filter(z => z.status === 'leak').forEach(z => {
+                const grp = svgEl('g', { class: 'geo-leak-grp', 'data-zip': z.zip });
+                grp.appendChild(svgEl('circle', { class: 'geo-leak-pulse', cx: z.x, cy: z.y, r: 18, fill: 'url(#leakGlow)' }));
+                grp.appendChild(svgEl('circle', { cx: z.x, cy: z.y, r: 4.5, fill: '#ff0000' }));
+                // crosshair
+                grp.appendChild(svgEl('line', { x1: z.x - 11, y1: z.y, x2: z.x - 6, y2: z.y, stroke: '#ff0000', 'stroke-width': 1 }));
+                grp.appendChild(svgEl('line', { x1: z.x + 6,  y1: z.y, x2: z.x + 11, y2: z.y, stroke: '#ff0000', 'stroke-width': 1 }));
+                grp.appendChild(svgEl('line', { x1: z.x, y1: z.y - 11, x2: z.x, y2: z.y - 6, stroke: '#ff0000', 'stroke-width': 1 }));
+                grp.appendChild(svgEl('line', { x1: z.x, y1: z.y + 6,  x2: z.x, y2: z.y + 11, stroke: '#ff0000', 'stroke-width': 1 }));
+                const isRight = z.x > 300;
+                const label = svgEl('text', {
+                    x: isRight ? z.x - 14 : z.x + 14,
+                    y: z.y + 3,
+                    'text-anchor': isRight ? 'end' : 'start',
+                    'font-family': 'JetBrains Mono, monospace',
+                    'font-size': 8,
+                    fill: '#ff0000',
+                    'letter-spacing': 1
+                });
+                label.textContent = `LEAK · $${z.spend.toFixed(2)}`;
+                grp.appendChild(label);
+                g.appendChild(grp);
+            });
+        }
+
+        function renderGeoTable() {
+            const tbody = document.getElementById('geoTbody');
+            const rows = geoZones
+                .filter(z => z.status !== 'leak')
+                .sort((a, b) => b.spend - a.spend)
+                .slice(0, 6);
+            tbody.innerHTML = rows.map(z => `
+                <tr class="geo-row" data-zip="${z.zip}">
+                    <td><strong>${z.zip}</strong> <span style="color: var(--text-dim); font-size: 11px;">${z.name}</span></td>
+                    <td>$${z.spend.toFixed(2)}</td>
+                    <td>${z.leads}</td>
+                    <td>${z.cpl ? '$' + z.cpl : '—'}</td>
+                    <td><span class="status-pill" style="color: ${STATUS_FILL[z.status]};">${STATUS_LABEL[z.status]}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        function bindGeoHover() {
+            const wrap = document.getElementById('geoMapWrap');
+            const tooltip = document.getElementById('geoTooltip');
+            const zipMap = Object.fromEntries(geoZones.map(z => [z.zip, z]));
+
+            function showTooltip(zip, evt) {
+                const z = zipMap[zip];
+                if (!z) return;
+                tooltip.classList.toggle('leak', z.status === 'leak');
+                tooltip.innerHTML = `
+                    <div class="tt-zip">${z.zip}<span class="tt-name">${z.name}</span></div>
+                    <div class="tt-row"><span>SPEND</span><span>$${z.spend.toFixed(2)}</span></div>
+                    <div class="tt-row"><span>LEADS</span><span>${z.leads}</span></div>
+                    <div class="tt-row"><span>CPL</span><span>${z.cpl ? '$' + z.cpl : '—'}</span></div>
+                    <div class="tt-row"><span>STATUS</span><span style="color:${STATUS_FILL[z.status]}">${STATUS_LABEL[z.status]}</span></div>
+                `;
+                tooltip.classList.add('show');
+                const wrapRect = wrap.getBoundingClientRect();
+                const tipRect = tooltip.getBoundingClientRect();
+                let left = evt.clientX - wrapRect.left + 14;
+                let top  = evt.clientY - wrapRect.top + 14;
+                if (left + tipRect.width  > wrapRect.width)  left = evt.clientX - wrapRect.left - tipRect.width  - 14;
+                if (top  + tipRect.height > wrapRect.height) top  = evt.clientY - wrapRect.top  - tipRect.height - 14;
+                tooltip.style.left = Math.max(4, left) + 'px';
+                tooltip.style.top  = Math.max(4, top)  + 'px';
+            }
+            function hideTooltip() { tooltip.classList.remove('show'); }
+            function syncActive(zip, on) {
+                document.querySelectorAll(`[data-zip="${zip}"]`).forEach(el => el.classList.toggle('active', on));
+            }
+
+            wrap.addEventListener('mousemove', (e) => {
+                const grp = e.target.closest('[data-zip]');
+                if (grp) {
+                    const zip = grp.getAttribute('data-zip');
+                    syncActive(zip, true);
+                    showTooltip(zip, e);
+                } else {
+                    document.querySelectorAll('[data-zip].active').forEach(el => el.classList.remove('active'));
+                    hideTooltip();
+                }
+            });
+            wrap.addEventListener('mouseleave', () => {
+                document.querySelectorAll('[data-zip].active').forEach(el => el.classList.remove('active'));
+                hideTooltip();
+            });
+
+            const tbody = document.getElementById('geoTbody');
+            tbody.addEventListener('mouseover', (e) => {
+                const tr = e.target.closest('tr.geo-row');
+                if (tr) syncActive(tr.getAttribute('data-zip'), true);
+            });
+            tbody.addEventListener('mouseout', (e) => {
+                const tr = e.target.closest('tr.geo-row');
+                if (tr) syncActive(tr.getAttribute('data-zip'), false);
+            });
+        }
+
+        renderGeoDots();
+        renderGeoLeaks();
+        renderGeoTable();
+        bindGeoHover();
     </script>
 </body>
 </html>
