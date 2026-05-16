@@ -45,7 +45,7 @@
 
         /* ── HEADER ── */
         .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; gap: 20px; }
-        .header img { max-height: 35px; max-width: 150px; object-fit: contain; }
+        .header img, .header .logo { height: 35px; width: 150px; flex-shrink: 0; display: block; }
         .header .line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--red), transparent); }
 
         /* ── HERO ── */
@@ -147,6 +147,10 @@
             <stop offset="0%" stop-color="#065F46"/>
             <stop offset="100%" stop-color="#10B981"/>
         </linearGradient>
+        <linearGradient id="gBlueH" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#1e3a8a"/>
+            <stop offset="100%" stop-color="#3B82F6"/>
+        </linearGradient>
         <linearGradient id="gGold" x1="0" y1="0" x2="1" y2="0">
             <stop offset="0%" stop-color="#92400e"/>
             <stop offset="100%" stop-color="#F59E0B"/>
@@ -183,15 +187,28 @@
         <pattern id="pMapGrid" width="22" height="22" patternUnits="userSpaceOnUse">
             <path d="M 22 0 L 0 0 0 22" fill="none" stroke="#16161c" stroke-width="0.5"/>
         </pattern>
+        <!-- Logos as SVG symbols -->
+        <symbol id="logoSNA" viewBox="0 0 150 35" preserveAspectRatio="xMinYMid meet">
+            <text x="0" y="26" font-family="Outfit, sans-serif" font-size="24" font-weight="900" fill="#FFFFFF" letter-spacing="-1.4">SNA</text>
+            <rect x="52" y="14" width="5" height="5" fill="#DC2626"/>
+            <text x="62" y="13" font-family="Outfit, sans-serif" font-size="7.5" font-weight="900" fill="#FFFFFF" letter-spacing="2.2">FORENSIC</text>
+            <text x="62" y="24" font-family="JetBrains Mono, monospace" font-size="6" font-weight="700" fill="#9CA3AF" letter-spacing="1.6">MARKETING ENGINE</text>
+        </symbol>
+        <symbol id="logoTC" viewBox="0 0 150 35" preserveAspectRatio="xMaxYMid meet">
+            <rect x="0" y="3" width="42" height="10" rx="1.5" fill="rgba(220,38,38,0.14)" stroke="#DC2626" stroke-width="0.6"/>
+            <text x="21" y="10.5" font-family="JetBrains Mono, monospace" font-size="6" font-weight="900" fill="#DC2626" text-anchor="middle" letter-spacing="1.4">CLIENT</text>
+            <text x="150" y="23" font-family="Outfit, sans-serif" font-size="13" font-weight="900" fill="#FFFFFF" letter-spacing="0.2" text-anchor="end">TAKE CHARGE</text>
+            <text x="150" y="33" font-family="JetBrains Mono, monospace" font-size="6.5" font-weight="700" fill="#9CA3AF" letter-spacing="2.4" text-anchor="end">ROOFING · ATLANTA</text>
+        </symbol>
     </defs>
 </svg>
 
 <!-- ════════════════════ PAGE 1: DIAGNOSTIC RECONCILIATION ════════════════════ -->
 <div class="pdf-page">
     <div class="header">
-        <img src="report_assets/sna_logo_nobg.png" alt="SNA">
+        <svg class="logo" viewBox="0 0 150 35" aria-label="SNA Forensic Marketing Engine"><use href="#logoSNA"/></svg>
         <div class="line"></div>
-        <img src="report_assets/take_charge_logo_clean.png" alt="TC">
+        <svg class="logo" viewBox="0 0 150 35" aria-label="Take Charge Roofing"><use href="#logoTC"/></svg>
     </div>
 
     <div class="hero">
@@ -292,33 +309,68 @@
 <!-- ════════════════════ PAGE 2: CONFIDENCE & CREATIVE ════════════════════ -->
 <div class="pdf-page">
     <div class="header">
-        <img src="report_assets/sna_logo_nobg.png" alt="SNA">
+        <svg class="logo" viewBox="0 0 150 35" aria-label="SNA Forensic Marketing Engine"><use href="#logoSNA"/></svg>
         <div class="line"></div>
-        <img src="report_assets/take_charge_logo_clean.png" alt="TC">
+        <svg class="logo" viewBox="0 0 150 35" aria-label="Take Charge Roofing"><use href="#logoTC"/></svg>
     </div>
 
-    <h2 class="sec-title">Confidence Matrix & Audit Integrity</h2>
-    <div class="matrix-grid">
-        <div class="matrix-card">
-            <span class="conf-badge conf-high">High Confidence</span>
-            <h4>Traffic Campaign Inefficiency</h4>
-            <p>951 Clicks vs 433 Sessions proves the current click-based objective is losing ~54% of intent.</p>
-        </div>
-        <div class="matrix-card">
-            <span class="conf-badge conf-high">High Confidence</span>
-            <h4>65+ Over-Consumption</h4>
-            <p>65+ took 45% of total budget. Inside lead campaigns, CPL reached $88.06 (Triple younger core).</p>
-        </div>
-        <div class="matrix-card">
-            <span class="conf-badge conf-high">High Confidence</span>
-            <h4>Broken Lead Forms Setup</h4>
-            <p>$186.32 spend with 0 leads confirms misconfigured Instant Form or sync failure.</p>
-        </div>
-        <div class="matrix-card">
-            <span class="conf-badge conf-med">Medium Confidence</span>
-            <h4>Reels/Stories Risk</h4>
-            <p>High spend, but requires isolated Lead-objective testing before permanent blacklisting.</p>
-        </div>
+    <h2 class="sec-title">Why Paying for 65+ Isn't Worth It</h2>
+    <div class="chart-card">
+        <div class="chart-title">Budget Share vs Leads Delivered — and what $100 actually buys</div>
+        <svg viewBox="0 0 480 250" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: auto; display: block;">
+            <!-- Section A label -->
+            <text x="0" y="11" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#6B7280" font-weight="800" letter-spacing="1.4">WHERE THE MONEY GOES</text>
+
+            <!-- Budget Used stacked bar -->
+            <text x="0" y="34" font-family="Outfit, sans-serif" font-size="10.5" fill="#FFFFFF" font-weight="900" letter-spacing="-0.2">BUDGET USED</text>
+            <rect x="115" y="21" width="365" height="22" rx="3" fill="#0a0a0a" stroke="#1A1A1A" stroke-width="0.6"/>
+            <rect x="115" y="21" width="164.25" height="22" fill="url(#gRedH)"/>
+            <rect x="279.25" y="21" width="200.75" height="22" fill="url(#gGreenH)" opacity="0.9"/>
+            <text x="197" y="36" font-family="Outfit, sans-serif" font-size="10" fill="#FFFFFF" font-weight="900" text-anchor="middle">65+ · 45%</text>
+            <text x="380" y="36" font-family="Outfit, sans-serif" font-size="10" fill="#FFFFFF" font-weight="900" text-anchor="middle">35–64 · 55%</text>
+
+            <!-- Section B label -->
+            <text x="0" y="64" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#6B7280" font-weight="800" letter-spacing="1.4">WHAT YOU GOT BACK</text>
+
+            <!-- Leads Delivered stacked bar -->
+            <text x="0" y="87" font-family="Outfit, sans-serif" font-size="10.5" fill="#FFFFFF" font-weight="900" letter-spacing="-0.2">LEADS DELIVERED</text>
+            <rect x="115" y="74" width="365" height="22" rx="3" fill="#0a0a0a" stroke="#1A1A1A" stroke-width="0.6"/>
+            <rect x="115" y="74" width="77.7" height="22" fill="url(#gRedH)" opacity="0.55"/>
+            <rect x="192.7" y="74" width="287.3" height="22" fill="url(#gGreenH)"/>
+            <text x="153" y="89" font-family="Outfit, sans-serif" font-size="10" fill="#FFFFFF" font-weight="900" text-anchor="middle">65+ · 21%</text>
+            <text x="336" y="89" font-family="Outfit, sans-serif" font-size="10" fill="#FFFFFF" font-weight="900" text-anchor="middle">35–64 · 79%</text>
+
+            <!-- Mismatch indicator -->
+            <path d="M 197 47 Q 175 60 175 71" fill="none" stroke="#DC2626" stroke-width="0.9" stroke-dasharray="3 2"/>
+            <polygon points="172,69 178,69 175,75" fill="#DC2626"/>
+            <text x="140" y="65" font-family="JetBrains Mono, monospace" font-size="7" fill="#EF4444" font-weight="900" letter-spacing="0.5">−24 PTS</text>
+
+            <!-- Mismatch caption -->
+            <text x="0" y="120" font-family="Plus Jakarta Sans, sans-serif" font-size="9.5" fill="#E5E7EB" font-style="italic">65+ takes nearly half the budget — but delivers only one in five of the leads.</text>
+
+            <!-- Divider -->
+            <line x1="0" y1="135" x2="480" y2="135" stroke="#1A1A1A" stroke-dasharray="3 3"/>
+
+            <!-- Section C: Per $100 spent -->
+            <text x="0" y="152" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#6B7280" font-weight="800" letter-spacing="1.4">WHAT $100 ACTUALLY BUYS YOU</text>
+
+            <!-- 65+ row -->
+            <text x="0" y="178" font-family="Outfit, sans-serif" font-size="14" fill="#FFFFFF" font-weight="900" letter-spacing="-0.5">65+</text>
+            <rect x="60" y="166" width="380" height="22" rx="3" fill="#0a0a0a" stroke="#1A1A1A" stroke-width="0.6"/>
+            <rect x="60" y="166" width="108" height="22" rx="3" fill="url(#gRedH)"/>
+            <text x="178" y="181" font-family="Outfit, sans-serif" font-size="13" fill="#FFFFFF" font-weight="900">1.14 leads</text>
+
+            <!-- 35-64 row -->
+            <text x="0" y="212" font-family="Outfit, sans-serif" font-size="14" fill="#FFFFFF" font-weight="900" letter-spacing="-0.5">35–64</text>
+            <rect x="60" y="200" width="380" height="22" rx="3" fill="#0a0a0a" stroke="#1A1A1A" stroke-width="0.6"/>
+            <rect x="60" y="200" width="324" height="22" rx="3" fill="url(#gGreenH)"/>
+            <text x="332" y="215" font-family="Outfit, sans-serif" font-size="13" fill="#FFFFFF" font-weight="900">3.41 leads</text>
+            <text x="436" y="215" font-family="JetBrains Mono, monospace" font-size="8" fill="#10B981" font-weight="900" text-anchor="end" letter-spacing="0.6">3× MORE</text>
+
+            <!-- Bottom note -->
+            <text x="0" y="245" font-family="Plus Jakarta Sans, sans-serif" font-size="8.5" fill="#9CA3AF" font-style="italic">For the same $100, the 35–64 audience produces roughly three times as many leads.</text>
+        </svg>
+        <div class="chart-caption">Other high-confidence findings — <strong>broken Lead Forms ($186.32 / 0 leads)</strong> and <strong>the Traffic-objective 54% drop-off</strong> — are visualized on Page 1. <span style="color:#F59E0B;">Reels & Stories</span> placements still need isolated Lead-objective testing before any verdict.</div>
     </div>
 
     <h2 class="sec-title">Where Each Age Group's Money Actually Converts</h2>
@@ -408,7 +460,7 @@
 
         <svg viewBox="0 0 480 170" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: auto; margin-top: 12px; display: block;">
             <!-- Legend swatches -->
-            <rect x="0" y="2" width="11" height="9" rx="1.5" fill="url(#gGreenH)" opacity="0.45"/>
+            <rect x="0" y="2" width="11" height="9" rx="1.5" fill="url(#gBlueH)"/>
             <text x="16" y="10" font-family="JetBrains Mono, monospace" font-size="7" fill="#9CA3AF" font-weight="800" letter-spacing="0.6">FIRST 3 SECONDS</text>
             <rect x="135" y="2" width="11" height="9" rx="1.5" fill="url(#gGreenH)"/>
             <text x="151" y="10" font-family="JetBrains Mono, monospace" font-size="7" fill="#9CA3AF" font-weight="800" letter-spacing="0.6">WATCHED ALL THE WAY THROUGH</text>
@@ -425,24 +477,24 @@
             <!-- Row 1: Insurance Stories -->
             <text x="130" y="36" font-family="Plus Jakarta Sans, sans-serif" font-size="9.5" fill="#FFFFFF" text-anchor="end" font-weight="700">Insurance Stories</text>
             <text x="130" y="46" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#10B981" text-anchor="end" font-weight="800" letter-spacing="0.5">STRONG</text>
-            <rect x="135" y="26" width="135.7" height="9" rx="2" fill="url(#gGreenH)" opacity="0.45"/>
-            <text x="275" y="33" font-family="Outfit, sans-serif" font-size="9" fill="#10B981" font-weight="900">21.2%</text>
+            <rect x="135" y="26" width="135.7" height="9" rx="2" fill="url(#gBlueH)"/>
+            <text x="275" y="33" font-family="Outfit, sans-serif" font-size="9" fill="#60A5FA" font-weight="900">21.2%</text>
             <rect x="135" y="36" width="254.7" height="9" rx="2" fill="url(#gGreenH)"/>
             <text x="394" y="43" font-family="Outfit, sans-serif" font-size="9" fill="#10B981" font-weight="900">39.8%</text>
 
             <!-- Row 2: Real Job Site Footage -->
             <text x="130" y="70" font-family="Plus Jakarta Sans, sans-serif" font-size="9.5" fill="#FFFFFF" text-anchor="end" font-weight="700">Real Job Site Footage</text>
             <text x="130" y="80" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#10B981" text-anchor="end" font-weight="800" letter-spacing="0.5">STRONG</text>
-            <rect x="135" y="60" width="156.8" height="9" rx="2" fill="url(#gGreenH)" opacity="0.45"/>
-            <text x="296" y="67" font-family="Outfit, sans-serif" font-size="9" fill="#10B981" font-weight="900">24.5%</text>
+            <rect x="135" y="60" width="156.8" height="9" rx="2" fill="url(#gBlueH)"/>
+            <text x="296" y="67" font-family="Outfit, sans-serif" font-size="9" fill="#60A5FA" font-weight="900">24.5%</text>
             <rect x="135" y="70" width="248.96" height="9" rx="2" fill="url(#gGreenH)"/>
             <text x="388" y="77" font-family="Outfit, sans-serif" font-size="9" fill="#10B981" font-weight="900">38.9%</text>
 
             <!-- Row 3: Generic Promo -->
             <text x="130" y="104" font-family="Plus Jakarta Sans, sans-serif" font-size="9.5" fill="#FFFFFF" text-anchor="end" font-weight="700">Generic Promo Ads</text>
             <text x="130" y="114" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#EF4444" text-anchor="end" font-weight="800" letter-spacing="0.5">WEAK</text>
-            <rect x="135" y="94" width="141.4" height="9" rx="2" fill="url(#gRedH)" opacity="0.45"/>
-            <text x="281" y="101" font-family="Outfit, sans-serif" font-size="9" fill="#EF4444" font-weight="900">22.1%</text>
+            <rect x="135" y="94" width="141.4" height="9" rx="2" fill="url(#gBlueH)"/>
+            <text x="281" y="101" font-family="Outfit, sans-serif" font-size="9" fill="#60A5FA" font-weight="900">22.1%</text>
             <rect x="135" y="104" width="195.2" height="9" rx="2" fill="url(#gRedH)"/>
             <text x="335" y="111" font-family="Outfit, sans-serif" font-size="9" fill="#EF4444" font-weight="900">30.5%</text>
 
@@ -475,9 +527,9 @@
 <!-- ════════════════════ PAGE 3: REMEDIATION ROADMAP ════════════════════ -->
 <div class="pdf-page">
     <div class="header">
-        <img src="report_assets/sna_logo_nobg.png" alt="SNA">
+        <svg class="logo" viewBox="0 0 150 35" aria-label="SNA Forensic Marketing Engine"><use href="#logoSNA"/></svg>
         <div class="line"></div>
-        <img src="report_assets/take_charge_logo_clean.png" alt="TC">
+        <svg class="logo" viewBox="0 0 150 35" aria-label="Take Charge Roofing"><use href="#logoTC"/></svg>
     </div>
 
     <h2 class="sec-title">Immediate Tracking Repair Checklist</h2>
@@ -559,9 +611,9 @@
 <!-- ════════════════════ PAGE 4: GEOGRAPHIC & LOCAL WASTE ════════════════════ -->
 <div class="pdf-page">
     <div class="header">
-        <img src="report_assets/sna_logo_nobg.png" alt="SNA">
+        <svg class="logo" viewBox="0 0 150 35" aria-label="SNA Forensic Marketing Engine"><use href="#logoSNA"/></svg>
         <div class="line"></div>
-        <img src="report_assets/take_charge_logo_clean.png" alt="TC">
+        <svg class="logo" viewBox="0 0 150 35" aria-label="Take Charge Roofing"><use href="#logoTC"/></svg>
     </div>
 
     <h2 class="sec-title">Geographic & Local Waste Audit</h2>
@@ -652,114 +704,188 @@
         <svg viewBox="0 0 600 380" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: auto; display: block;">
             <!-- Base map -->
             <rect width="600" height="380" rx="6" fill="url(#gMapBase)"/>
-            <rect width="600" height="380" rx="6" fill="url(#pMapGrid)" opacity="0.55"/>
+            <rect width="600" height="380" rx="6" fill="url(#pMapGrid)" opacity="0.4"/>
 
-            <!-- Atlanta DMA outer boundary -->
-            <path d="M 65 95 C 130 65 240 50 380 58 C 470 64 525 100 545 175 C 555 245 510 295 460 320 C 380 350 270 350 180 325 C 95 295 50 215 65 95 Z"
-                  fill="#0e0e12" stroke="#2a2a30" stroke-width="1.2" stroke-dasharray="6 4"/>
+            <!-- Atlanta DMA outer boundary (irregular shape reflecting real county lines) -->
+            <path d="M 78 108 L 130 92 L 188 78 L 248 66 L 308 60 L 365 62 L 420 70 L 470 84 L 510 104 L 535 132 L 548 168 L 552 208 L 545 248 L 528 285 L 498 312 L 458 328 L 408 338 L 352 342 L 296 340 L 240 332 L 188 318 L 142 296 L 102 268 L 75 232 L 62 192 L 65 152 L 78 108 Z"
+                  fill="#0d0d12" stroke="#383840" stroke-width="1.3" stroke-dasharray="5 3"/>
 
-            <!-- Lake Lanier (NE) -->
-            <path d="M 408 70 Q 432 76 440 102 Q 432 124 406 116 Q 393 94 408 70 Z" fill="url(#gWater)" stroke="#1e3a8a" stroke-width="0.6" opacity="0.88"/>
-            <text x="448" y="100" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5" fill="#60A5FA" font-weight="700" font-style="italic" opacity="0.9">Lake Lanier</text>
-
-            <!-- Major interstates -->
-            <g stroke="#3a3a44" stroke-width="1.4" fill="none">
-                <line x1="305" y1="58" x2="305" y2="348"/>
-                <line x1="545" y1="118" x2="100" y2="288"/>
-                <line x1="80" y1="218" x2="540" y2="218"/>
+            <!-- County hints (Big 5 metro counties) -->
+            <g stroke="#1d1d24" stroke-width="0.7" fill="rgba(255,255,255,0.008)" opacity="0.85">
+                <!-- Cherokee (N) -->
+                <path d="M 220 78 L 295 78 L 295 142 L 220 142 Z"/>
+                <!-- Forsyth -->
+                <path d="M 295 78 L 365 80 L 365 145 L 295 142 Z"/>
+                <!-- Cobb (NW) -->
+                <path d="M 195 142 L 295 142 L 295 205 L 195 200 Z"/>
+                <!-- North Fulton + Roswell -->
+                <path d="M 295 142 L 350 145 L 350 200 L 295 200 Z"/>
+                <!-- Gwinnett (NE) -->
+                <path d="M 350 145 L 445 130 L 460 215 L 365 220 L 350 200 Z"/>
+                <!-- Fulton (central, long N-S) -->
+                <path d="M 295 200 L 350 200 L 365 220 L 360 295 L 295 295 Z"/>
+                <!-- DeKalb (E of Fulton) -->
+                <path d="M 350 200 L 410 215 L 415 290 L 360 295 L 365 220 Z"/>
+                <!-- Douglas (W) -->
+                <path d="M 130 200 L 195 200 L 200 270 L 135 268 Z"/>
+                <!-- Clayton (S) -->
+                <path d="M 280 295 L 350 295 L 350 335 L 282 332 Z"/>
+                <!-- Henry (SE) -->
+                <path d="M 350 295 L 420 290 L 425 335 L 350 335 Z"/>
             </g>
-            <g font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525258" font-weight="900">
-                <text x="312" y="72">I-75</text>
-                <text x="118" y="280">I-85</text>
-                <text x="536" y="214" text-anchor="end">I-20</text>
-            </g>
 
-            <!-- I-285 perimeter octagon -->
-            <polygon points="275,178 335,178 365,205 365,225 335,252 275,252 245,225 245,205"
-                     fill="rgba(255,255,255,0.012)" stroke="#525258" stroke-width="1.6" stroke-linejoin="round"/>
-            <text x="305" y="172" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#6B7280" text-anchor="middle" font-weight="900" letter-spacing="0.8">I-285 PERIMETER</text>
+            <!-- Lake Lanier (dendritic, long N-S, just outside 30mi NE) -->
+            <path d="M 418 52
+                     C 426 56, 430 68, 422 76
+                     L 430 86
+                     C 440 92, 438 105, 426 108
+                     L 433 124
+                     C 440 134, 432 144, 422 142
+                     L 416 152
+                     C 408 158, 398 152, 400 142
+                     L 392 130
+                     C 384 124, 388 112, 400 112
+                     L 394 100
+                     C 386 94, 390 82, 404 84
+                     L 408 72
+                     C 404 64, 410 56, 418 52 Z"
+                  fill="url(#gWater)" stroke="#1e3a8a" stroke-width="0.6" opacity="0.92"/>
+            <!-- Lanier west finger -->
+            <path d="M 392 130 C 386 132, 378 128, 380 122 C 382 116, 388 116, 392 122 Z" fill="url(#gWater)" opacity="0.85"/>
+            <!-- Lanier east finger -->
+            <path d="M 430 86 C 438 84, 446 88, 444 95 C 440 100, 434 96, 430 92 Z" fill="url(#gWater)" opacity="0.85"/>
+            <text x="448" y="120" font-family="Plus Jakarta Sans, sans-serif" font-size="8" fill="#7aa3d6" font-weight="700" font-style="italic" opacity="0.95">Lake Lanier</text>
+
+            <!-- Chattahoochee River (flows S/SW from Lake Lanier through Atlanta metro) -->
+            <path d="M 412 152 C 400 168, 388 180, 378 198 C 372 215, 360 228, 345 242 C 328 258, 308 268, 285 274 C 258 281, 228 282, 198 278 C 168 273, 138 265, 110 252"
+                  fill="none" stroke="#3d4a7c" stroke-width="1.6" opacity="0.85"/>
+            <path d="M 412 152 C 400 168, 388 180, 378 198 C 372 215, 360 228, 345 242 C 328 258, 308 268, 285 274 C 258 281, 228 282, 198 278 C 168 273, 138 265, 110 252"
+                  fill="none" stroke="#5c7ab8" stroke-width="0.5" opacity="0.55"/>
+
+            <!-- Interstates: I-75 (NW Cobb → downtown → SE Henry/Clayton toward Macon) -->
+            <path d="M 232 76 C 248 110, 264 138, 280 168 L 295 198 L 305 220 L 322 258 C 335 292, 348 320, 358 350"
+                  fill="none" stroke="#525258" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+            <text x="240" y="92" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#71717a" font-weight="900" letter-spacing="0.4">I-75</text>
+
+            <!-- I-85 (SW Newnan → downtown → NE Gwinnett toward South Carolina) -->
+            <path d="M 178 332 C 208 302, 240 270, 270 240 L 298 218 L 325 200 C 358 178, 392 152, 425 128 C 450 110, 472 92, 482 72"
+                  fill="none" stroke="#525258" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+            <text x="172" y="325" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#71717a" font-weight="900" letter-spacing="0.4">I-85</text>
+
+            <!-- I-20 (W Douglasville → downtown → E Conyers toward Augusta) -->
+            <path d="M 75 232 C 110 226, 150 222, 188 220 L 250 218 L 305 218 L 360 220 L 430 224 C 480 227, 525 230, 545 232"
+                  fill="none" stroke="#525258" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+            <text x="540" y="212" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#71717a" font-weight="900" text-anchor="end" letter-spacing="0.4">I-20</text>
+
+            <!-- I-285 perimeter loop (elliptical, slightly elongated N-S like real geography) -->
+            <ellipse cx="302" cy="217" rx="38" ry="40" fill="none" stroke="#6f6f78" stroke-width="2.2" stroke-linejoin="round"/>
+            <ellipse cx="302" cy="217" rx="38" ry="40" fill="none" stroke="#9a9aa3" stroke-width="0.5" opacity="0.55"/>
+            <text x="302" y="172" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#85858d" text-anchor="middle" font-weight="900" letter-spacing="0.8">I-285</text>
 
             <!-- 30-mile radius glow + ring -->
-            <circle cx="305" cy="215" r="92" fill="url(#gRadiusGlow)"/>
-            <circle cx="305" cy="215" r="92" fill="none" stroke="#DC2626" stroke-width="2.2" stroke-dasharray="6 3"/>
-            <circle cx="305" cy="215" r="92" fill="none" stroke="#EF4444" stroke-width="0.5" opacity="0.4"/>
+            <circle cx="302" cy="217" r="90" fill="url(#gRadiusGlow)"/>
+            <circle cx="302" cy="217" r="90" fill="none" stroke="#DC2626" stroke-width="2.3" stroke-dasharray="6 3"/>
+            <circle cx="302" cy="217" r="90" fill="none" stroke="#EF4444" stroke-width="0.5" opacity="0.4"/>
 
-            <!-- 30-mi range label (top of circle) -->
-            <text x="305" y="128" font-family="Outfit, sans-serif" font-size="10" fill="#FCA5A5" font-weight="900" text-anchor="middle" letter-spacing="1.4">30-MILE PROFITABLE SERVICE RANGE</text>
+            <!-- 30-mi range label -->
+            <text x="302" y="125" font-family="Outfit, sans-serif" font-size="10" fill="#FCA5A5" font-weight="900" text-anchor="middle" letter-spacing="1.4">30-MILE PROFITABLE SERVICE RANGE</text>
 
             <!-- Radius indicator -->
-            <line x1="305" y1="215" x2="397" y2="215" stroke="#DC2626" stroke-width="1.3" stroke-dasharray="3 2"/>
-            <rect x="340" y="205" width="36" height="16" rx="2.5" fill="#0a0a0a" stroke="#DC2626" stroke-width="0.9"/>
-            <text x="358" y="216" font-family="Outfit, sans-serif" font-size="9.5" fill="#FCA5A5" font-weight="900" text-anchor="middle" dominant-baseline="middle" letter-spacing="0.5">30 MI</text>
+            <line x1="302" y1="217" x2="392" y2="217" stroke="#DC2626" stroke-width="1.4" stroke-dasharray="3 2"/>
+            <rect x="338" y="207" width="36" height="16" rx="2.5" fill="#0a0a0a" stroke="#DC2626" stroke-width="0.9"/>
+            <text x="356" y="218" font-family="Outfit, sans-serif" font-size="9.5" fill="#FCA5A5" font-weight="900" text-anchor="middle" dominant-baseline="middle" letter-spacing="0.5">30 MI</text>
 
-            <!-- Atlanta HQ pin -->
-            <g transform="translate(305, 215)">
+            <!-- Hartsfield-Jackson Airport (ATL) — south of downtown -->
+            <g transform="translate(285, 258)">
+                <rect x="-6" y="-6" width="12" height="12" rx="1" fill="rgba(156,163,175,0.18)" stroke="#9CA3AF" stroke-width="0.7"/>
+                <path d="M -4.5 0 L 4.5 0 M 0 -4.5 L 0 4.5" stroke="#9CA3AF" stroke-width="0.9" stroke-linecap="round"/>
+                <text x="0" y="16" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#9CA3AF" font-weight="900" text-anchor="middle" letter-spacing="0.5">ATL</text>
+            </g>
+
+            <!-- Atlanta downtown HQ pin -->
+            <g transform="translate(302, 217)">
                 <circle r="16" fill="#DC2626" opacity="0.14"/>
                 <circle r="10" fill="#DC2626" opacity="0.32"/>
                 <circle r="6" fill="#DC2626" stroke="#FFFFFF" stroke-width="1.5"/>
                 <circle r="2.2" fill="#FFFFFF"/>
             </g>
-            <g transform="translate(305, 189)">
+            <g transform="translate(302, 191)">
                 <rect x="-32" y="-13" width="64" height="18" rx="3" fill="#0a0a0a" stroke="#DC2626" stroke-width="1"/>
                 <text y="-1" font-family="Outfit, sans-serif" font-size="10" fill="#FFFFFF" font-weight="900" text-anchor="middle" letter-spacing="-0.2">ATLANTA</text>
                 <text y="-22" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#DC2626" font-weight="900" text-anchor="middle" letter-spacing="1.4">▼ HQ</text>
             </g>
 
-            <!-- In-range cities -->
+            <!-- In-range cities (inside 30-mi circle, real relative positions) -->
             <g font-family="Plus Jakarta Sans, sans-serif" font-size="8" fill="#E5E7EB" font-weight="700">
-                <g transform="translate(258, 158)">
+                <g transform="translate(252, 175)">
                     <circle r="3.5" fill="#FFFFFF" stroke="#0a0a0a" stroke-width="1"/>
                     <text y="-8" text-anchor="middle">Marietta</text>
                 </g>
-                <g transform="translate(348, 155)">
+                <g transform="translate(295, 148)">
                     <circle r="3.5" fill="#FFFFFF" stroke="#0a0a0a" stroke-width="1"/>
                     <text y="-8" text-anchor="middle">Roswell</text>
                 </g>
-                <g transform="translate(370, 253)">
+                <g transform="translate(330, 213)">
                     <circle r="3.5" fill="#FFFFFF" stroke="#0a0a0a" stroke-width="1"/>
-                    <text y="14" text-anchor="middle">Decatur</text>
+                    <text y="-8" text-anchor="middle">Decatur</text>
                 </g>
-                <g transform="translate(258, 268)">
+                <g transform="translate(282, 194)">
+                    <circle r="3.5" fill="#FFFFFF" stroke="#0a0a0a" stroke-width="1"/>
+                    <text x="-7" y="-3" text-anchor="end">Smyrna</text>
+                </g>
+                <g transform="translate(285, 238)">
                     <circle r="3.5" fill="#FFFFFF" stroke="#0a0a0a" stroke-width="1"/>
                     <text y="14" text-anchor="middle">East Point</text>
                 </g>
-                <g transform="translate(220, 205)">
+                <g transform="translate(356, 217)">
                     <circle r="3.5" fill="#FFFFFF" stroke="#0a0a0a" stroke-width="1"/>
-                    <text y="-8" text-anchor="middle">Smyrna</text>
+                    <text y="14" text-anchor="middle">Stone Mtn</text>
+                </g>
+                <g transform="translate(300, 137)">
+                    <circle r="3.5" fill="#FFFFFF" stroke="#0a0a0a" stroke-width="1"/>
+                    <text y="-8" text-anchor="middle">Alpharetta</text>
+                </g>
+                <g transform="translate(342, 258)">
+                    <circle r="3" fill="#FFFFFF" stroke="#0a0a0a" stroke-width="1"/>
+                    <text y="13" text-anchor="middle">Stockbridge</text>
                 </g>
             </g>
 
             <!-- Out-of-range cities (dimmed) -->
             <g font-family="Plus Jakarta Sans, sans-serif" font-size="7.5" fill="#6B7280" font-weight="700">
-                <g transform="translate(168, 250)">
+                <g transform="translate(218, 297)">
                     <circle r="3" fill="#525252" stroke="#1a1a1a" stroke-width="0.8"/>
-                    <text y="14" text-anchor="middle">Newnan</text>
+                    <text y="13" text-anchor="middle">Newnan</text>
                 </g>
-                <g transform="translate(150, 175)">
+                <g transform="translate(148, 215)">
                     <circle r="3" fill="#525252" stroke="#1a1a1a" stroke-width="0.8"/>
                     <text y="-7" text-anchor="middle">Carrollton</text>
                 </g>
-                <g transform="translate(415, 108)">
+                <g transform="translate(420, 108)">
                     <circle r="3" fill="#525252" stroke="#1a1a1a" stroke-width="0.8"/>
                     <text y="-7" text-anchor="middle">Gainesville</text>
                 </g>
-                <g transform="translate(430, 325)">
+                <g transform="translate(380, 138)">
                     <circle r="3" fill="#525252" stroke="#1a1a1a" stroke-width="0.8"/>
-                    <text y="14" text-anchor="middle">Griffin</text>
+                    <text y="-7" text-anchor="middle">Buford</text>
                 </g>
-                <g transform="translate(502, 195)">
+                <g transform="translate(300, 335)">
+                    <circle r="3" fill="#525252" stroke="#1a1a1a" stroke-width="0.8"/>
+                    <text y="13" text-anchor="middle">Griffin</text>
+                </g>
+                <g transform="translate(500, 168)">
                     <circle r="3" fill="#525252" stroke="#1a1a1a" stroke-width="0.8"/>
                     <text y="-7" text-anchor="middle">Athens</text>
                 </g>
             </g>
 
-            <!-- DMA / region label -->
-            <text x="80" y="80" font-family="Outfit, sans-serif" font-size="10.5" fill="#6B7280" font-weight="900" letter-spacing="2.5">ATLANTA METRO MARKET</text>
-            <text x="80" y="94" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" font-weight="700" letter-spacing="0.8">CURRENT TARGETED AREA · 50+ COUNTIES</text>
+            <!-- Region label -->
+            <text x="78" y="86" font-family="Outfit, sans-serif" font-size="10.5" fill="#6B7280" font-weight="900" letter-spacing="2.5">ATLANTA METRO MARKET</text>
+            <text x="78" y="100" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" font-weight="700" letter-spacing="0.8">CURRENT TARGETED AREA · 50+ COUNTIES</text>
 
-            <!-- Out-of-range callout -->
-            <line x1="168" y1="253" x2="118" y2="298" stroke="#525252" stroke-width="0.8" stroke-dasharray="2 2"/>
-            <g transform="translate(38, 308)">
+            <!-- Out-of-range callout (pointing to Newnan / Carrollton zone) -->
+            <line x1="178" y1="225" x2="115" y2="305" stroke="#525252" stroke-width="0.8" stroke-dasharray="2 2"/>
+            <g transform="translate(38, 310)">
                 <rect width="142" height="34" rx="3" fill="#0a0a0a" stroke="#525252" stroke-width="0.9"/>
                 <text x="71" y="15" font-family="Outfit, sans-serif" font-size="9.5" fill="#9CA3AF" font-weight="900" text-anchor="middle" letter-spacing="0.6">OUT OF DRIVING RANGE</text>
                 <text x="71" y="27" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5" fill="#6B7280" text-anchor="middle" font-style="italic">spend leaking here</text>
