@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SNA FORENSIC | Take Charge Roofing — Audit Suite</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@700;900&family=JetBrains+Mono:wght@400;700&display=swap');
+
+        :root {
+            --bg: #030303;
+            --card: #0a0a0a;
+            --card-hover: #0e0e0e;
+            --border: #151515;
+            --border-hover: #DC2626;
+            --red: #DC2626;
+            --red-bright: #ff0000;
+            --text: #ffffff;
+            --text-dim: #9CA3AF;
+            --text-muted: #666666;
+            --font-main: 'Inter', sans-serif;
+            --font-head: 'Outfit', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font-main);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background:
+                radial-gradient(ellipse 80% 50% at 50% -10%, rgba(220, 38, 38, 0.12), transparent 60%),
+                var(--bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 80px 32px 64px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            flex-direction: column;
+            gap: 56px;
+        }
+
+        header {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .wordmark {
+            font-family: var(--font-head);
+            font-weight: 900;
+            font-size: 0.95rem;
+            letter-spacing: 0.18em;
+            color: var(--red);
+            text-transform: uppercase;
+        }
+
+        h1 {
+            font-family: var(--font-head);
+            font-weight: 900;
+            font-size: clamp(2rem, 4vw, 3rem);
+            letter-spacing: -0.025em;
+            line-height: 1.05;
+            max-width: 720px;
+        }
+
+        h1 .accent { color: var(--red); }
+
+        .subtitle {
+            font-size: 1.05rem;
+            color: var(--text-dim);
+            font-weight: 400;
+            max-width: 620px;
+            line-height: 1.5;
+        }
+
+        .label {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .card {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding: 32px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            text-decoration: none;
+            color: inherit;
+            transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+            min-height: 220px;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            border-color: var(--border-hover);
+            background: var(--card-hover);
+        }
+
+        .card:hover .open { color: var(--red); }
+        .card:hover .open .arrow { transform: translateX(4px); }
+
+        .card-tag {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            color: var(--red);
+            text-transform: uppercase;
+        }
+
+        .card-title {
+            font-family: var(--font-head);
+            font-weight: 900;
+            font-size: 1.5rem;
+            letter-spacing: -0.015em;
+            line-height: 1.15;
+        }
+
+        .card-desc {
+            color: var(--text-dim);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            flex: 1;
+        }
+
+        .open {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: 0.05em;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: auto;
+            transition: color 180ms ease;
+        }
+
+        .open .arrow {
+            display: inline-block;
+            transition: transform 180ms ease;
+        }
+
+        footer {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-top: 16px;
+        }
+
+        @media (max-width: 720px) {
+            body { padding: 56px 20px 48px; }
+            .container { gap: 40px; }
+            .cards { grid-template-columns: 1fr; }
+            .card { padding: 26px; min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <main class="container">
+        <header>
+            <span class="wordmark">SNA Forensic</span>
+            <h1>Take Charge Roofing<br><span class="accent">Audit Suite</span></h1>
+            <p class="subtitle">Forensic marketing intelligence — funnel leakage, tracking integrity, and strategic remediation, packaged for executive review.</p>
+        </header>
+
+        <section>
+            <div class="label" style="margin-bottom: 18px;">Reports</div>
+            <div class="cards">
+                <a class="card" href="/interactive_audit.html">
+                    <span class="card-tag">Live Dashboard</span>
+                    <h2 class="card-title">Interactive Audit Dashboard</h2>
+                    <p class="card-desc">Bento-grid visualizer covering 54.4% funnel leakage, the $186.32 tracking failure, and Atlanta DMA geographic waste.</p>
+                    <span class="open">Open <span class="arrow">→</span></span>
+                </a>
+
+                <a class="card" href="/campaign_report.html">
+                    <span class="card-tag">Print Brief</span>
+                    <h2 class="card-title">Campaign Report</h2>
+                    <p class="card-desc">Print-ready strategic performance remediation brief with findings, root causes, and recommended next steps.</p>
+                    <span class="open">Open <span class="arrow">→</span></span>
+                </a>
+            </div>
+        </section>
+
+        <footer>SNA Forensic Engine · v8</footer>
+    </main>
+</body>
+</html>
