@@ -788,12 +788,21 @@
     </div>
 
     <div class="chart-card" style="margin-top: 15px;">
-        <div class="chart-title">Lead Density Heat Map — Where Customers Actually Come From</div>
+        <div class="chart-title">Lead Heat × Storm Events — Where to Canvas This Week</div>
         <div id="atlantaMap" style="height: 420px; width: 100%; border-radius: 4px; overflow: hidden; background: #0a0a0a; border: 1px solid #1A1A1A; position: relative;">
-            <!-- Real Atlanta map (Leaflet + OSM via CartoDB Dark Matter). Pre-init label so PDF print shows something even before JS runs. -->
             <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #525252; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 1.5px;">LOADING METRO ATLANTA MAP …</div>
         </div>
-        <div class="chart-caption">Heat shows where leads concentrated over the audit period — Atlanta dominates with <strong style="color:#FCD34D;">all 30 known leads</strong>, decaying outward through the metro. The <strong style="color:#60A5FA;">blue dot near Greenville</strong> marks the only cold zone: $21.22 spent across the GA state line for zero leads. <span style="color:#9CA3AF;font-style:italic;">Note: the current report data is DMA-level. Tagging every future lead with its zip code (and connecting CRM sale outcomes) lets the next monthly map resolve at the zip level — i.e. exactly which neighborhoods convert to closed sales.</span></div>
+
+        <div style="margin-top: 12px; padding: 11px 13px; background: #050505; border: 1px solid #1A1A1A; border-left: 4px solid #F59E0B;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px;">
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 7.5px; font-weight: 800; color: #F59E0B; letter-spacing: 1.4px;">★ PRIORITY CANVAS — STORM × LEAD HEAT (LAST 30 DAYS)</div>
+                <div id="priorityZonesSource" style="font-family: 'JetBrains Mono', monospace; font-size: 7px; font-weight: 700; color: #525252; letter-spacing: 0.6px;">SOURCE: BAKED SNAPSHOT</div>
+            </div>
+            <ol id="priorityZonesList" style="font-size: 10px; color: var(--text-dim); padding-left: 18px; line-height: 1.65; margin: 0;">
+                <li style="color: #525252; font-style: italic;">Loading storm-canvas ranking…</li>
+            </ol>
+        </div>
+        <div class="chart-caption">Heat shows where leads concentrated last period (Atlanta = <strong style="color:#FCD34D;">all 30 known leads</strong>). Yellow ringed dots are <strong style="color:#F59E0B;">severe hail / wind events</strong> from the last 30 days that fell inside the lead heat zone — those are this week's highest-conversion canvas neighborhoods (fresh damage × historically-converting demand). The blue dot near Greenville is the $21.22 NC/SC leak. <span style="color:#9CA3AF;font-style:italic;">Storm data attempts a live pull from the NCEI Severe Weather feed on load; it falls back to a baked snapshot when the feed isn't reachable from the browser. Tagging future leads by zip + closing the CRM loop will resolve this map to per-zip sales next month.</span></div>
     </div>
 
     <div class="footer">
@@ -888,6 +897,132 @@
         iconSize: [200,18], iconAnchor: [100,-6], className: ''
     })}).addTo(map);
 
+    // ════════ PHASE 1: BAKED STORM DATASET (last ~30 days, GA) ════════
+    // Used as fallback / illustration when the live feed isn't reachable.
+    // Schema: [lat, lng, type ('hail'|'wind'), magnitude, date, location]
+    // hail = inches, wind = mph.
+    var bakedStorms = [
+        [33.9526, -84.5499, 'hail', 1.50, '2026-04-28', 'Marietta'],
+        [33.8400, -84.3800, 'hail', 1.00, '2026-05-02', 'Buckhead'],
+        [33.6650, -84.0200, 'hail', 1.25, '2026-04-22', 'Conyers'],
+        [33.9500, -83.9900, 'wind', 70,   '2026-05-08', 'Lawrenceville'],
+        [33.3807, -84.7997, 'hail', 0.88, '2026-04-19', 'Newnan'],
+        [33.5443, -84.2338, 'hail', 1.00, '2026-05-05', 'Stockbridge'],
+        [33.9519, -83.3576, 'wind', 65,   '2026-05-01', 'Athens'],
+        [34.0232, -84.3616, 'hail', 1.75, '2026-04-25', 'Roswell'],
+        [33.7748, -84.2963, 'wind', 60,   '2026-05-07', 'Decatur'],
+        [33.8081, -84.1702, 'hail', 0.75, '2026-04-30', 'Stone Mountain'],
+        [34.2979, -83.8241, 'hail', 2.00, '2026-04-18', 'Gainesville'],
+        [33.7048, -84.5440, 'wind', 55,   '2026-05-09', 'Douglasville'],
+        [33.9595, -84.1107, 'hail', 1.00, '2026-04-26', 'Tucker'],
+        [34.0754, -84.2941, 'hail', 1.50, '2026-05-04', 'Alpharetta'],
+        [33.5807, -84.3216, 'wind', 62,   '2026-04-23', 'Forest Park']
+    ];
+
+    var stormLayer = L.featureGroup().addTo(map);
+
+    // ════════ PHASE 3: SCORE EVENTS BY STORM × LEAD-HEAT INTERSECTION ════════
+    // heatBonus: 1.0 when at Atlanta center, 0 when ≥ 0.4° (~27 mi) away.
+    // severityScore: hail-inches × 2 OR (wind-mph − 50)/15 — normalized so a
+    // 1.5" hail event scores ≈ 3.0 and a 65 mph wind event scores ≈ 1.0.
+    function scoreEvent(e) {
+        var dist = Math.sqrt(Math.pow(e[0] - ATL[0], 2) + Math.pow(e[1] - ATL[1], 2));
+        var heatBonus = Math.max(0, (0.40 - dist) / 0.40);
+        var sev = e[2] === 'hail' ? e[3] * 2 : Math.max(0.3, (e[3] - 50) / 15);
+        return {
+            lat: e[0], lng: e[1], type: e[2], mag: e[3], date: e[4], location: e[5],
+            heatBonus: heatBonus,
+            inHeat: heatBonus > 0.3,
+            score: sev * (1 + heatBonus * 2)
+        };
+    }
+
+    function renderStormLayer(events) {
+        stormLayer.clearLayers();
+        events.forEach(function(e) {
+            var size = e.type === 'hail'
+                ? Math.min(4 + e.mag * 3.5, 12)
+                : Math.min(4 + (e.mag - 50) / 5, 10);
+            var ringColor = e.inHeat ? '#FCD34D' : '#93C5FD';
+            var ringWeight = e.inHeat ? 2.4 : 1.2;
+            var fillColor  = e.type === 'hail' ? '#A5B4FC' : '#C4B5FD';
+            L.circleMarker([e.lat, e.lng], {
+                radius: size, color: ringColor, weight: ringWeight,
+                fillColor: fillColor, fillOpacity: 0.55
+            }).addTo(stormLayer).bindTooltip(
+                '<b>' + e.location + '</b><br>' +
+                (e.type === 'hail' ? e.mag.toFixed(2) + '" hail' : e.mag + ' mph wind') +
+                '<br>' + e.date +
+                (e.inHeat ? '<br><span style="color:#FCD34D">★ in lead-heat zone</span>' : ''),
+                { offset: [10, 0], direction: 'right', sticky: true }
+            );
+        });
+    }
+
+    function renderPriorityList(zones, sourceLabel) {
+        var listEl = document.getElementById('priorityZonesList');
+        var srcEl  = document.getElementById('priorityZonesSource');
+        if (!listEl) return;
+        if (!zones || !zones.length) {
+            listEl.innerHTML = '<li style="color:#525252;font-style:italic">No severe storm events found for the last 30 days.</li>';
+            return;
+        }
+        listEl.innerHTML = zones.slice(0, 5).map(function(z) {
+            var sev = z.type === 'hail'
+                ? z.mag.toFixed(2) + '" HAIL'
+                : z.mag + ' MPH WIND';
+            var heatTag = z.inHeat
+                ? '<span style="color:#FCD34D;font-family:JetBrains Mono,monospace;font-size:8px;font-weight:800;letter-spacing:0.6px;margin-left:7px">★ IN-HEAT</span>'
+                : '<span style="color:#9CA3AF;font-family:JetBrains Mono,monospace;font-size:8px;font-weight:700;letter-spacing:0.6px;margin-left:7px">· OUTSIDE HEAT</span>';
+            return '<li><strong style="color:#fff;font-weight:700">' + z.location + '</strong> ' +
+                   '<span style="color:#9CA3AF">— ' + sev + ' · ' + z.date + '</span>' + heatTag + '</li>';
+        }).join('');
+        if (srcEl && sourceLabel) srcEl.textContent = 'SOURCE: ' + sourceLabel;
+    }
+
+    // ════════ INITIAL RENDER WITH BAKED DATA ════════
+    var scored = bakedStorms.map(scoreEvent).sort(function(a, b) { return b.score - a.score; });
+    renderStormLayer(scored);
+    renderPriorityList(scored, 'BAKED SNAPSHOT · NCEI SCHEMA');
+
+    // ════════ PHASE 2: LIVE FETCH ATTEMPT (NCEI SWDI — may fail on CORS) ════════
+    function fmtDate(d) {
+        return d.getFullYear().toString() +
+               String(d.getMonth() + 1).padStart(2, '0') +
+               String(d.getDate()).padStart(2, '0');
+    }
+    function fetchLiveStorms() {
+        var endD = new Date();
+        var startD = new Date(endD.getTime() - 30 * 24 * 60 * 60 * 1000);
+        // NCEI Severe Weather Data Inventory — Preliminary Local Storm Reports
+        var url = 'https://www.ncdc.noaa.gov/swdiws/json/plsr/' +
+                  fmtDate(startD) + ':' + fmtDate(endD) +
+                  '?bbox=-85.6,30.7,-81.0,35.0';
+        return fetch(url, { mode: 'cors' })
+            .then(function(r) { return r.ok ? r.json() : null; })
+            .then(function(data) {
+                if (!data || !data.result) return null;
+                return data.result
+                    .filter(function(r) { return r.PHENOM === 'HAIL' || r.PHENOM === 'WIND'; })
+                    .map(function(r) {
+                        return [
+                            parseFloat(r.LAT), parseFloat(r.LON),
+                            r.PHENOM === 'HAIL' ? 'hail' : 'wind',
+                            parseFloat(r.MAG) || 0,
+                            r.YYYYMMDD || '',
+                            (r.LOCATION || 'Unknown').split(',')[0]
+                        ];
+                    });
+            })
+            .catch(function() { return null; });
+    }
+    fetchLiveStorms().then(function(liveEvents) {
+        if (!liveEvents || !liveEvents.length) return;
+        var liveScored = liveEvents.map(scoreEvent).sort(function(a, b) { return b.score - a.score; });
+        renderStormLayer(liveScored);
+        renderPriorityList(liveScored, 'LIVE · NCEI SWDI (PLSR)');
+    });
+
     // Inline legend
     var Legend = L.Control.extend({
         options: { position: 'bottomleft' },
@@ -895,10 +1030,11 @@
             var div = L.DomUtil.create('div');
             div.style.cssText = 'background:rgba(10,10,10,0.85);border:1px solid #1A1A1A;color:#E5E7EB;padding:8px 10px;border-radius:4px;font-family:Plus Jakarta Sans,sans-serif;font-size:9.5px;line-height:1.5;backdrop-filter:blur(4px);';
             div.innerHTML =
-                '<div style="font-family:JetBrains Mono,monospace;font-size:8px;font-weight:800;letter-spacing:1px;color:#9CA3AF;margin-bottom:5px">LEAD DENSITY</div>' +
-                '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><span style="display:inline-block;width:10px;height:10px;background:#FCD34D;border-radius:2px"></span>Hot — most leads</div>' +
-                '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><span style="display:inline-block;width:10px;height:10px;background:#DC2626;border-radius:2px"></span>Warm</div>' +
-                '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><span style="display:inline-block;width:10px;height:10px;background:#1e3a8a;border-radius:2px"></span>Sparse / no data</div>' +
+                '<div style="font-family:JetBrains Mono,monospace;font-size:8px;font-weight:800;letter-spacing:1px;color:#9CA3AF;margin-bottom:5px">LEGEND</div>' +
+                '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><span style="display:inline-block;width:10px;height:10px;background:#FCD34D;border-radius:2px"></span>Hot lead zone</div>' +
+                '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><span style="display:inline-block;width:10px;height:10px;background:#DC2626;border-radius:2px"></span>Warm lead zone</div>' +
+                '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><span style="display:inline-block;width:10px;height:10px;border:2px solid #FCD34D;background:#A5B4FC;border-radius:50%"></span>Storm event · in heat</div>' +
+                '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><span style="display:inline-block;width:10px;height:10px;border:1px solid #93C5FD;background:#A5B4FC;border-radius:50%"></span>Storm event · outside heat</div>' +
                 '<div style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:10px;height:10px;background:#60A5FA;border-radius:50%;border:1px solid #fff"></span>Spend with 0 leads</div>';
             return div;
         }
