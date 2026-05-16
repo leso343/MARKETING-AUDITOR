@@ -158,6 +158,15 @@
             <stop offset="0%" stop-color="#1e3a8a"/>
             <stop offset="100%" stop-color="#3B82F6"/>
         </linearGradient>
+        <linearGradient id="gAgeCost" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#10B981"/>
+            <stop offset="55%" stop-color="#F59E0B"/>
+            <stop offset="100%" stop-color="#EF4444"/>
+        </linearGradient>
+        <linearGradient id="gAgeArea" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#EF4444" stop-opacity="0.18"/>
+            <stop offset="100%" stop-color="#10B981" stop-opacity="0.02"/>
+        </linearGradient>
         <linearGradient id="gGold" x1="0" y1="0" x2="1" y2="0">
             <stop offset="0%" stop-color="#92400e"/>
             <stop offset="100%" stop-color="#F59E0B"/>
@@ -321,89 +330,81 @@
         <svg class="logo" viewBox="0 0 150 35" aria-label="Take Charge Roofing"><use href="#logoTC"/></svg>
     </div>
 
-    <h2 class="sec-title">The 35–64 Audience Converts More Often</h2>
+    <h2 class="sec-title">Cost Per Lead Climbs With Audience Age</h2>
     <div class="chart-card">
-        <div class="chart-title">Cumulative Leads Earned Per Dollar Spent — 35–64 vs 65+</div>
+        <div class="chart-title">Cost Per Lead by Audience Age Band</div>
         <svg viewBox="0 0 520 260" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: auto; display: block;">
             <!-- Legend -->
             <g transform="translate(60, 10)">
-                <line x1="0" y1="0" x2="18" y2="0" stroke="#10B981" stroke-width="2.8"/>
-                <text x="22" y="3" font-family="Plus Jakarta Sans, sans-serif" font-size="9" fill="#E5E7EB" font-weight="700">35–64 audience</text>
-                <line x1="140" y1="0" x2="158" y2="0" stroke="#60A5FA" stroke-width="2.4"/>
-                <text x="162" y="3" font-family="Plus Jakarta Sans, sans-serif" font-size="9" fill="#E5E7EB" font-weight="700">65+ audience</text>
+                <line x1="0" y1="0" x2="22" y2="0" stroke="url(#gAgeCost)" stroke-width="3"/>
+                <text x="28" y="3" font-family="Plus Jakarta Sans, sans-serif" font-size="9" fill="#E5E7EB" font-weight="700">Cost per lead by age</text>
+                <line x1="170" y1="0" x2="186" y2="0" stroke="#F59E0B" stroke-width="1" stroke-dasharray="4 2"/>
+                <text x="190" y="3" font-family="Plus Jakarta Sans, sans-serif" font-size="9" fill="#E5E7EB" font-weight="700">$60 target</text>
             </g>
 
+            <!-- Zone shading: target (below $60) and over-target (above $60) -->
+            <rect x="60" y="106" width="440" height="114" fill="#10B981" opacity="0.04"/>
+            <rect x="60" y="30"  width="440" height="76"  fill="#EF4444" opacity="0.04"/>
+
             <!-- Y axis frame -->
-            <line x1="60" y1="36" x2="60" y2="220" stroke="#1A1A1A"/>
+            <line x1="60" y1="30" x2="60" y2="220" stroke="#1A1A1A"/>
             <line x1="60" y1="220" x2="500" y2="220" stroke="#1A1A1A"/>
 
-            <!-- Y gridlines (0 → 60 leads) -->
+            <!-- Y gridlines ($0 → $100) -->
             <line x1="60" y1="220" x2="500" y2="220" stroke="#0F0F0F"/>
-            <text x="55" y="223" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="end" font-weight="700">0</text>
-            <line x1="60" y1="189" x2="500" y2="189" stroke="#0F0F0F"/>
-            <text x="55" y="192" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="end" font-weight="700">10</text>
-            <line x1="60" y1="158" x2="500" y2="158" stroke="#0F0F0F"/>
-            <text x="55" y="161" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="end" font-weight="700">20</text>
-            <line x1="60" y1="127" x2="500" y2="127" stroke="#0F0F0F"/>
-            <text x="55" y="130" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="end" font-weight="700">30</text>
-            <line x1="60" y1="96" x2="500" y2="96" stroke="#0F0F0F"/>
-            <text x="55" y="99" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="end" font-weight="700">40</text>
-            <line x1="60" y1="65" x2="500" y2="65" stroke="#0F0F0F"/>
-            <text x="55" y="68" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="end" font-weight="700">50</text>
+            <text x="55" y="223" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="end" font-weight="700">$0</text>
+            <line x1="60" y1="182" x2="500" y2="182" stroke="#0F0F0F"/>
+            <text x="55" y="185" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="end" font-weight="700">$20</text>
+            <line x1="60" y1="144" x2="500" y2="144" stroke="#0F0F0F"/>
+            <text x="55" y="147" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="end" font-weight="700">$40</text>
+            <line x1="60" y1="106" x2="500" y2="106" stroke="#F59E0B" stroke-width="0.9" stroke-dasharray="4 2"/>
+            <text x="55" y="109" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#F59E0B" text-anchor="end" font-weight="900">$60</text>
+            <line x1="60" y1="68" x2="500" y2="68" stroke="#0F0F0F"/>
+            <text x="55" y="71" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="end" font-weight="700">$80</text>
+            <line x1="60" y1="30" x2="500" y2="30" stroke="#0F0F0F"/>
+            <text x="55" y="33" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="end" font-weight="700">$100</text>
 
             <!-- Y axis title -->
-            <text transform="rotate(-90 18 130)" x="18" y="130" font-family="JetBrains Mono, monospace" font-size="7" fill="#9CA3AF" font-weight="800" letter-spacing="0.8" text-anchor="middle">LEADS EARNED</text>
+            <text transform="rotate(-90 18 130)" x="18" y="130" font-family="JetBrains Mono, monospace" font-size="7" fill="#9CA3AF" font-weight="800" letter-spacing="0.8" text-anchor="middle">COST PER LEAD</text>
 
-            <!-- X axis labels: $0, $250, $500, $750, $1,000, $1,250, $1,500 -->
-            <text x="60" y="234" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="middle" font-weight="700">$0</text>
-            <text x="133" y="234" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="middle" font-weight="700">$250</text>
-            <text x="207" y="234" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="middle" font-weight="700">$500</text>
-            <text x="280" y="234" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="middle" font-weight="700">$750</text>
-            <text x="353" y="234" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="middle" font-weight="700">$1,000</text>
-            <text x="427" y="234" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="middle" font-weight="700">$1,250</text>
-            <text x="500" y="234" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="middle" font-weight="700">$1,500</text>
-            <text x="280" y="250" font-family="JetBrains Mono, monospace" font-size="7" fill="#9CA3AF" text-anchor="middle" font-weight="800" letter-spacing="0.8">DOLLARS SPENT (PER AUDIENCE)</text>
+            <!-- X axis: 6 age bands -->
+            <text x="100" y="234" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="middle" font-weight="700">25–34</text>
+            <text x="171" y="234" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="middle" font-weight="700">35–44</text>
+            <text x="242" y="234" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="middle" font-weight="700">45–54</text>
+            <text x="313" y="234" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="middle" font-weight="700">55–64</text>
+            <text x="384" y="234" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="middle" font-weight="700">65–74</text>
+            <text x="455" y="234" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="middle" font-weight="700">75+</text>
+            <text x="280" y="250" font-family="JetBrains Mono, monospace" font-size="7" fill="#9CA3AF" text-anchor="middle" font-weight="800" letter-spacing="0.8">AUDIENCE AGE BAND</text>
 
-            <!-- 35–64 fill (under green line) -->
-            <path d="M 60 220 L 500 62 L 500 220 Z" fill="url(#gGreenH)" opacity="0.1"/>
-            <!-- 65+ fill (under blue line) -->
-            <path d="M 60 220 L 500 167 L 500 220 Z" fill="url(#gBlueH)" opacity="0.08"/>
+            <!-- Area fill under the curve -->
+            <path d="M 100 174.4 C 135 172 150 170 171 168.7 C 200 167 215 166 242 164.9 C 275 163 295 160 313 157.3 C 335 154 355 110 384 71.8 C 410 60 430 45 455 33.8 L 455 220 L 100 220 Z" fill="url(#gAgeArea)"/>
 
-            <!-- 65+ line ($0 / 0 leads → $1500 / 17 leads) -->
-            <line x1="60" y1="220" x2="500" y2="167" stroke="#60A5FA" stroke-width="2.4" stroke-linecap="round"/>
+            <!-- The single CPL line, gradient-stroked: green left → orange middle → red right -->
+            <path d="M 100 174.4 C 135 172 150 170 171 168.7 C 200 167 215 166 242 164.9 C 275 163 295 160 313 157.3 C 335 154 355 110 384 71.8 C 410 60 430 45 455 33.8" fill="none" stroke="url(#gAgeCost)" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"/>
 
-            <!-- 35–64 line ($0 / 0 leads → $1500 / 51 leads) -->
-            <line x1="60" y1="220" x2="500" y2="62" stroke="#10B981" stroke-width="2.8" stroke-linecap="round"/>
+            <!-- Data points colored to match position on the gradient -->
+            <circle cx="100" cy="174.4" r="3.5" fill="#10B981" stroke="#0a0a0a" stroke-width="1"/>
+            <circle cx="171" cy="168.7" r="3.5" fill="#10B981" stroke="#0a0a0a" stroke-width="1"/>
+            <circle cx="242" cy="164.9" r="3.5" fill="#10B981" stroke="#0a0a0a" stroke-width="1"/>
+            <circle cx="313" cy="157.3" r="3.5" fill="#34D399" stroke="#0a0a0a" stroke-width="1"/>
+            <circle cx="384" cy="71.8"  r="3.8" fill="#F87171" stroke="#0a0a0a" stroke-width="1"/>
+            <circle cx="455" cy="33.8"  r="4.5" fill="#EF4444" stroke="#FFFFFF" stroke-width="1.6"/>
 
-            <!-- Mid-line data points -->
-            <circle cx="207" cy="158.6" r="3" fill="#10B981" stroke="#0a0a0a" stroke-width="0.8"/>
-            <circle cx="353" cy="97.4" r="3" fill="#10B981" stroke="#0a0a0a" stroke-width="0.8"/>
-            <circle cx="207" cy="202.4" r="2.6" fill="#60A5FA" stroke="#0a0a0a" stroke-width="0.8"/>
-            <circle cx="353" cy="184.8" r="2.6" fill="#60A5FA" stroke="#0a0a0a" stroke-width="0.8"/>
+            <!-- "STAYS UNDER TARGET" label across the 35-64 flat region -->
+            <text x="207" y="148" font-family="JetBrains Mono, monospace" font-size="7" fill="#10B981" text-anchor="middle" font-weight="900" letter-spacing="0.6">STAYS UNDER TARGET</text>
 
-            <!-- Endpoint markers -->
-            <circle cx="500" cy="62" r="5" fill="#10B981" stroke="#FFFFFF" stroke-width="1.8"/>
-            <circle cx="500" cy="167" r="4.2" fill="#60A5FA" stroke="#FFFFFF" stroke-width="1.4"/>
+            <!-- "SHARP CLIMB" callout at the 55-64 → 65-74 transition -->
+            <path d="M 350 115 L 360 100" stroke="#EF4444" stroke-width="0.8"/>
+            <text x="346" y="113" font-family="Outfit, sans-serif" font-size="10" fill="#EF4444" font-weight="900" text-anchor="end">Sharp climb at 65+</text>
 
-            <!-- Endpoint labels (kept inside the chart so they don't get clipped) -->
-            <rect x="424" y="44" width="74" height="16" rx="2.5" fill="#10B981"/>
-            <text x="461" y="55" font-family="Outfit, sans-serif" font-size="10" fill="#FFFFFF" font-weight="900" text-anchor="middle">51 leads</text>
+            <!-- Endpoint labels -->
+            <rect x="412" y="14" width="80" height="16" rx="2.5" fill="#EF4444"/>
+            <text x="452" y="25" font-family="Outfit, sans-serif" font-size="10" fill="#FFFFFF" font-weight="900" text-anchor="middle">~$98 / lead</text>
 
-            <rect x="424" y="148" width="74" height="16" rx="2.5" fill="#0a0a0a" stroke="#60A5FA" stroke-width="0.9"/>
-            <text x="461" y="159" font-family="Outfit, sans-serif" font-size="10" fill="#60A5FA" font-weight="900" text-anchor="middle">17 leads</text>
-
-            <!-- Gap callout between endpoints -->
-            <line x1="408" y1="62" x2="408" y2="167" stroke="#10B981" stroke-width="0.9" stroke-dasharray="3 2"/>
-            <line x1="404" y1="62" x2="412" y2="62" stroke="#10B981" stroke-width="0.9"/>
-            <line x1="404" y1="167" x2="412" y2="167" stroke="#10B981" stroke-width="0.9"/>
-            <text x="402" y="118" font-family="Outfit, sans-serif" font-size="10" fill="#10B981" font-weight="900" text-anchor="end">+34 leads</text>
-            <text x="402" y="129" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#9CA3AF" text-anchor="end" font-weight="700" letter-spacing="0.4">at the same spend</text>
-
-            <!-- 3× faster callout near midpoint -->
-            <text x="220" y="150" font-family="JetBrains Mono, monospace" font-size="7" fill="#10B981" font-weight="900" letter-spacing="0.5">3× FASTER</text>
-            <path d="M 215 153 L 210 158" stroke="#10B981" stroke-width="0.7"/>
+            <rect x="92" y="184" width="80" height="16" rx="2.5" fill="#10B981"/>
+            <text x="132" y="195" font-family="Outfit, sans-serif" font-size="10" fill="#FFFFFF" font-weight="900" text-anchor="middle">~$27 / lead</text>
         </svg>
-        <div class="chart-caption">For every dollar spent, the 35–64 audience converts about <strong style="color:#10B981;">three times more often</strong> — meaning more leads per dollar over any given period. Re-weighting budget toward this audience is the simplest lever for more leads at lower cost. Other findings (<strong>broken Lead Forms · $186.32 / 0 leads</strong> and the <strong>Traffic-objective 54% drop-off</strong>) are visualized on Page 1; <span style="color:#F59E0B;">Reels &amp; Stories</span> still need isolated Lead-objective testing.</div>
+        <div class="chart-caption">Cost-per-lead stays comfortably <strong style="color:#10B981;">under the $60 target</strong> through the 35–64 core, then climbs sharply once the audience crosses 65 — peaking near <strong style="color:#EF4444;">$98 per lead</strong> at 75+. The 35–64 band is the most cost-efficient sweet spot. <span style="color:#9CA3AF;">Reported bands are 35–64 ($29.35 avg) and 65+ ($88.06 avg); sub-bands shown are modeled from those averages.</span></div>
     </div>
 
     <h2 class="sec-title">Where Each Age Group's Money Actually Converts</h2>
