@@ -788,15 +788,15 @@
     </div>
 
     <div class="chart-card" style="margin-top: 15px;">
-        <div class="chart-title">Lead Heat × Storm Events — Where to Canvas This Week</div>
+        <div class="chart-title">Where to Door-Knock This Week</div>
         <div id="atlantaMap" style="height: 420px; width: 100%; border-radius: 4px; overflow: hidden; background: #0a0a0a; border: 1px solid #1A1A1A; position: relative;">
             <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #525252; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 1.5px;">LOADING METRO ATLANTA MAP …</div>
         </div>
 
         <div style="margin-top: 12px; padding: 11px 13px; background: #050505; border: 1px solid #1A1A1A; border-left: 4px solid #F59E0B;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px;">
-                <div style="font-family: 'JetBrains Mono', monospace; font-size: 7.5px; font-weight: 800; color: #F59E0B; letter-spacing: 1.4px;">★ PRIORITY CANVAS — STORM × LEAD HEAT (LAST 30 DAYS)</div>
-                <div id="priorityZonesSource" style="font-family: 'JetBrains Mono', monospace; font-size: 7px; font-weight: 700; color: #525252; letter-spacing: 0.6px;">SOURCE: BAKED SNAPSHOT</div>
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 7.5px; font-weight: 800; color: #F59E0B; letter-spacing: 1.4px;">★ TOP NEIGHBORHOODS TO CANVAS THIS WEEK</div>
+                <div id="priorityZonesSource" style="font-family: 'JetBrains Mono', monospace; font-size: 7px; font-weight: 700; color: #525252; letter-spacing: 0.6px;">STORM DATA · LAST 30 DAYS</div>
             </div>
             <ol id="priorityZonesList" style="font-size: 10px; color: var(--text-dim); padding-left: 18px; line-height: 1.65; margin: 0;">
                 <li style="color: #525252; font-style: italic;">Loading storm-canvas ranking…</li>
@@ -864,14 +864,10 @@
         }).addTo(map);
     }
 
-    // Atlanta center marker — "30 leads concentrated here"
-    L.marker(ATL, { icon: L.divIcon({
-        html: '<div style="width:10px;height:10px;background:#FCD34D;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 5px rgba(252,211,77,0.25)"></div>',
-        iconSize: [10,10], iconAnchor: [5,5], className: ''
-    })}).addTo(map);
+    // Atlanta label — pinned to the hot spot (the heat layer itself shows the intensity)
     L.marker(ATL, { icon: L.divIcon({
         html: '<div style="background:#0a0a0a;border:1px solid #F59E0B;color:#FCD34D;padding:2px 8px;border-radius:3px;font-family:Outfit,sans-serif;font-size:11px;font-weight:900;letter-spacing:-0.2px;white-space:nowrap">ATLANTA · 30 LEADS</div>',
-        iconSize: [140,18], iconAnchor: [70,32], className: ''
+        iconSize: [140,18], iconAnchor: [70,9], className: ''
     })}).addTo(map);
 
     // Reference cities — kept light so the heat does the talking
@@ -953,7 +949,7 @@
                 '<b>' + e.location + '</b><br>' +
                 (e.type === 'hail' ? e.mag.toFixed(2) + '" hail' : e.mag + ' mph wind') +
                 '<br>' + e.date +
-                (e.inHeat ? '<br><span style="color:#FCD34D">★ in lead-heat zone</span>' : ''),
+                (e.inHeat ? '<br><span style="color:#FCD34D">★ high-priority canvas</span>' : ''),
                 { offset: [10, 0], direction: 'right', sticky: true }
             );
         });
@@ -969,15 +965,15 @@
         }
         listEl.innerHTML = zones.slice(0, 5).map(function(z) {
             var sev = z.type === 'hail'
-                ? z.mag.toFixed(2) + '" HAIL'
-                : z.mag + ' MPH WIND';
+                ? z.mag.toFixed(2) + '" hail'
+                : z.mag + ' mph wind';
             var heatTag = z.inHeat
-                ? '<span style="color:#FCD34D;font-family:JetBrains Mono,monospace;font-size:8px;font-weight:800;letter-spacing:0.6px;margin-left:7px">★ IN-HEAT</span>'
-                : '<span style="color:#9CA3AF;font-family:JetBrains Mono,monospace;font-size:8px;font-weight:700;letter-spacing:0.6px;margin-left:7px">· OUTSIDE HEAT</span>';
+                ? '<span style="color:#FCD34D;font-family:JetBrains Mono,monospace;font-size:8px;font-weight:800;letter-spacing:0.6px;margin-left:7px">★ HIGH PRIORITY</span>'
+                : '<span style="color:#9CA3AF;font-family:JetBrains Mono,monospace;font-size:8px;font-weight:700;letter-spacing:0.6px;margin-left:7px">· lower priority</span>';
             return '<li><strong style="color:#fff;font-weight:700">' + z.location + '</strong> ' +
                    '<span style="color:#9CA3AF">— ' + sev + ' · ' + z.date + '</span>' + heatTag + '</li>';
         }).join('');
-        if (srcEl && sourceLabel) srcEl.textContent = 'SOURCE: ' + sourceLabel;
+        if (srcEl && sourceLabel) srcEl.textContent = sourceLabel;
     }
 
     // ════════ INITIAL RENDER WITH BAKED DATA ════════
@@ -1031,11 +1027,11 @@
             div.style.cssText = 'background:rgba(10,10,10,0.85);border:1px solid #1A1A1A;color:#E5E7EB;padding:8px 10px;border-radius:4px;font-family:Plus Jakarta Sans,sans-serif;font-size:9.5px;line-height:1.5;backdrop-filter:blur(4px);';
             div.innerHTML =
                 '<div style="font-family:JetBrains Mono,monospace;font-size:8px;font-weight:800;letter-spacing:1px;color:#9CA3AF;margin-bottom:5px">LEGEND</div>' +
-                '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><span style="display:inline-block;width:10px;height:10px;background:#FCD34D;border-radius:2px"></span>Hot lead zone</div>' +
-                '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><span style="display:inline-block;width:10px;height:10px;background:#DC2626;border-radius:2px"></span>Warm lead zone</div>' +
-                '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><span style="display:inline-block;width:10px;height:10px;border:2px solid #FCD34D;background:#A5B4FC;border-radius:50%"></span>Storm event · in heat</div>' +
-                '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><span style="display:inline-block;width:10px;height:10px;border:1px solid #93C5FD;background:#A5B4FC;border-radius:50%"></span>Storm event · outside heat</div>' +
-                '<div style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:10px;height:10px;background:#60A5FA;border-radius:50%;border:1px solid #fff"></span>Spend with 0 leads</div>';
+                '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><span style="display:inline-block;width:10px;height:10px;background:#FCD34D;border-radius:2px"></span>Most leads here</div>' +
+                '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><span style="display:inline-block;width:10px;height:10px;background:#DC2626;border-radius:2px"></span>Some leads here</div>' +
+                '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><span style="display:inline-block;width:10px;height:10px;border:2px solid #FCD34D;background:#A5B4FC;border-radius:50%"></span>Recent storm · high priority</div>' +
+                '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><span style="display:inline-block;width:10px;height:10px;border:1px solid #93C5FD;background:#A5B4FC;border-radius:50%"></span>Recent storm · lower priority</div>' +
+                '<div style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:10px;height:10px;background:#60A5FA;border-radius:50%;border:1px solid #fff"></span>Spent money, got no leads</div>';
             return div;
         }
     });
