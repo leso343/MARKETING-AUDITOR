@@ -788,33 +788,12 @@
     </div>
 
     <div class="chart-card" style="margin-top: 15px;">
-        <div class="chart-title">Where the Spend Goes</div>
-        <div class="donut-row">
-            <svg viewBox="0 0 140 140" style="width: 140px; height: 140px; display: block;">
-                <circle cx="70" cy="70" r="55" fill="#0a0a0a"/>
-                <g transform="rotate(-90 70 70)">
-                    <circle cx="70" cy="70" r="55" fill="none" stroke="url(#gDonutRed)" stroke-width="22" pathLength="100" stroke-dasharray="99.3 0.7" stroke-dashoffset="0"/>
-                    <circle cx="70" cy="70" r="55" fill="none" stroke="url(#gDonutGray)" stroke-width="22" pathLength="100" stroke-dasharray="0.7 99.3" stroke-dashoffset="-99.3"/>
-                </g>
-                <circle cx="70" cy="70" r="44" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/>
-                <text x="70" y="66" font-family="Outfit, sans-serif" font-size="14" font-weight="900" fill="#FFFFFF" text-anchor="middle" letter-spacing="-0.5">$3,125</text>
-                <text x="70" y="80" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#9CA3AF" text-anchor="middle" font-weight="800" letter-spacing="1">TOTAL SPEND</text>
-            </svg>
-            <div class="donut-legend">
-                <div class="legend-item"><span class="legend-swatch" style="background:linear-gradient(135deg,#7f1d1d,#EF4444);"></span><span><strong>Atlanta Metro</strong><br><span style="font-size:8px;color:var(--text-muted);">$3,103.47 · 30 leads</span></span><span class="legend-pct">99.3%</span></div>
-                <div class="legend-item"><span class="legend-swatch" style="background:linear-gradient(135deg,#374151,#9CA3AF);"></span><span><strong>Out-of-State (NC / SC)</strong><br><span style="font-size:8px;color:var(--text-muted);">$21.22 · 0 leads</span></span><span class="legend-pct">0.7%</span></div>
-            </div>
-        </div>
-        <div class="chart-caption">Almost all spend stays inside Atlanta, but a small slice is leaking across the state line into territory you can't service.</div>
-    </div>
-
-    <div class="chart-card" style="margin-top: 12px;">
-        <div class="chart-title">Service Range vs Current Targeting Area</div>
+        <div class="chart-title">Profitable Service Range vs Current Targeting Area</div>
         <div id="atlantaMap" style="height: 420px; width: 100%; border-radius: 4px; overflow: hidden; background: #0a0a0a; border: 1px solid #1A1A1A; position: relative;">
             <!-- Real Atlanta map (Leaflet + OSM via CartoDB Dark Matter). Pre-init label so PDF print shows something even before JS runs. -->
             <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #525252; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 1.5px;">LOADING METRO ATLANTA MAP …</div>
         </div>
-        <div class="chart-caption">Real Atlanta metro map (OpenStreetMap data). The dashed red boundary is the <strong>30-mile profitable service radius</strong> around HQ; white markers are <strong>in-range</strong> cities, dimmed markers are <strong>out-of-range</strong>. Towns like Newnan, Carrollton, Gainesville, Griffin, and Athens fall outside the radius — every lead from there costs gas, time, and risks no-shows.</div>
+        <div class="chart-caption">Real Atlanta metro map (OpenStreetMap data). The <strong style="color:#9CA3AF;">gray dashed polygon</strong> is the <strong>Atlanta DMA — the area the campaign is currently targeting</strong> (~50+ counties). The <strong style="color:#EF4444;">red dashed circle</strong> is the <strong>30-mile profitable service radius</strong> around HQ. Every dimmed marker (Newnan, Carrollton, Gainesville, Griffin, Athens) sits inside the gray DMA but outside the red profitable range — gas, time, and no-show risk on every one of those leads.</div>
     </div>
 
     <div class="footer">
@@ -831,13 +810,28 @@
     if (!el) return;
     el.innerHTML = '';
     var HQ = [33.7490, -84.3880]; // Atlanta downtown / Take Charge HQ
-    var map = L.map('atlantaMap', { zoomControl: false, attributionControl: true, scrollWheelZoom: false }).setView(HQ, 9);
+    var map = L.map('atlantaMap', { zoomControl: false, attributionControl: true, scrollWheelZoom: false }).setView(HQ, 8);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
         subdomains: 'abcd', maxZoom: 18,
         attribution: '&copy; OpenStreetMap &copy; CARTO'
     }).addTo(map);
+    // Atlanta DMA boundary (current targeting area — ~50+ counties, much larger than profitable range)
+    var dmaPolygon = [
+        [34.78, -85.20], [34.86, -84.55], [34.55, -83.40], [33.95, -83.05],
+        [33.50, -82.90], [33.10, -83.40], [32.95, -84.30], [32.95, -84.95],
+        [33.10, -85.40], [33.85, -85.40], [34.40, -85.25]
+    ];
+    L.polygon(dmaPolygon, {
+        color: '#9CA3AF', weight: 1.6, dashArray: '6 4',
+        fillColor: '#9CA3AF', fillOpacity: 0.05
+    }).addTo(map);
+    // DMA label
+    L.marker([34.72, -84.50], { icon: L.divIcon({
+        html: '<div style="color:#9CA3AF;font-family:Outfit,sans-serif;font-weight:900;font-size:11px;letter-spacing:1.5px;text-shadow:0 0 6px #000,0 0 6px #000;white-space:nowrap">ATLANTA DMA · CURRENT TARGETING</div>',
+        iconSize: [280,16], iconAnchor: [140,8], className: ''
+    })}).addTo(map);
     // 30-mile profitable service radius (48 280 m)
-    L.circle(HQ, { radius: 48280, color: '#DC2626', weight: 2.5, dashArray: '8 5', fillColor: '#DC2626', fillOpacity: 0.12 }).addTo(map);
+    L.circle(HQ, { radius: 48280, color: '#DC2626', weight: 2.8, dashArray: '8 5', fillColor: '#DC2626', fillOpacity: 0.18 }).addTo(map);
     // HQ marker (pulsing red dot)
     L.marker(HQ, { icon: L.divIcon({
         html: '<div style="position:relative;width:18px;height:18px"><div style="position:absolute;inset:-8px;background:#DC2626;border-radius:50%;opacity:0.18"></div><div style="position:absolute;inset:-3px;background:#DC2626;border-radius:50%;opacity:0.35"></div><div style="position:absolute;inset:3px;background:#DC2626;border:2px solid #fff;border-radius:50%"></div></div>',
