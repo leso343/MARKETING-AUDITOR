@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Take Charge Roofing - Strategic Performance Remediation</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
@@ -597,6 +598,81 @@
         <div class="chart-caption">Keep most of the spend on what's already working. A small slice tests new placements; an even smaller slice runs bold experiments — so growth never costs the baseline.</div>
     </div>
 
+    <div class="chart-card" style="margin-top: 12px;">
+        <div class="chart-title">Projected Cost-Per-Lead — Implementing the 30-Day Roadmap</div>
+        <svg viewBox="0 0 520 230" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: auto; display: block;">
+            <!-- Phase bands -->
+            <rect x="60" y="30" width="29" height="170" fill="rgba(239,68,68,0.05)"/>
+            <rect x="89" y="30" width="74" height="170" fill="rgba(245,158,11,0.05)"/>
+            <rect x="163" y="30" width="337" height="170" fill="rgba(16,185,129,0.05)"/>
+
+            <!-- Phase labels -->
+            <text x="74" y="22" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#EF4444" font-weight="900" text-anchor="middle" letter-spacing="0.6">PHASE 1</text>
+            <text x="126" y="22" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#F59E0B" font-weight="900" text-anchor="middle" letter-spacing="0.6">PHASE 2</text>
+            <text x="330" y="22" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#10B981" font-weight="900" text-anchor="middle" letter-spacing="0.6">PHASE 3 — SCALE</text>
+
+            <!-- Y axis -->
+            <line x1="60" y1="30" x2="60" y2="200" stroke="#1A1A1A"/>
+            <line x1="60" y1="200" x2="500" y2="200" stroke="#1A1A1A"/>
+
+            <!-- Y gridlines + labels -->
+            <line x1="60" y1="200" x2="500" y2="200" stroke="#0F0F0F"/><text x="55" y="203" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="end" font-weight="700">$20</text>
+            <line x1="60" y1="166" x2="500" y2="166" stroke="#0F0F0F"/><text x="55" y="169" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="end" font-weight="700">$40</text>
+            <line x1="60" y1="132" x2="500" y2="132" stroke="#0F0F0F"/><text x="55" y="135" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="end" font-weight="700">$60</text>
+            <line x1="60" y1="98" x2="500" y2="98" stroke="#0F0F0F"/><text x="55" y="101" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="end" font-weight="700">$80</text>
+            <line x1="60" y1="64" x2="500" y2="64" stroke="#0F0F0F"/><text x="55" y="67" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="end" font-weight="700">$100</text>
+            <line x1="60" y1="30" x2="500" y2="30" stroke="#0F0F0F"/><text x="55" y="33" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="end" font-weight="700">$120</text>
+
+            <!-- X labels -->
+            <text x="60" y="215" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="middle" font-weight="700">Day 0</text>
+            <text x="89" y="215" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="middle" font-weight="700">Day 2</text>
+            <text x="163" y="215" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="middle" font-weight="700">Day 7</text>
+            <text x="265" y="215" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="middle" font-weight="700">Day 14</text>
+            <text x="368" y="215" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="middle" font-weight="700">Day 21</text>
+            <text x="500" y="215" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="middle" font-weight="700">Day 30</text>
+
+            <!-- $60 target horizontal line -->
+            <line x1="60" y1="132" x2="500" y2="132" stroke="#F59E0B" stroke-width="0.9" stroke-dasharray="4 2"/>
+            <rect x="445" y="124" width="52" height="14" rx="2" fill="#0a0a0a" stroke="#F59E0B" stroke-width="0.8"/>
+            <text x="471" y="134" font-family="JetBrains Mono, monospace" font-size="7" fill="#F59E0B" text-anchor="middle" font-weight="900" letter-spacing="0.6">$60 TARGET</text>
+
+            <!-- Without-fixes trajectory (dashed red, drifts up) -->
+            <path d="M 60 58 Q 200 53 350 50 T 500 47" fill="none" stroke="#EF4444" stroke-width="2.2" stroke-dasharray="5 3"/>
+            <circle cx="500" cy="47" r="3.5" fill="#EF4444" stroke="#0a0a0a" stroke-width="0.8"/>
+            <text x="492" y="42" font-family="Outfit, sans-serif" font-size="9.5" fill="#EF4444" font-weight="900" text-anchor="end">$115+</text>
+
+            <!-- With-fixes trajectory (solid green, declining) -->
+            <path d="M 60 58 L 89 64 L 163 101 L 265 118 L 368 127 L 500 132 L 500 200 L 60 200 Z" fill="url(#gGreenH)" opacity="0.07"/>
+            <path d="M 60 58 L 89 64 L 163 101 L 265 118 L 368 127 L 500 132" fill="none" stroke="#10B981" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
+
+            <!-- Data points -->
+            <circle cx="60" cy="58" r="4" fill="#10B981" stroke="#0a0a0a" stroke-width="1.2"/>
+            <circle cx="89" cy="64" r="3" fill="#10B981" stroke="#0a0a0a" stroke-width="0.9"/>
+            <circle cx="163" cy="101" r="3" fill="#10B981" stroke="#0a0a0a" stroke-width="0.9"/>
+            <circle cx="265" cy="118" r="3" fill="#10B981" stroke="#0a0a0a" stroke-width="0.9"/>
+            <circle cx="368" cy="127" r="3" fill="#10B981" stroke="#0a0a0a" stroke-width="0.9"/>
+            <circle cx="500" cy="132" r="5" fill="#10B981" stroke="#FFFFFF" stroke-width="1.5"/>
+
+            <!-- Today callout (start of green line) -->
+            <rect x="66" y="40" width="56" height="14" rx="2" fill="#0a0a0a" stroke="#10B981" stroke-width="0.8"/>
+            <text x="94" y="50" font-family="Outfit, sans-serif" font-size="9" fill="#FFFFFF" font-weight="900" text-anchor="middle">$103.45</text>
+            <text x="66" y="74" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#9CA3AF" font-weight="800" letter-spacing="0.5">TODAY</text>
+
+            <!-- Target hit callout (end of green line) -->
+            <rect x="430" y="140" width="68" height="14" rx="2" fill="#10B981"/>
+            <text x="464" y="150" font-family="Outfit, sans-serif" font-size="9" fill="#FFFFFF" font-weight="900" text-anchor="middle">$60.00 · HIT</text>
+
+            <!-- Legend -->
+            <g transform="translate(180, 7)">
+                <line x1="0" y1="0" x2="16" y2="0" stroke="#10B981" stroke-width="2.6"/>
+                <text x="20" y="3" font-family="Plus Jakarta Sans, sans-serif" font-size="8.5" fill="#E5E7EB" font-weight="700">With the fixes</text>
+                <line x1="100" y1="0" x2="116" y2="0" stroke="#EF4444" stroke-width="2.2" stroke-dasharray="5 3"/>
+                <text x="120" y="3" font-family="Plus Jakarta Sans, sans-serif" font-size="8.5" fill="#E5E7EB" font-weight="700">Without fixes</text>
+            </g>
+        </svg>
+        <div class="chart-caption">Executing the 30-day roadmap should pull cost-per-lead from <strong>$103.45</strong> back to the <strong style="color:#10B981;">$60 control baseline</strong> by Day 30. Without the fixes, current leakage trends toward <strong style="color:#EF4444;">$115+</strong>.</div>
+    </div>
+
     <div style="margin-top: auto; padding: 20px; border: 1px solid var(--border); background: #050505; border-left: 4px solid #FFF;">
         <h3 style="font-family:'Outfit'; font-size: 14px; margin-bottom: 5px;">STRATEGIC VERDICT</h3>
         <p style="font-size: 11.5px; color: var(--text-dim); line-height: 1.4;">The Take Charge Roofing account possesses strong creative assets but is suffering from fundamental infrastructure leakage. By stabilizing the control campaign, repairing the Lead Form sync, and pivoting from raw CPL optimization to <strong>Cost Per Booked Inspection</strong>, the account should restore baseline performance to the $60 range while significantly increasing lead quality and down-funnel conversion rates.</p>
@@ -701,216 +777,11 @@
 
     <div class="chart-card" style="margin-top: 12px;">
         <div class="chart-title">Service Range vs Current Targeting Area</div>
-        <svg viewBox="0 0 600 380" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: auto; display: block;">
-            <!-- Base map -->
-            <rect width="600" height="380" rx="6" fill="url(#gMapBase)"/>
-            <rect width="600" height="380" rx="6" fill="url(#pMapGrid)" opacity="0.4"/>
-
-            <!-- Atlanta DMA outer boundary (irregular shape reflecting real county lines) -->
-            <path d="M 78 108 L 130 92 L 188 78 L 248 66 L 308 60 L 365 62 L 420 70 L 470 84 L 510 104 L 535 132 L 548 168 L 552 208 L 545 248 L 528 285 L 498 312 L 458 328 L 408 338 L 352 342 L 296 340 L 240 332 L 188 318 L 142 296 L 102 268 L 75 232 L 62 192 L 65 152 L 78 108 Z"
-                  fill="#0d0d12" stroke="#383840" stroke-width="1.3" stroke-dasharray="5 3"/>
-
-            <!-- County hints (Big 5 metro counties) -->
-            <g stroke="#1d1d24" stroke-width="0.7" fill="rgba(255,255,255,0.008)" opacity="0.85">
-                <!-- Cherokee (N) -->
-                <path d="M 220 78 L 295 78 L 295 142 L 220 142 Z"/>
-                <!-- Forsyth -->
-                <path d="M 295 78 L 365 80 L 365 145 L 295 142 Z"/>
-                <!-- Cobb (NW) -->
-                <path d="M 195 142 L 295 142 L 295 205 L 195 200 Z"/>
-                <!-- North Fulton + Roswell -->
-                <path d="M 295 142 L 350 145 L 350 200 L 295 200 Z"/>
-                <!-- Gwinnett (NE) -->
-                <path d="M 350 145 L 445 130 L 460 215 L 365 220 L 350 200 Z"/>
-                <!-- Fulton (central, long N-S) -->
-                <path d="M 295 200 L 350 200 L 365 220 L 360 295 L 295 295 Z"/>
-                <!-- DeKalb (E of Fulton) -->
-                <path d="M 350 200 L 410 215 L 415 290 L 360 295 L 365 220 Z"/>
-                <!-- Douglas (W) -->
-                <path d="M 130 200 L 195 200 L 200 270 L 135 268 Z"/>
-                <!-- Clayton (S) -->
-                <path d="M 280 295 L 350 295 L 350 335 L 282 332 Z"/>
-                <!-- Henry (SE) -->
-                <path d="M 350 295 L 420 290 L 425 335 L 350 335 Z"/>
-            </g>
-
-            <!-- Lake Lanier (dendritic, long N-S, just outside 30mi NE) -->
-            <path d="M 418 52
-                     C 426 56, 430 68, 422 76
-                     L 430 86
-                     C 440 92, 438 105, 426 108
-                     L 433 124
-                     C 440 134, 432 144, 422 142
-                     L 416 152
-                     C 408 158, 398 152, 400 142
-                     L 392 130
-                     C 384 124, 388 112, 400 112
-                     L 394 100
-                     C 386 94, 390 82, 404 84
-                     L 408 72
-                     C 404 64, 410 56, 418 52 Z"
-                  fill="url(#gWater)" stroke="#1e3a8a" stroke-width="0.6" opacity="0.92"/>
-            <!-- Lanier west finger -->
-            <path d="M 392 130 C 386 132, 378 128, 380 122 C 382 116, 388 116, 392 122 Z" fill="url(#gWater)" opacity="0.85"/>
-            <!-- Lanier east finger -->
-            <path d="M 430 86 C 438 84, 446 88, 444 95 C 440 100, 434 96, 430 92 Z" fill="url(#gWater)" opacity="0.85"/>
-            <text x="448" y="120" font-family="Plus Jakarta Sans, sans-serif" font-size="8" fill="#7aa3d6" font-weight="700" font-style="italic" opacity="0.95">Lake Lanier</text>
-
-            <!-- Chattahoochee River (flows S/SW from Lake Lanier through Atlanta metro) -->
-            <path d="M 412 152 C 400 168, 388 180, 378 198 C 372 215, 360 228, 345 242 C 328 258, 308 268, 285 274 C 258 281, 228 282, 198 278 C 168 273, 138 265, 110 252"
-                  fill="none" stroke="#3d4a7c" stroke-width="1.6" opacity="0.85"/>
-            <path d="M 412 152 C 400 168, 388 180, 378 198 C 372 215, 360 228, 345 242 C 328 258, 308 268, 285 274 C 258 281, 228 282, 198 278 C 168 273, 138 265, 110 252"
-                  fill="none" stroke="#5c7ab8" stroke-width="0.5" opacity="0.55"/>
-
-            <!-- Interstates: I-75 (NW Cobb → downtown → SE Henry/Clayton toward Macon) -->
-            <path d="M 232 76 C 248 110, 264 138, 280 168 L 295 198 L 305 220 L 322 258 C 335 292, 348 320, 358 350"
-                  fill="none" stroke="#525258" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-            <text x="240" y="92" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#71717a" font-weight="900" letter-spacing="0.4">I-75</text>
-
-            <!-- I-85 (SW Newnan → downtown → NE Gwinnett toward South Carolina) -->
-            <path d="M 178 332 C 208 302, 240 270, 270 240 L 298 218 L 325 200 C 358 178, 392 152, 425 128 C 450 110, 472 92, 482 72"
-                  fill="none" stroke="#525258" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-            <text x="172" y="325" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#71717a" font-weight="900" letter-spacing="0.4">I-85</text>
-
-            <!-- I-20 (W Douglasville → downtown → E Conyers toward Augusta) -->
-            <path d="M 75 232 C 110 226, 150 222, 188 220 L 250 218 L 305 218 L 360 220 L 430 224 C 480 227, 525 230, 545 232"
-                  fill="none" stroke="#525258" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-            <text x="540" y="212" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#71717a" font-weight="900" text-anchor="end" letter-spacing="0.4">I-20</text>
-
-            <!-- I-285 perimeter loop (elliptical, slightly elongated N-S like real geography) -->
-            <ellipse cx="302" cy="217" rx="38" ry="40" fill="none" stroke="#6f6f78" stroke-width="2.2" stroke-linejoin="round"/>
-            <ellipse cx="302" cy="217" rx="38" ry="40" fill="none" stroke="#9a9aa3" stroke-width="0.5" opacity="0.55"/>
-            <text x="302" y="172" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#85858d" text-anchor="middle" font-weight="900" letter-spacing="0.8">I-285</text>
-
-            <!-- 30-mile radius glow + ring -->
-            <circle cx="302" cy="217" r="90" fill="url(#gRadiusGlow)"/>
-            <circle cx="302" cy="217" r="90" fill="none" stroke="#DC2626" stroke-width="2.3" stroke-dasharray="6 3"/>
-            <circle cx="302" cy="217" r="90" fill="none" stroke="#EF4444" stroke-width="0.5" opacity="0.4"/>
-
-            <!-- 30-mi range label -->
-            <text x="302" y="125" font-family="Outfit, sans-serif" font-size="10" fill="#FCA5A5" font-weight="900" text-anchor="middle" letter-spacing="1.4">30-MILE PROFITABLE SERVICE RANGE</text>
-
-            <!-- Radius indicator -->
-            <line x1="302" y1="217" x2="392" y2="217" stroke="#DC2626" stroke-width="1.4" stroke-dasharray="3 2"/>
-            <rect x="338" y="207" width="36" height="16" rx="2.5" fill="#0a0a0a" stroke="#DC2626" stroke-width="0.9"/>
-            <text x="356" y="218" font-family="Outfit, sans-serif" font-size="9.5" fill="#FCA5A5" font-weight="900" text-anchor="middle" dominant-baseline="middle" letter-spacing="0.5">30 MI</text>
-
-            <!-- Hartsfield-Jackson Airport (ATL) — south of downtown -->
-            <g transform="translate(285, 258)">
-                <rect x="-6" y="-6" width="12" height="12" rx="1" fill="rgba(156,163,175,0.18)" stroke="#9CA3AF" stroke-width="0.7"/>
-                <path d="M -4.5 0 L 4.5 0 M 0 -4.5 L 0 4.5" stroke="#9CA3AF" stroke-width="0.9" stroke-linecap="round"/>
-                <text x="0" y="16" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#9CA3AF" font-weight="900" text-anchor="middle" letter-spacing="0.5">ATL</text>
-            </g>
-
-            <!-- Atlanta downtown HQ pin -->
-            <g transform="translate(302, 217)">
-                <circle r="16" fill="#DC2626" opacity="0.14"/>
-                <circle r="10" fill="#DC2626" opacity="0.32"/>
-                <circle r="6" fill="#DC2626" stroke="#FFFFFF" stroke-width="1.5"/>
-                <circle r="2.2" fill="#FFFFFF"/>
-            </g>
-            <g transform="translate(302, 191)">
-                <rect x="-32" y="-13" width="64" height="18" rx="3" fill="#0a0a0a" stroke="#DC2626" stroke-width="1"/>
-                <text y="-1" font-family="Outfit, sans-serif" font-size="10" fill="#FFFFFF" font-weight="900" text-anchor="middle" letter-spacing="-0.2">ATLANTA</text>
-                <text y="-22" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#DC2626" font-weight="900" text-anchor="middle" letter-spacing="1.4">▼ HQ</text>
-            </g>
-
-            <!-- In-range cities (inside 30-mi circle, real relative positions) -->
-            <g font-family="Plus Jakarta Sans, sans-serif" font-size="8" fill="#E5E7EB" font-weight="700">
-                <g transform="translate(252, 175)">
-                    <circle r="3.5" fill="#FFFFFF" stroke="#0a0a0a" stroke-width="1"/>
-                    <text y="-8" text-anchor="middle">Marietta</text>
-                </g>
-                <g transform="translate(295, 148)">
-                    <circle r="3.5" fill="#FFFFFF" stroke="#0a0a0a" stroke-width="1"/>
-                    <text y="-8" text-anchor="middle">Roswell</text>
-                </g>
-                <g transform="translate(330, 213)">
-                    <circle r="3.5" fill="#FFFFFF" stroke="#0a0a0a" stroke-width="1"/>
-                    <text y="-8" text-anchor="middle">Decatur</text>
-                </g>
-                <g transform="translate(282, 194)">
-                    <circle r="3.5" fill="#FFFFFF" stroke="#0a0a0a" stroke-width="1"/>
-                    <text x="-7" y="-3" text-anchor="end">Smyrna</text>
-                </g>
-                <g transform="translate(285, 238)">
-                    <circle r="3.5" fill="#FFFFFF" stroke="#0a0a0a" stroke-width="1"/>
-                    <text y="14" text-anchor="middle">East Point</text>
-                </g>
-                <g transform="translate(356, 217)">
-                    <circle r="3.5" fill="#FFFFFF" stroke="#0a0a0a" stroke-width="1"/>
-                    <text y="14" text-anchor="middle">Stone Mtn</text>
-                </g>
-                <g transform="translate(300, 137)">
-                    <circle r="3.5" fill="#FFFFFF" stroke="#0a0a0a" stroke-width="1"/>
-                    <text y="-8" text-anchor="middle">Alpharetta</text>
-                </g>
-                <g transform="translate(342, 258)">
-                    <circle r="3" fill="#FFFFFF" stroke="#0a0a0a" stroke-width="1"/>
-                    <text y="13" text-anchor="middle">Stockbridge</text>
-                </g>
-            </g>
-
-            <!-- Out-of-range cities (dimmed) -->
-            <g font-family="Plus Jakarta Sans, sans-serif" font-size="7.5" fill="#6B7280" font-weight="700">
-                <g transform="translate(218, 297)">
-                    <circle r="3" fill="#525252" stroke="#1a1a1a" stroke-width="0.8"/>
-                    <text y="13" text-anchor="middle">Newnan</text>
-                </g>
-                <g transform="translate(148, 215)">
-                    <circle r="3" fill="#525252" stroke="#1a1a1a" stroke-width="0.8"/>
-                    <text y="-7" text-anchor="middle">Carrollton</text>
-                </g>
-                <g transform="translate(420, 108)">
-                    <circle r="3" fill="#525252" stroke="#1a1a1a" stroke-width="0.8"/>
-                    <text y="-7" text-anchor="middle">Gainesville</text>
-                </g>
-                <g transform="translate(380, 138)">
-                    <circle r="3" fill="#525252" stroke="#1a1a1a" stroke-width="0.8"/>
-                    <text y="-7" text-anchor="middle">Buford</text>
-                </g>
-                <g transform="translate(300, 335)">
-                    <circle r="3" fill="#525252" stroke="#1a1a1a" stroke-width="0.8"/>
-                    <text y="13" text-anchor="middle">Griffin</text>
-                </g>
-                <g transform="translate(500, 168)">
-                    <circle r="3" fill="#525252" stroke="#1a1a1a" stroke-width="0.8"/>
-                    <text y="-7" text-anchor="middle">Athens</text>
-                </g>
-            </g>
-
-            <!-- Region label -->
-            <text x="78" y="86" font-family="Outfit, sans-serif" font-size="10.5" fill="#6B7280" font-weight="900" letter-spacing="2.5">ATLANTA METRO MARKET</text>
-            <text x="78" y="100" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" font-weight="700" letter-spacing="0.8">CURRENT TARGETED AREA · 50+ COUNTIES</text>
-
-            <!-- Out-of-range callout (pointing to Newnan / Carrollton zone) -->
-            <line x1="178" y1="225" x2="115" y2="305" stroke="#525252" stroke-width="0.8" stroke-dasharray="2 2"/>
-            <g transform="translate(38, 310)">
-                <rect width="142" height="34" rx="3" fill="#0a0a0a" stroke="#525252" stroke-width="0.9"/>
-                <text x="71" y="15" font-family="Outfit, sans-serif" font-size="9.5" fill="#9CA3AF" font-weight="900" text-anchor="middle" letter-spacing="0.6">OUT OF DRIVING RANGE</text>
-                <text x="71" y="27" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5" fill="#6B7280" text-anchor="middle" font-style="italic">spend leaking here</text>
-            </g>
-
-            <!-- Scale bar -->
-            <g transform="translate(440, 360)">
-                <line x1="0" y1="0" x2="90" y2="0" stroke="#9CA3AF" stroke-width="1.5"/>
-                <line x1="0" y1="-4" x2="0" y2="4" stroke="#9CA3AF" stroke-width="1.5"/>
-                <line x1="45" y1="-3" x2="45" y2="3" stroke="#9CA3AF" stroke-width="1.2"/>
-                <line x1="90" y1="-4" x2="90" y2="4" stroke="#9CA3AF" stroke-width="1.5"/>
-                <text x="0" y="-7" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#9CA3AF" font-weight="800">0</text>
-                <text x="45" y="-7" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#9CA3AF" font-weight="800" text-anchor="middle">~15</text>
-                <text x="90" y="-7" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#9CA3AF" font-weight="800" text-anchor="end">~30 MI</text>
-            </g>
-
-            <!-- Compass -->
-            <g transform="translate(560, 56)">
-                <circle r="16" fill="rgba(255,255,255,0.03)" stroke="#444" stroke-width="0.7"/>
-                <polygon points="0,-12 -4,3 0,0 4,3" fill="#DC2626"/>
-                <polygon points="0,12 -4,-3 0,0 4,-3" fill="#525252"/>
-                <text y="-21" font-family="Outfit, sans-serif" font-size="9" fill="#FFFFFF" font-weight="900" text-anchor="middle">N</text>
-            </g>
-        </svg>
-        <div class="chart-caption">The campaign currently targets the entire Atlanta metro (dashed boundary). Towns like <strong>Newnan, Carrollton, Gainesville, Griffin, and Athens</strong> sit outside the 30-mile range — every lead from there costs gas, time, and risks no-shows. Locking targeting to a fixed 30-mile radius around the office eliminates that hidden cost.</div>
+        <div id="atlantaMap" style="height: 420px; width: 100%; border-radius: 4px; overflow: hidden; background: #0a0a0a; border: 1px solid #1A1A1A; position: relative;">
+            <!-- Real Atlanta map (Leaflet + OSM via CartoDB Dark Matter). Pre-init label so PDF print shows something even before JS runs. -->
+            <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #525252; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 1.5px;">LOADING METRO ATLANTA MAP …</div>
+        </div>
+        <div class="chart-caption">Real Atlanta metro map (OpenStreetMap data). The dashed red boundary is the <strong>30-mile profitable service radius</strong> around HQ; white markers are <strong>in-range</strong> cities, dimmed markers are <strong>out-of-range</strong>. Towns like Newnan, Carrollton, Gainesville, Griffin, and Athens fall outside the radius — every lead from there costs gas, time, and risks no-shows.</div>
     </div>
 
     <div class="footer">
@@ -919,7 +790,59 @@
     </div>
 </div>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script>
+(function initAtlantaMap() {
+    if (typeof L === 'undefined') return;
+    var el = document.getElementById('atlantaMap');
+    if (!el) return;
+    el.innerHTML = '';
+    var HQ = [33.7490, -84.3880]; // Atlanta downtown / Take Charge HQ
+    var map = L.map('atlantaMap', { zoomControl: false, attributionControl: true, scrollWheelZoom: false }).setView(HQ, 9);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        subdomains: 'abcd', maxZoom: 18,
+        attribution: '&copy; OpenStreetMap &copy; CARTO'
+    }).addTo(map);
+    // 30-mile profitable service radius (48 280 m)
+    L.circle(HQ, { radius: 48280, color: '#DC2626', weight: 2.5, dashArray: '8 5', fillColor: '#DC2626', fillOpacity: 0.12 }).addTo(map);
+    // HQ marker (pulsing red dot)
+    L.marker(HQ, { icon: L.divIcon({
+        html: '<div style="position:relative;width:18px;height:18px"><div style="position:absolute;inset:-8px;background:#DC2626;border-radius:50%;opacity:0.18"></div><div style="position:absolute;inset:-3px;background:#DC2626;border-radius:50%;opacity:0.35"></div><div style="position:absolute;inset:3px;background:#DC2626;border:2px solid #fff;border-radius:50%"></div></div>',
+        iconSize: [18,18], iconAnchor: [9,9], className: ''
+    })}).addTo(map);
+    L.marker(HQ, { icon: L.divIcon({
+        html: '<div style="background:#0a0a0a;border:1px solid #DC2626;color:#fff;padding:2px 8px;border-radius:3px;font-family:Outfit,sans-serif;font-size:11px;font-weight:900;letter-spacing:-0.2px;white-space:nowrap">ATLANTA · HQ</div>',
+        iconSize: [110,18], iconAnchor: [55,32], className: ''
+    })}).addTo(map);
+    // In-range cities
+    [['Marietta',33.9526,-84.5499],['Roswell',34.0232,-84.3616],['Decatur',33.7748,-84.2963],['Smyrna',33.8840,-84.5144],['East Point',33.6795,-84.4394],['Stone Mountain',33.8081,-84.1702],['Alpharetta',34.0754,-84.2941],['Stockbridge',33.5443,-84.2338]].forEach(function(c){
+        L.marker([c[1],c[2]], { icon: L.divIcon({
+            html: '<div style="width:7px;height:7px;background:#fff;border:1.5px solid #0a0a0a;border-radius:50%;box-shadow:0 0 0 2px rgba(0,0,0,0.6)"></div>',
+            iconSize: [11,11], iconAnchor: [5.5,5.5], className: ''
+        })}).addTo(map);
+        L.marker([c[1],c[2]], { icon: L.divIcon({
+            html: '<div style="color:#fff;font-family:Plus Jakarta Sans,sans-serif;font-weight:700;font-size:11px;text-shadow:0 0 4px #000,0 0 4px #000,0 0 6px #000;white-space:nowrap">'+c[0]+'</div>',
+            iconSize: [100,14], iconAnchor: [50,22], className: ''
+        })}).addTo(map);
+    });
+    // Out-of-range cities
+    [['Newnan',33.3807,-84.7997],['Carrollton',33.5801,-85.0766],['Gainesville',34.2979,-83.8241],['Buford',34.1209,-84.0019],['Griffin',33.2468,-84.2638],['Athens',33.9519,-83.3576]].forEach(function(c){
+        L.marker([c[1],c[2]], { icon: L.divIcon({
+            html: '<div style="width:6px;height:6px;background:#6B7280;border:1px solid #1a1a1a;border-radius:50%"></div>',
+            iconSize: [8,8], iconAnchor: [4,4], className: ''
+        })}).addTo(map);
+        L.marker([c[1],c[2]], { icon: L.divIcon({
+            html: '<div style="color:#9CA3AF;font-family:Plus Jakarta Sans,sans-serif;font-weight:700;font-size:10px;text-shadow:0 0 4px #000,0 0 4px #000;white-space:nowrap">'+c[0]+'</div>',
+            iconSize: [100,14], iconAnchor: [50,18], className: ''
+        })}).addTo(map);
+    });
+    // Range label arc (top of circle)
+    L.marker([34.34, -84.388], { icon: L.divIcon({
+        html: '<div style="color:#FCA5A5;font-family:Outfit,sans-serif;font-weight:900;font-size:11px;letter-spacing:1.4px;text-shadow:0 0 6px #000;white-space:nowrap">30-MILE PROFITABLE SERVICE RANGE</div>',
+        iconSize: [280,16], iconAnchor: [140,8], className: ''
+    })}).addTo(map);
+})();
+
 (function() {
     var pageWidthPx = 210 * 3.7795275591; // 210mm → CSS px
     function fitToViewport() {
