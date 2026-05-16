@@ -760,40 +760,40 @@
 
     <div class="matrix-grid">
         <div class="matrix-card" style="grid-column: span 1;">
-            <span class="conf-badge conf-high">Insight</span>
-            <h4>The "Atlanta DMA" Trap</h4>
-            <p>99.3% of spend is correctly centered on Atlanta. However, the Atlanta DMA covers 50+ counties. <strong>Local waste</strong> is likely hidden here—drivers shouldn't be traveling 60+ miles for inspections.</p>
+            <span class="conf-badge conf-high">Validated</span>
+            <h4>Atlanta Metro = Primary Demand</h4>
+            <p>99.3% of spend lands in the Atlanta DMA, which matches where the demand actually is. Crews working statewide means anywhere in Georgia is fair game at the right job value — no in-state distance restriction is needed.</p>
         </div>
         <div class="matrix-card" style="grid-column: span 1;">
-            <span class="conf-badge conf-med">DMA Leakage</span>
-            <h4>Out-of-State Reach</h4>
-            <p>The $21.22 spent in the NC/SC border region confirms that "Advantage+ Expansion" is reaching beyond the primary service territory, albeit at a low volume.</p>
+            <span class="conf-badge conf-med">State-Line Leakage</span>
+            <h4>$21.22 Crossed Into NC / SC</h4>
+            <p>Advantage+ Expansion delivered a small slice across the Georgia state line. That's the only real geographic boundary worth enforcing — leads outside Georgia can't be serviced regardless of price.</p>
         </div>
     </div>
 
-    <h2 class="sec-title">Geo-Remediation Strategy</h2>
+    <h2 class="sec-title">Targeting & Lead Qualification</h2>
     <div class="roadmap">
         <div class="roadmap-phase" style="border-left-color: #FFF;">
-            <div class="phase-title">1. Move to Radius-Hard-Stop</div>
-            <p style="font-size: 9.5px; color: var(--text-dim);">Ditch "State" or "DMA" targeting. Use a <strong>30-mile fixed radius</strong> around the office to ensure every lead is within a profitable drive-time window.</p>
+            <div class="phase-title">1. Enforce Georgia-Only Delivery</div>
+            <p style="font-size: 9.5px; color: var(--text-dim);">Set targeting to <strong>Georgia state</strong> and disable Advantage+ audience expansion so no spend crosses into NC, SC, AL, TN, or FL. Inside GA, any job at the right price is fair game — no radius needed.</p>
         </div>
         <div class="roadmap-phase" style="border-left-color: #FFF;">
-            <div class="phase-title">2. Zip Code Exclusion Logic</div>
-            <p style="font-size: 9.5px; color: var(--text-dim);">Manually blacklist zip codes with high rental density or low-income mobile home parks where roof replacements are statistically improbable.</p>
+            <div class="phase-title">2. Qualify by Job Value, Not Distance</div>
+            <p style="font-size: 9.5px; color: var(--text-dim);">Add Lead-Form fields for <strong>roof age, ownership status, and repair vs. full replacement</strong>. Disqualify on job value (renters, mobile homes, sub-threshold repairs) — not on how far the property sits from Atlanta.</p>
         </div>
         <div class="roadmap-phase" style="border-left-color: #FFF;">
-            <div class="phase-title">3. Instant Form "City" Verification</div>
-            <p style="font-size: 9.5px; color: var(--text-dim);">Add a mandatory City/Zip question to the Lead Form. If the city is out of bounds, the lead is disqualified before hitting the CRM.</p>
+            <div class="phase-title">3. Bid Harder Where Demand Is Densest</div>
+            <p style="font-size: 9.5px; color: var(--text-dim);">Keep delivery available statewide, but use bid multipliers to weight spend toward zip codes with high <strong>single-family detached homeownership</strong>. The Atlanta metro stays the primary demand cluster without excluding profitable jobs elsewhere in GA.</p>
         </div>
     </div>
 
     <div class="chart-card" style="margin-top: 15px;">
-        <div class="chart-title">Profitable Service Range vs Current Targeting Area</div>
+        <div class="chart-title">Service Area — Georgia Demand vs State-Line Leakage</div>
         <div id="atlantaMap" style="height: 420px; width: 100%; border-radius: 4px; overflow: hidden; background: #0a0a0a; border: 1px solid #1A1A1A; position: relative;">
             <!-- Real Atlanta map (Leaflet + OSM via CartoDB Dark Matter). Pre-init label so PDF print shows something even before JS runs. -->
             <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #525252; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 1.5px;">LOADING METRO ATLANTA MAP …</div>
         </div>
-        <div class="chart-caption">Real Atlanta metro map (OpenStreetMap data). The <strong style="color:#9CA3AF;">gray dashed polygon</strong> is the <strong>Atlanta DMA — the area the campaign is currently targeting</strong> (~50+ counties). The <strong style="color:#EF4444;">red dashed circle</strong> is the <strong>30-mile profitable service radius</strong> around HQ. Every dimmed marker (Newnan, Carrollton, Gainesville, Griffin, Athens) sits inside the gray DMA but outside the red profitable range — gas, time, and no-show risk on every one of those leads.</div>
+        <div class="chart-caption">Real-geography map (OpenStreetMap data). The <strong style="color:#34D399;">green dashed boundary</strong> is the <strong>state of Georgia — the full service area</strong>, since crews work anywhere in-state at the right job value. The <strong style="color:#FCA5A5;">red dashed cluster</strong> is the <strong>Atlanta DMA</strong>, the primary demand center where ~99% of spend is correctly landing. The <strong style="color:#EF4444;">red dot near Greenville</strong> is the only real geo issue: $21.22 of Advantage+ expansion crossed the GA state line into NC/SC — the one boundary worth enforcing.</div>
     </div>
 
     <div class="footer">
@@ -809,64 +809,79 @@
     var el = document.getElementById('atlantaMap');
     if (!el) return;
     el.innerHTML = '';
-    var HQ = [33.7490, -84.3880]; // Atlanta downtown / Take Charge HQ
-    var map = L.map('atlantaMap', { zoomControl: false, attributionControl: true, scrollWheelZoom: false }).setView(HQ, 8);
+    var ATL = [33.7490, -84.3880]; // Atlanta downtown (demand center, not HQ)
+    var map = L.map('atlantaMap', { zoomControl: false, attributionControl: true, scrollWheelZoom: false }).setView([32.9, -83.6], 7);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
         subdomains: 'abcd', maxZoom: 18,
         attribution: '&copy; OpenStreetMap &copy; CARTO'
     }).addTo(map);
-    // Atlanta DMA boundary (current targeting area — ~50+ counties, much larger than profitable range)
+
+    // Georgia state outline — the actual service area (any GA job at the right price)
+    var gaPolygon = [
+        [34.99, -85.61], [34.99, -83.10], [34.49, -83.10], [33.97, -82.78],
+        [33.51, -82.20], [32.78, -81.46], [32.04, -81.10], [31.40, -81.49],
+        [30.72, -81.50], [30.72, -84.86], [30.99, -85.00], [31.62, -85.07],
+        [32.46, -85.17], [33.13, -85.04], [34.27, -85.42], [34.99, -85.61]
+    ];
+    L.polygon(gaPolygon, {
+        color: '#10B981', weight: 1.8, dashArray: '4 3',
+        fillColor: '#10B981', fillOpacity: 0.06
+    }).addTo(map);
+    L.marker([32.20, -83.20], { icon: L.divIcon({
+        html: '<div style="color:#34D399;font-family:Outfit,sans-serif;font-weight:900;font-size:12px;letter-spacing:1.8px;text-shadow:0 0 6px #000,0 0 6px #000;white-space:nowrap">SERVICE AREA · GEORGIA</div>',
+        iconSize: [260,16], iconAnchor: [130,8], className: ''
+    })}).addTo(map);
+
+    // Atlanta DMA — primary demand cluster (where 99.3% of spend is correctly going)
     var dmaPolygon = [
         [34.78, -85.20], [34.86, -84.55], [34.55, -83.40], [33.95, -83.05],
         [33.50, -82.90], [33.10, -83.40], [32.95, -84.30], [32.95, -84.95],
         [33.10, -85.40], [33.85, -85.40], [34.40, -85.25]
     ];
     L.polygon(dmaPolygon, {
-        color: '#9CA3AF', weight: 1.6, dashArray: '6 4',
-        fillColor: '#9CA3AF', fillOpacity: 0.05
+        color: '#FCA5A5', weight: 1.5, dashArray: '6 3',
+        fillColor: '#DC2626', fillOpacity: 0.10
     }).addTo(map);
-    // DMA label
-    L.marker([34.72, -84.50], { icon: L.divIcon({
-        html: '<div style="color:#9CA3AF;font-family:Outfit,sans-serif;font-weight:900;font-size:11px;letter-spacing:1.5px;text-shadow:0 0 6px #000,0 0 6px #000;white-space:nowrap">ATLANTA DMA · CURRENT TARGETING</div>',
-        iconSize: [280,16], iconAnchor: [140,8], className: ''
+    L.marker([34.92, -84.40], { icon: L.divIcon({
+        html: '<div style="color:#FCA5A5;font-family:Outfit,sans-serif;font-weight:900;font-size:10px;letter-spacing:1.4px;text-shadow:0 0 6px #000,0 0 6px #000;white-space:nowrap">ATLANTA DMA · PRIMARY DEMAND CLUSTER</div>',
+        iconSize: [260,16], iconAnchor: [130,8], className: ''
     })}).addTo(map);
-    // 30-mile profitable service radius (48 280 m)
-    L.circle(HQ, { radius: 48280, color: '#DC2626', weight: 2.8, dashArray: '8 5', fillColor: '#DC2626', fillOpacity: 0.18 }).addTo(map);
-    // HQ marker (pulsing red dot)
-    L.marker(HQ, { icon: L.divIcon({
-        html: '<div style="position:relative;width:18px;height:18px"><div style="position:absolute;inset:-8px;background:#DC2626;border-radius:50%;opacity:0.18"></div><div style="position:absolute;inset:-3px;background:#DC2626;border-radius:50%;opacity:0.35"></div><div style="position:absolute;inset:3px;background:#DC2626;border:2px solid #fff;border-radius:50%"></div></div>',
-        iconSize: [18,18], iconAnchor: [9,9], className: ''
+
+    // Atlanta demand marker (no "HQ" since crews are statewide)
+    L.marker(ATL, { icon: L.divIcon({
+        html: '<div style="position:relative;width:14px;height:14px"><div style="position:absolute;inset:-5px;background:#DC2626;border-radius:50%;opacity:0.25"></div><div style="position:absolute;inset:1px;background:#DC2626;border:2px solid #fff;border-radius:50%"></div></div>',
+        iconSize: [14,14], iconAnchor: [7,7], className: ''
     })}).addTo(map);
-    L.marker(HQ, { icon: L.divIcon({
-        html: '<div style="background:#0a0a0a;border:1px solid #DC2626;color:#fff;padding:2px 8px;border-radius:3px;font-family:Outfit,sans-serif;font-size:11px;font-weight:900;letter-spacing:-0.2px;white-space:nowrap">ATLANTA · HQ</div>',
-        iconSize: [110,18], iconAnchor: [55,32], className: ''
+    L.marker(ATL, { icon: L.divIcon({
+        html: '<div style="background:#0a0a0a;border:1px solid #DC2626;color:#fff;padding:2px 8px;border-radius:3px;font-family:Outfit,sans-serif;font-size:11px;font-weight:900;letter-spacing:-0.2px;white-space:nowrap">ATLANTA</div>',
+        iconSize: [80,18], iconAnchor: [40,30], className: ''
     })}).addTo(map);
-    // In-range cities
-    [['Marietta',33.9526,-84.5499],['Roswell',34.0232,-84.3616],['Decatur',33.7748,-84.2963],['Smyrna',33.8840,-84.5144],['East Point',33.6795,-84.4394],['Stone Mountain',33.8081,-84.1702],['Alpharetta',34.0754,-84.2941],['Stockbridge',33.5443,-84.2338]].forEach(function(c){
+
+    // Georgia cities — all valid (anywhere in GA is fair game)
+    [['Marietta',33.9526,-84.5499],['Roswell',34.0232,-84.3616],['Decatur',33.7748,-84.2963],
+     ['Newnan',33.3807,-84.7997],['Carrollton',33.5801,-85.0766],['Gainesville',34.2979,-83.8241],
+     ['Athens',33.9519,-83.3576],['Macon',32.8407,-83.6324],['Augusta',33.4735,-82.0105],
+     ['Columbus',32.4610,-84.9877],['Savannah',32.0809,-81.0912],['Rome',34.2570,-85.1647]
+    ].forEach(function(c){
         L.marker([c[1],c[2]], { icon: L.divIcon({
-            html: '<div style="width:7px;height:7px;background:#fff;border:1.5px solid #0a0a0a;border-radius:50%;box-shadow:0 0 0 2px rgba(0,0,0,0.6)"></div>',
-            iconSize: [11,11], iconAnchor: [5.5,5.5], className: ''
+            html: '<div style="width:5px;height:5px;background:#E5E7EB;border:1px solid #0a0a0a;border-radius:50%"></div>',
+            iconSize: [7,7], iconAnchor: [3.5,3.5], className: ''
         })}).addTo(map);
         L.marker([c[1],c[2]], { icon: L.divIcon({
-            html: '<div style="color:#fff;font-family:Plus Jakarta Sans,sans-serif;font-weight:700;font-size:11px;text-shadow:0 0 4px #000,0 0 4px #000,0 0 6px #000;white-space:nowrap">'+c[0]+'</div>',
-            iconSize: [100,14], iconAnchor: [50,22], className: ''
+            html: '<div style="color:#E5E7EB;font-family:Plus Jakarta Sans,sans-serif;font-weight:700;font-size:9.5px;text-shadow:0 0 4px #000,0 0 4px #000;white-space:nowrap">'+c[0]+'</div>',
+            iconSize: [90,14], iconAnchor: [45,18], className: ''
         })}).addTo(map);
     });
-    // Out-of-range cities
-    [['Newnan',33.3807,-84.7997],['Carrollton',33.5801,-85.0766],['Gainesville',34.2979,-83.8241],['Buford',34.1209,-84.0019],['Griffin',33.2468,-84.2638],['Athens',33.9519,-83.3576]].forEach(function(c){
-        L.marker([c[1],c[2]], { icon: L.divIcon({
-            html: '<div style="width:6px;height:6px;background:#6B7280;border:1px solid #1a1a1a;border-radius:50%"></div>',
-            iconSize: [8,8], iconAnchor: [4,4], className: ''
-        })}).addTo(map);
-        L.marker([c[1],c[2]], { icon: L.divIcon({
-            html: '<div style="color:#9CA3AF;font-family:Plus Jakarta Sans,sans-serif;font-weight:700;font-size:10px;text-shadow:0 0 4px #000,0 0 4px #000;white-space:nowrap">'+c[0]+'</div>',
-            iconSize: [100,14], iconAnchor: [50,18], className: ''
-        })}).addTo(map);
-    });
-    // Range label arc (top of circle)
-    L.marker([34.34, -84.388], { icon: L.divIcon({
-        html: '<div style="color:#FCA5A5;font-family:Outfit,sans-serif;font-weight:900;font-size:11px;letter-spacing:1.4px;text-shadow:0 0 6px #000;white-space:nowrap">30-MILE PROFITABLE SERVICE RANGE</div>',
-        iconSize: [280,16], iconAnchor: [140,8], className: ''
+
+    // NC / SC leakage marker — the only actual geographic problem ($21.22 over the state line)
+    var leak = [34.85, -82.40]; // Greenville-Spartanburg area
+    L.marker(leak, { icon: L.divIcon({
+        html: '<div style="width:10px;height:10px;background:#EF4444;border:1.5px solid #fff;border-radius:50%;box-shadow:0 0 0 6px rgba(239,68,68,0.25)"></div>',
+        iconSize: [10,10], iconAnchor: [5,5], className: ''
+    })}).addTo(map);
+    L.marker(leak, { icon: L.divIcon({
+        html: '<div style="background:#7f1d1d;border:1px solid #EF4444;color:#fff;padding:2px 8px;border-radius:3px;font-family:Outfit,sans-serif;font-size:10px;font-weight:900;white-space:nowrap">LEAKED $21.22 · NC/SC</div>',
+        iconSize: [160,18], iconAnchor: [80,-6], className: ''
     })}).addTo(map);
 })();
 
