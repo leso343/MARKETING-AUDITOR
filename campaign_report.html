@@ -812,7 +812,6 @@
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 <script>
 (function initAtlantaMap() {
     if (typeof L === 'undefined') return;
@@ -838,31 +837,21 @@
         fillColor: 'transparent', fillOpacity: 0
     }).addTo(map);
 
-    // Lead-density heat field around Atlanta. Synthetic decay from the
-    // single known data point (Atlanta DMA = 30 leads); this is a smooth
-    // approximation, not zip-level data.
-    if (typeof L.heatLayer === 'function') {
-        var heatData = [ [ATL[0], ATL[1], 1.0] ];
-        var rings = [
-            { r: 0.05, intensity: 0.85, n: 8  },
-            { r: 0.10, intensity: 0.65, n: 14 },
-            { r: 0.18, intensity: 0.45, n: 18 },
-            { r: 0.28, intensity: 0.28, n: 22 },
-            { r: 0.42, intensity: 0.15, n: 26 }
-        ];
-        rings.forEach(function(ring) {
-            for (var i = 0; i < ring.n; i++) {
-                var a = (i / ring.n) * 2 * Math.PI;
-                heatData.push([ ATL[0] + ring.r * Math.cos(a),
-                                ATL[1] + ring.r * Math.sin(a),
-                                ring.intensity ]);
-            }
-        });
-        L.heatLayer(heatData, {
-            radius: 38, blur: 30, maxZoom: 12, max: 1.0,
-            gradient: { 0.15: '#1e3a8a', 0.35: '#7f1d1d', 0.55: '#DC2626', 0.75: '#F59E0B', 1.0: '#FCD34D' }
+    // Lead concentration at Atlanta — stacked concentric circles
+    // (single honest data point: 30 leads in the Atlanta DMA, decaying
+    // outward through metro). Reliable across browsers, no plugin.
+    [
+        { r: 55000, fill: '#F59E0B', op: 0.05 },
+        { r: 32000, fill: '#FBBF24', op: 0.09 },
+        { r: 18000, fill: '#FCD34D', op: 0.16 },
+        { r:  8000, fill: '#FDE68A', op: 0.28 }
+    ].forEach(function(ring) {
+        L.circle(ATL, {
+            radius: ring.r, color: 'transparent', weight: 0,
+            fillColor: ring.fill, fillOpacity: ring.op,
+            interactive: false
         }).addTo(map);
-    }
+    });
 
     // Atlanta label — pinned to the hot spot (the heat layer itself shows the intensity)
     L.marker(ATL, { icon: L.divIcon({
@@ -935,23 +924,35 @@
 
     function renderStormLayer(events) {
         stormLayer.clearLayers();
-        events.forEach(function(e) {
-            var size = e.type === 'hail'
-                ? Math.min(4 + e.mag * 3.5, 12)
-                : Math.min(4 + (e.mag - 50) / 5, 10);
-            var ringColor = e.inHeat ? '#FCD34D' : '#93C5FD';
-            var ringWeight = e.inHeat ? 2.4 : 1.2;
-            var fillColor  = e.type === 'hail' ? '#A5B4FC' : '#C4B5FD';
-            L.circleMarker([e.lat, e.lng], {
-                radius: size, color: ringColor, weight: ringWeight,
-                fillColor: fillColor, fillOpacity: 0.55
-            }).addTo(stormLayer).bindTooltip(
-                '<b>' + e.location + '</b><br>' +
-                (e.type === 'hail' ? e.mag.toFixed(2) + '" hail' : e.mag + ' mph wind') +
+        events.forEach(function(e, i) {
+            var rank = i + 1;
+            var tip =
+                '<b>#' + rank + ' &middot; ' + e.location + '</b><br>' +
+                (e.type === 'hail' ? e.mag.toFixed(2) + '&quot; hail' : e.mag + ' mph wind') +
                 '<br>' + e.date +
-                (e.inHeat ? '<br><span style="color:#FCD34D">★ high-priority canvas</span>' : ''),
-                { offset: [10, 0], direction: 'right', sticky: true }
-            );
+                (e.inHeat ? '<br><span style="color:#FCD34D">&#9733; high-priority canvas</span>' : '');
+
+            if (rank <= 5) {
+                // Numbered priority pin (1-5) — matches the ranked list below
+                var bg   = e.inHeat ? '#FCD34D' : '#9CA3AF';
+                var ring = e.inHeat ? '#F59E0B' : '#525252';
+                L.marker([e.lat, e.lng], {
+                    icon: L.divIcon({
+                        html: '<div style="width:26px;height:26px;background:' + bg +
+                              ';border:2.5px solid ' + ring +
+                              ';color:#0a0a0a;display:flex;align-items:center;justify-content:center;' +
+                              'font-family:Outfit,sans-serif;font-weight:900;font-size:14px;' +
+                              'border-radius:50%;line-height:1">' + rank + '</div>',
+                        iconSize: [26, 26], iconAnchor: [13, 13], className: ''
+                    })
+                }).addTo(stormLayer).bindTooltip(tip, { offset: [12, 0], direction: 'right', sticky: true });
+            } else {
+                // Lower-priority storms — small muted dot
+                L.circleMarker([e.lat, e.lng], {
+                    radius: 3, color: '#4b5563', weight: 1,
+                    fillColor: '#374151', fillOpacity: 0.55
+                }).addTo(stormLayer).bindTooltip(tip, { offset: [8, 0], direction: 'right', sticky: true });
+            }
         });
     }
 
@@ -1027,10 +1028,10 @@
             div.style.cssText = 'background:rgba(10,10,10,0.85);border:1px solid #1A1A1A;color:#E5E7EB;padding:8px 10px;border-radius:4px;font-family:Plus Jakarta Sans,sans-serif;font-size:9.5px;line-height:1.5;backdrop-filter:blur(4px);';
             div.innerHTML =
                 '<div style="font-family:JetBrains Mono,monospace;font-size:8px;font-weight:800;letter-spacing:1px;color:#9CA3AF;margin-bottom:5px">LEGEND</div>' +
-                '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><span style="display:inline-block;width:10px;height:10px;background:#FCD34D;border-radius:2px"></span>Most leads here</div>' +
-                '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><span style="display:inline-block;width:10px;height:10px;background:#DC2626;border-radius:2px"></span>Some leads here</div>' +
-                '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><span style="display:inline-block;width:10px;height:10px;border:2px solid #FCD34D;background:#A5B4FC;border-radius:50%"></span>Recent storm · high priority</div>' +
-                '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><span style="display:inline-block;width:10px;height:10px;border:1px solid #93C5FD;background:#A5B4FC;border-radius:50%"></span>Recent storm · lower priority</div>' +
+                '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px"><span style="display:inline-block;width:14px;height:14px;background:radial-gradient(circle,#FDE68A 0%,#FCD34D 40%,rgba(245,158,11,0.15) 100%);border-radius:50%"></span>Where leads come from</div>' +
+                '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px"><span style="display:inline-block;width:16px;height:16px;background:#FCD34D;border:2px solid #F59E0B;border-radius:50%;font:900 10px Outfit,sans-serif;color:#0a0a0a;text-align:center;line-height:12px">1</span>Top-5 storm · high priority</div>' +
+                '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px"><span style="display:inline-block;width:16px;height:16px;background:#9CA3AF;border:2px solid #525252;border-radius:50%;font:900 10px Outfit,sans-serif;color:#0a0a0a;text-align:center;line-height:12px">4</span>Top-5 storm · lower priority</div>' +
+                '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px"><span style="display:inline-block;width:6px;height:6px;background:#374151;border:1px solid #4b5563;border-radius:50%;margin:0 5px"></span>Other recent storm</div>' +
                 '<div style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:10px;height:10px;background:#60A5FA;border-radius:50%;border:1px solid #fff"></span>Spent money, got no leads</div>';
             return div;
         }
