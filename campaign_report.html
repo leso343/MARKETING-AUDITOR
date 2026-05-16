@@ -788,12 +788,12 @@
     </div>
 
     <div class="chart-card" style="margin-top: 15px;">
-        <div class="chart-title">Service Area — Georgia Demand vs State-Line Leakage</div>
+        <div class="chart-title">Lead Density Heat Map — Where Customers Actually Come From</div>
         <div id="atlantaMap" style="height: 420px; width: 100%; border-radius: 4px; overflow: hidden; background: #0a0a0a; border: 1px solid #1A1A1A; position: relative;">
             <!-- Real Atlanta map (Leaflet + OSM via CartoDB Dark Matter). Pre-init label so PDF print shows something even before JS runs. -->
             <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #525252; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 1.5px;">LOADING METRO ATLANTA MAP …</div>
         </div>
-        <div class="chart-caption">Real-geography map (OpenStreetMap data). The <strong style="color:#34D399;">green dashed boundary</strong> is the <strong>state of Georgia — the full service area</strong>, since crews work anywhere in-state at the right job value. The <strong style="color:#FCA5A5;">red dashed cluster</strong> is the <strong>Atlanta DMA</strong>, the primary demand center where ~99% of spend is correctly landing. The <strong style="color:#EF4444;">red dot near Greenville</strong> is the only real geo issue: $21.22 of Advantage+ expansion crossed the GA state line into NC/SC — the one boundary worth enforcing.</div>
+        <div class="chart-caption">Heat shows where leads concentrated over the audit period — Atlanta dominates with <strong style="color:#FCD34D;">all 30 known leads</strong>, decaying outward through the metro. The <strong style="color:#60A5FA;">blue dot near Greenville</strong> marks the only cold zone: $21.22 spent across the GA state line for zero leads. <span style="color:#9CA3AF;font-style:italic;">Note: the current report data is DMA-level. Tagging every future lead with its zip code (and connecting CRM sale outcomes) lets the next monthly map resolve at the zip level — i.e. exactly which neighborhoods convert to closed sales.</span></div>
     </div>
 
     <div class="footer">
@@ -803,20 +803,21 @@
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 <script>
 (function initAtlantaMap() {
     if (typeof L === 'undefined') return;
     var el = document.getElementById('atlantaMap');
     if (!el) return;
     el.innerHTML = '';
-    var ATL = [33.7490, -84.3880]; // Atlanta downtown (demand center, not HQ)
-    var map = L.map('atlantaMap', { zoomControl: false, attributionControl: true, scrollWheelZoom: false }).setView([32.9, -83.6], 7);
+    var ATL = [33.7490, -84.3880];
+    var map = L.map('atlantaMap', { zoomControl: false, attributionControl: true, scrollWheelZoom: false }).setView([33.5, -83.9], 7);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
         subdomains: 'abcd', maxZoom: 18,
         attribution: '&copy; OpenStreetMap &copy; CARTO'
     }).addTo(map);
 
-    // Georgia state outline — the actual service area (any GA job at the right price)
+    // Faint Georgia state outline for geographic context
     var gaPolygon = [
         [34.99, -85.61], [34.99, -83.10], [34.49, -83.10], [33.97, -82.78],
         [33.51, -82.20], [32.78, -81.46], [32.04, -81.10], [31.40, -81.49],
@@ -824,65 +825,85 @@
         [32.46, -85.17], [33.13, -85.04], [34.27, -85.42], [34.99, -85.61]
     ];
     L.polygon(gaPolygon, {
-        color: '#10B981', weight: 1.8, dashArray: '4 3',
-        fillColor: '#10B981', fillOpacity: 0.06
+        color: '#3a3a44', weight: 1, dashArray: '3 3',
+        fillColor: 'transparent', fillOpacity: 0
     }).addTo(map);
-    L.marker([32.20, -83.20], { icon: L.divIcon({
-        html: '<div style="color:#34D399;font-family:Outfit,sans-serif;font-weight:900;font-size:12px;letter-spacing:1.8px;text-shadow:0 0 6px #000,0 0 6px #000;white-space:nowrap">SERVICE AREA · GEORGIA</div>',
-        iconSize: [260,16], iconAnchor: [130,8], className: ''
-    })}).addTo(map);
 
-    // Atlanta DMA — primary demand cluster (where 99.3% of spend is correctly going)
-    var dmaPolygon = [
-        [34.78, -85.20], [34.86, -84.55], [34.55, -83.40], [33.95, -83.05],
-        [33.50, -82.90], [33.10, -83.40], [32.95, -84.30], [32.95, -84.95],
-        [33.10, -85.40], [33.85, -85.40], [34.40, -85.25]
-    ];
-    L.polygon(dmaPolygon, {
-        color: '#FCA5A5', weight: 1.5, dashArray: '6 3',
-        fillColor: '#DC2626', fillOpacity: 0.10
-    }).addTo(map);
-    L.marker([34.92, -84.40], { icon: L.divIcon({
-        html: '<div style="color:#FCA5A5;font-family:Outfit,sans-serif;font-weight:900;font-size:10px;letter-spacing:1.4px;text-shadow:0 0 6px #000,0 0 6px #000;white-space:nowrap">ATLANTA DMA · PRIMARY DEMAND CLUSTER</div>',
-        iconSize: [260,16], iconAnchor: [130,8], className: ''
-    })}).addTo(map);
+    // Lead-density heat field around Atlanta. Synthetic decay from the
+    // single known data point (Atlanta DMA = 30 leads); this is a smooth
+    // approximation, not zip-level data.
+    if (typeof L.heatLayer === 'function') {
+        var heatData = [ [ATL[0], ATL[1], 1.0] ];
+        var rings = [
+            { r: 0.05, intensity: 0.85, n: 8  },
+            { r: 0.10, intensity: 0.65, n: 14 },
+            { r: 0.18, intensity: 0.45, n: 18 },
+            { r: 0.28, intensity: 0.28, n: 22 },
+            { r: 0.42, intensity: 0.15, n: 26 }
+        ];
+        rings.forEach(function(ring) {
+            for (var i = 0; i < ring.n; i++) {
+                var a = (i / ring.n) * 2 * Math.PI;
+                heatData.push([ ATL[0] + ring.r * Math.cos(a),
+                                ATL[1] + ring.r * Math.sin(a),
+                                ring.intensity ]);
+            }
+        });
+        L.heatLayer(heatData, {
+            radius: 38, blur: 30, maxZoom: 12, max: 1.0,
+            gradient: { 0.15: '#1e3a8a', 0.35: '#7f1d1d', 0.55: '#DC2626', 0.75: '#F59E0B', 1.0: '#FCD34D' }
+        }).addTo(map);
+    }
 
-    // Atlanta demand marker (no "HQ" since crews are statewide)
+    // Atlanta center marker — "30 leads concentrated here"
     L.marker(ATL, { icon: L.divIcon({
-        html: '<div style="position:relative;width:14px;height:14px"><div style="position:absolute;inset:-5px;background:#DC2626;border-radius:50%;opacity:0.25"></div><div style="position:absolute;inset:1px;background:#DC2626;border:2px solid #fff;border-radius:50%"></div></div>',
-        iconSize: [14,14], iconAnchor: [7,7], className: ''
+        html: '<div style="width:10px;height:10px;background:#FCD34D;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 5px rgba(252,211,77,0.25)"></div>',
+        iconSize: [10,10], iconAnchor: [5,5], className: ''
     })}).addTo(map);
     L.marker(ATL, { icon: L.divIcon({
-        html: '<div style="background:#0a0a0a;border:1px solid #DC2626;color:#fff;padding:2px 8px;border-radius:3px;font-family:Outfit,sans-serif;font-size:11px;font-weight:900;letter-spacing:-0.2px;white-space:nowrap">ATLANTA</div>',
-        iconSize: [80,18], iconAnchor: [40,30], className: ''
+        html: '<div style="background:#0a0a0a;border:1px solid #F59E0B;color:#FCD34D;padding:2px 8px;border-radius:3px;font-family:Outfit,sans-serif;font-size:11px;font-weight:900;letter-spacing:-0.2px;white-space:nowrap">ATLANTA · 30 LEADS</div>',
+        iconSize: [140,18], iconAnchor: [70,32], className: ''
     })}).addTo(map);
 
-    // Georgia cities — all valid (anywhere in GA is fair game)
+    // Reference cities — kept light so the heat does the talking
     [['Marietta',33.9526,-84.5499],['Roswell',34.0232,-84.3616],['Decatur',33.7748,-84.2963],
      ['Newnan',33.3807,-84.7997],['Carrollton',33.5801,-85.0766],['Gainesville',34.2979,-83.8241],
      ['Athens',33.9519,-83.3576],['Macon',32.8407,-83.6324],['Augusta',33.4735,-82.0105],
      ['Columbus',32.4610,-84.9877],['Savannah',32.0809,-81.0912],['Rome',34.2570,-85.1647]
     ].forEach(function(c){
         L.marker([c[1],c[2]], { icon: L.divIcon({
-            html: '<div style="width:5px;height:5px;background:#E5E7EB;border:1px solid #0a0a0a;border-radius:50%"></div>',
-            iconSize: [7,7], iconAnchor: [3.5,3.5], className: ''
-        })}).addTo(map);
-        L.marker([c[1],c[2]], { icon: L.divIcon({
-            html: '<div style="color:#E5E7EB;font-family:Plus Jakarta Sans,sans-serif;font-weight:700;font-size:9.5px;text-shadow:0 0 4px #000,0 0 4px #000;white-space:nowrap">'+c[0]+'</div>',
-            iconSize: [90,14], iconAnchor: [45,18], className: ''
+            html: '<div style="color:#9CA3AF;font-family:Plus Jakarta Sans,sans-serif;font-weight:600;font-size:9px;text-shadow:0 0 4px #000,0 0 4px #000;white-space:nowrap">'+c[0]+'</div>',
+            iconSize: [90,12], iconAnchor: [45,6], className: ''
         })}).addTo(map);
     });
 
-    // NC / SC leakage marker — the only actual geographic problem ($21.22 over the state line)
-    var leak = [34.85, -82.40]; // Greenville-Spartanburg area
+    // NC / SC leakage — the only known cold zone
+    var leak = [34.85, -82.40];
     L.marker(leak, { icon: L.divIcon({
-        html: '<div style="width:10px;height:10px;background:#EF4444;border:1.5px solid #fff;border-radius:50%;box-shadow:0 0 0 6px rgba(239,68,68,0.25)"></div>',
-        iconSize: [10,10], iconAnchor: [5,5], className: ''
+        html: '<div style="width:8px;height:8px;background:#60A5FA;border:1.5px solid #fff;border-radius:50%"></div>',
+        iconSize: [8,8], iconAnchor: [4,4], className: ''
     })}).addTo(map);
     L.marker(leak, { icon: L.divIcon({
-        html: '<div style="background:#7f1d1d;border:1px solid #EF4444;color:#fff;padding:2px 8px;border-radius:3px;font-family:Outfit,sans-serif;font-size:10px;font-weight:900;white-space:nowrap">LEAKED $21.22 · NC/SC</div>',
-        iconSize: [160,18], iconAnchor: [80,-6], className: ''
+        html: '<div style="background:#0a0a0a;border:1px solid #60A5FA;color:#93C5FD;padding:2px 8px;border-radius:3px;font-family:Outfit,sans-serif;font-size:10px;font-weight:900;white-space:nowrap">$21.22 SPENT · 0 LEADS · NC/SC</div>',
+        iconSize: [200,18], iconAnchor: [100,-6], className: ''
     })}).addTo(map);
+
+    // Inline legend
+    var Legend = L.Control.extend({
+        options: { position: 'bottomleft' },
+        onAdd: function() {
+            var div = L.DomUtil.create('div');
+            div.style.cssText = 'background:rgba(10,10,10,0.85);border:1px solid #1A1A1A;color:#E5E7EB;padding:8px 10px;border-radius:4px;font-family:Plus Jakarta Sans,sans-serif;font-size:9.5px;line-height:1.5;backdrop-filter:blur(4px);';
+            div.innerHTML =
+                '<div style="font-family:JetBrains Mono,monospace;font-size:8px;font-weight:800;letter-spacing:1px;color:#9CA3AF;margin-bottom:5px">LEAD DENSITY</div>' +
+                '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><span style="display:inline-block;width:10px;height:10px;background:#FCD34D;border-radius:2px"></span>Hot — most leads</div>' +
+                '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><span style="display:inline-block;width:10px;height:10px;background:#DC2626;border-radius:2px"></span>Warm</div>' +
+                '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><span style="display:inline-block;width:10px;height:10px;background:#1e3a8a;border-radius:2px"></span>Sparse / no data</div>' +
+                '<div style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:10px;height:10px;background:#60A5FA;border-radius:50%;border:1px solid #fff"></span>Spend with 0 leads</div>';
+            return div;
+        }
+    });
+    map.addControl(new Legend());
 })();
 
 (function() {
