@@ -873,6 +873,7 @@
 </style>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 <script>
 (function initAtlantaMap() {
     if (typeof L === 'undefined') return;
@@ -908,23 +909,8 @@
         fillColor: 'transparent', fillOpacity: 0
     }).addTo(map);
 
-    // Lead concentration at Atlanta — stacked concentric circles
-    // (single honest data point: 30 leads in the Atlanta DMA, decaying
-    // outward through metro). Reliable across browsers, no plugin.
-    [
-        { r: 55000, fill: '#F59E0B', op: 0.05 },
-        { r: 32000, fill: '#FBBF24', op: 0.09 },
-        { r: 18000, fill: '#FCD34D', op: 0.16 },
-        { r:  8000, fill: '#FDE68A', op: 0.28 }
-    ].forEach(function(ring) {
-        L.circle(ATL, {
-            radius: ring.r, color: 'transparent', weight: 0,
-            fillColor: ring.fill, fillOpacity: ring.op,
-            interactive: false
-        }).addTo(map);
-    });
-
-    // Atlanta label — pinned to the hot spot (the heat layer itself shows the intensity)
+    // Lead heatmap replaces blast-zone circles
+        // Atlanta label — pinned to the hot spot (the heat layer itself shows the intensity)
     L.marker(ATL, { icon: L.divIcon({
         html: '<div style="background:#0a0a0a;border:1px solid #F59E0B;color:#FCD34D;padding:2px 8px;border-radius:3px;font-family:Outfit,sans-serif;font-size:11px;font-weight:900;letter-spacing:-0.2px;white-space:nowrap">ATLANTA · 30 LEADS</div>',
         iconSize: [140,18], iconAnchor: [70,9], className: ''
@@ -975,6 +961,47 @@
         [33.5807, -84.3216, 'wind', 62,   '2026-04-23', 'Forest Park']
     ];
 
+
+    // ── STORM HEATMAP ────────────────────────────────────────────────
+    // Build heat points from the baked dataset weighted by severity×proximity.
+    // Format: [lat, lng, intensity 0-1]
+    // We call this BEFORE scoring so bakedStorms is already defined above.
+    function buildHeatPoints(events) {
+        return events.map(function(e) {
+            var dist = Math.sqrt(Math.pow(e[0]-ATL[0],2)+Math.pow(e[1]-ATL[1],2));
+            var proximity = Math.max(0, (0.55 - dist) / 0.55);
+            var sev = e[2]==='hail' ? Math.min(1, e[3]/2.5) : Math.min(1, (e[3]-45)/30);
+            var intensity = Math.min(1, 0.25 + sev*0.5 + proximity*0.35);
+            return [e[0], e[1], intensity];
+        });
+    }
+
+    var heatLayer = L.heatLayer(buildHeatPoints(bakedStorms), {
+        radius: 38,
+        blur: 28,
+        maxZoom: 13,
+        max: 1.0,
+        gradient: {
+            0.0:  '#000011',
+            0.25: '#1a1a4e',
+            0.45: '#7c2d12',
+            0.6:  '#dc2626',
+            0.75: '#f97316',
+            0.88: '#fbbf24',
+            1.0:  '#fef08a'
+        }
+    }).addTo(map);
+
+    // Update heatmap when live storms load
+    map.on('sna:liveloaded', function(e) {
+        heatLayer.setLatLngs(buildHeatPoints(e.events));
+    });
+
+    // ── PULSING RING on #1 storm ─────────────────────────────────────
+    var pulseStyle = document.createElement('style');
+    pulseStyle.textContent = '@keyframes sna-pulse{0%{transform:scale(1);opacity:.7}70%{transform:scale(2.4);opacity:0}100%{transform:scale(1);opacity:0}}';
+    document.head.appendChild(pulseStyle);
+
     var stormLayer = L.featureGroup().addTo(map);
 
     // ════════ PHASE 3: SCORE EVENTS BY STORM × LEAD-HEAT INTERSECTION ════════
@@ -1007,6 +1034,15 @@
                 // Numbered priority pin (1-5) — matches the ranked list below
                 var bg   = e.inHeat ? '#FCD34D' : '#9CA3AF';
                 var ring = e.inHeat ? '#F59E0B' : '#525252';
+
+                // Pulsing halo on the #1 storm
+                if (rank === 1 && e.inHeat) {
+                    L.marker([e.lat, e.lng], { icon: L.divIcon({
+                        html: '<div style="width:56px;height:56px;border-radius:50%;border:2.5px solid #F59E0B;animation:sna-pulse 1.8s ease-out infinite;position:absolute;top:-28px;left:-28px;"></div>',
+                        iconSize:[0,0], iconAnchor:[0,0], className:''
+                    }), zIndexOffset: -100 }).addTo(stormLayer);
+                }
+
                 L.marker([e.lat, e.lng], {
                     icon: L.divIcon({
                         html: '<div style="width:26px;height:26px;background:' + bg +
@@ -1088,6 +1124,7 @@
         if (!liveEvents || !liveEvents.length) return;
         var liveScored = liveEvents.map(scoreEvent).sort(function(a, b) { return b.score - a.score; });
         renderStormLayer(liveScored);
+        heatLayer.setLatLngs(buildHeatPoints(liveEvents));
         renderPriorityList(liveScored, 'LIVE · NCEI SWDI (PLSR)');
     });
 
@@ -1099,7 +1136,7 @@
             div.style.cssText = 'background:rgba(10,10,10,0.85);border:1px solid #1A1A1A;color:#E5E7EB;padding:8px 10px;border-radius:4px;font-family:Plus Jakarta Sans,sans-serif;font-size:9.5px;line-height:1.5;backdrop-filter:blur(4px);';
             div.innerHTML =
                 '<div style="font-family:JetBrains Mono,monospace;font-size:8px;font-weight:800;letter-spacing:1px;color:#9CA3AF;margin-bottom:5px">LEGEND</div>' +
-                '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px"><span style="display:inline-block;width:14px;height:14px;background:radial-gradient(circle,#FDE68A 0%,#FCD34D 40%,rgba(245,158,11,0.15) 100%);border-radius:50%"></span>Where leads come from</div>' +
+                '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px"><span style="display:inline-block;width:44px;height:10px;border-radius:2px;background:linear-gradient(90deg,#1a1a4e,#dc2626,#fbbf24,#fef08a)"></span>Storm intensity heatmap</div>' +
                 '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px"><span style="display:inline-block;width:16px;height:16px;background:#FCD34D;border:2px solid #F59E0B;border-radius:50%;font:900 10px Outfit,sans-serif;color:#0a0a0a;text-align:center;line-height:12px">1</span>Top-5 storm · high priority</div>' +
                 '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px"><span style="display:inline-block;width:16px;height:16px;background:#9CA3AF;border:2px solid #525252;border-radius:50%;font:900 10px Outfit,sans-serif;color:#0a0a0a;text-align:center;line-height:12px">4</span>Top-5 storm · lower priority</div>' +
                 '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px"><span style="display:inline-block;width:6px;height:6px;background:#374151;border:1px solid #4b5563;border-radius:50%;margin:0 5px"></span>Other recent storm</div>' +
