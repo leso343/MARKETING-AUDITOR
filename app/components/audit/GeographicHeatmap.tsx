@@ -57,11 +57,11 @@ export default function GeographicHeatmap({ geo }: Props) {
 
       <table className="data-table w-full" style={{ tableLayout: "fixed" }}>
         <colgroup>
-          <col style={{ width: "38%" }} />
+          <col style={{ width: "30%" }} />
           <col style={{ width: "22%" }} />
-          <col style={{ width: "12%" }} />
-          <col style={{ width: "18%" }} />
           <col style={{ width: "10%" }} />
+          <col style={{ width: "18%" }} />
+          <col style={{ width: "20%" }} />
         </colgroup>
         <thead>
           <tr>
@@ -114,10 +114,16 @@ export default function GeographicHeatmap({ geo }: Props) {
                 <td className="text-right font-mono">
                   {r.cpl > 0 ? `$${r.cpl.toFixed(2)}` : "—"}
                 </td>
-                <td>
+                <td style={{ verticalAlign: "middle" }}>
                   <span
                     className="status-pill"
-                    style={{ color: STATUS_TEXT[r.status] }}
+                    style={{
+                      color: STATUS_TEXT[r.status],
+                      display: "inline-block",
+                      whiteSpace: "normal",
+                      lineHeight: 1.2,
+                      wordBreak: "break-word",
+                    }}
                   >
                     {statusLabel}
                   </span>
