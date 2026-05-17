@@ -108,6 +108,11 @@ export function classify(headers: string[]): ClassifiedHeaders {
   // Strong level signals win: an adset-level export contains Age/Locations columns
   // but is not a breakdown file. We treat Ad set name / Ad name as definitive.
   if (hasAdName) return { kind: 'ad' };
+
+  // DMA region is a definitive breakdown signal even when "Ad set name" is present —
+  // Meta exports DMA breakdowns at adset-level granularity, so both columns appear together.
+  if (bkHits.includes('dma')) return { kind: 'breakdown', breakdownKind: 'dma' };
+
   if (hasAdsetName) return { kind: 'adset' };
 
   // True breakdown file: only campaign-level + breakdown columns, no adset/ad names.

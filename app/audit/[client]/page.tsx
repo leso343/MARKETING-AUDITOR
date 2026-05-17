@@ -63,6 +63,28 @@ export default async function AuditPage({ params, searchParams }: PageProps) {
     ([key, v]) => ({ key, label: v.label ?? key }),
   );
 
+  if (audit.fileSummary.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-950 text-gray-100 flex items-center justify-center p-8">
+        <div className="max-w-lg text-center space-y-4">
+          <div className="text-5xl">📂</div>
+          <h1 className="text-2xl font-bold">No data — drop CSVs to populate</h1>
+          <p className="text-gray-400">
+            No Meta Ads Manager CSV exports were found for{" "}
+            <span className="text-white font-mono">{prettyClient(client)}</span>.
+          </p>
+          <p className="text-gray-500 text-sm font-mono bg-gray-900 rounded p-3">
+            /public/csvs/{client}/
+          </p>
+          <p className="text-gray-400 text-sm">
+            Drop your exports there (campaigns.csv, ads.csv, breakdowns.csv) and
+            reload. The engine picks up any .csv file in that folder automatically.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <AuditDashboard
       audit={audit}
