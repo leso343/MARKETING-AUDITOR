@@ -34,6 +34,24 @@
 
 * { box-sizing: border-box; scroll-behavior: smooth; }
 
+/* ─── global custom scrollbar ─── */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--red) #0a0a0a;
+}
+*::-webkit-scrollbar { width: 4px; height: 4px; }
+*::-webkit-scrollbar-track { background: #0a0a0a; }
+*::-webkit-scrollbar-thumb {
+  background: var(--red);
+  border-radius: 2px;
+  box-shadow: 0 0 6px rgba(255, 0, 0, 0.55);
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: #ff3333;
+  box-shadow: 0 0 10px rgba(255, 0, 0, 0.9);
+}
+*::-webkit-scrollbar-corner { background: #0a0a0a; }
+
 html, body { background: var(--bg); color: var(--text); }
 body {
   font-family: var(--font-main);
@@ -205,24 +223,3 @@ body {
 .dark-select:hover { border-color: #333; }
 .dark-select:focus { border-color: var(--red); }
 
-/* ─── custom scrollbar for KPI strip ─── */
-.kpi-scroll {
-  scrollbar-width: thin;
-  scrollbar-color: var(--red) #0a0a0a;
-}
-.kpi-scroll::-webkit-scrollbar {
-  height: 3px;
-}
-.kpi-scroll::-webkit-scrollbar-track {
-  background: #0a0a0a;
-  border-radius: 2px;
-}
-.kpi-scroll::-webkit-scrollbar-thumb {
-  background: var(--red);
-  border-radius: 2px;
-  box-shadow: 0 0 6px rgba(255, 0, 0, 0.6);
-}
-.kpi-scroll::-webkit-scrollbar-thumb:hover {
-  background: #ff3333;
-  box-shadow: 0 0 10px rgba(255, 0, 0, 0.9);
-}
