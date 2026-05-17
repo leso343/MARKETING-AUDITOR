@@ -63,7 +63,7 @@ export default function KPISnapshot({ kpis }: Props) {
   const { t, plain } = useLang();
 
   return (
-    <div className="overflow-x-auto pb-1">
+    <div className="kpi-scroll overflow-x-auto pb-2">
       <div className="flex gap-4" style={{ minWidth: "max-content" }}>
         {kpis.map((k) => {
           const displayLabel = plain
