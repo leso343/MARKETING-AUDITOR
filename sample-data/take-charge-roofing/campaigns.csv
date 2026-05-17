@@ -1,0 +1,14 @@
+Campaign name,Status,Objective,Bid strategy,Budget,Attribution setting,Results,Result indicator,Cost per result,Reach,Impressions,Frequency,"Cost per 1,000 People Reached",CPC (cost per link click),CTR (link click-through rate),Amount spent (USD),Ends,Quality ranking,Engagement rate ranking,Conversion rate ranking
+Storm Damage - Conversion 2024,Active,Sales (Conversions),Lowest cost,$80.00 Daily,"7d-click, 1d-view",42,actions:offsite_conversion.fb_pixel_lead,$71.43,18420,32140,1.74,$10.95,$1.87,1.85%,$3000.06,Ongoing,Average,Above average,Average
+Spring Roof Inspection - Lead Gen,Active,Leads,Lowest cost,$70.00 Daily,"7d-click, 1d-view",38,actions:onsite_conversion.lead_grouped,$72.34,14210,26880,1.89,$10.21,$1.92,2.10%,$2748.85,Ongoing,Average,Average,Below average
+Insurance Claims - Lead Gen,Active,Leads,Lowest cost,$60.00 Daily,"7d-click, 1d-view",54,actions:onsite_conversion.lead_grouped,$48.10,12080,22440,1.86,$9.71,$1.65,2.43%,$2597.40,Ongoing,Above average,Above average,Above average
+Brand Awareness - Top of Funnel,Active,Brand awareness,Lowest cost,$50.00 Daily,"7d-click, 1d-view",84210,actions:reach,$0.02,64200,102800,1.60,$8.65,,0.32%,$1889.10,Ongoing,Average,Average,
+Traffic Push - Roofing Services,Active,Traffic,Lowest cost,$45.00 Daily,"7d-click, 1d-view",412,actions:link_click,$3.41,19840,38920,1.96,$8.61,$3.41,1.06%,$1404.92,Ongoing,Below average,Average,
+Storm Damage Retargeting,Active,Sales (Conversions),Lowest cost,$40.00 Daily,"7d-click, 1d-view",28,actions:offsite_conversion.fb_pixel_lead,$54.92,4680,12420,2.65,$11.20,$2.10,1.61%,$1537.76,Ongoing,Above average,Above average,Average
+New Construction Leads - LeadGen,Active,Leads,Lowest cost,$55.00 Daily,"7d-click, 1d-view",0,actions:onsite_conversion.lead_grouped,—,8210,16480,2.01,$10.85,$2.65,1.42%,$1788.10,Ongoing,,,
+Commercial Roofing - Lead Gen,Active,Leads,Lowest cost,$50.00 Daily,"7d-click, 1d-view",0,actions:onsite_conversion.lead_grouped,—,6420,12810,2.00,$10.10,$2.20,1.45%,$1294.10,Ongoing,,,
+Roof Repair - Conversion,Paused,Sales (Conversions),Lowest cost,$35.00 Daily,"7d-click, 1d-view",18,actions:offsite_conversion.fb_pixel_lead,$62.20,5210,10840,2.08,$10.32,$2.04,1.68%,$1119.60,2024-03-15,Average,Average,Below average
+Reach Expansion - North FL,Active,Reach,Lowest cost,$30.00 Daily,"7d-click, 1d-view",24800,actions:reach,$0.04,18540,24800,1.34,$36.20,,0.45%,$897.76,Ongoing,Below average,Below average,
+Engagement Builder - Local,Active,Engagement,Lowest cost,$25.00 Daily,"7d-click, 1d-view",3120,actions:post_engagement,$0.31,12480,21420,1.72,$8.40,,0.78%,$967.40,Ongoing,Average,Above average,
+Tracking Test - Lead Form (BROKEN),Active,Leads,Lowest cost,$30.00 Daily,1d-view,0,actions:onsite_conversion.lead_grouped,—,4810,9210,1.91,$11.10,$3.05,1.12%,$895.30,Ongoing,,,
+Total,,,,,,,,,,,,,,,$21140.35,,,,
