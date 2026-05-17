@@ -1,6 +1,7 @@
 "use client";
 
 import type { FunnelLeakageResult } from "@/engine/analyses/funnelLeakage";
+import { useLang } from "@/context/LangContext";
 
 interface Props {
   funnel: FunnelLeakageResult;
@@ -12,24 +13,40 @@ const STATUS_COLOR: Record<string, string> = {
   critical: "#ff0000",
 };
 
+const PLAIN_STAGE_NAMES: Record<string, string> = {
+  "AD_INTEREST (IMPRESSIONS)":      "People Who Saw Your Ads",
+  "CLICKS PURCHASED":               "People Who Clicked",
+  "USER_ARRIVAL (VERIFIED SESSIONS)": "People Who Visited Your Website",
+  "LEAD_CONVERSION (TRACKED)":      "People Who Became Leads",
+};
+
 export default function FunnelLeakageChart({ funnel }: Props) {
+  const { t, plain } = useLang();
   const maxCount = Math.max(...funnel.stages.map((s) => s.count), 1);
 
   return (
     <div className="panel h-full">
-      <div className="panel-label">Funnel_Integrity_Diagnostic</div>
+      <div className="panel-label">
+        {t("Funnel_Integrity_Diagnostic", "Customer Drop-Off Analysis")}
+      </div>
       <h2
         className="mb-1 text-xl font-bold tracking-tight"
         style={{ fontFamily: "var(--font-head)" }}
       >
-        Tracking People vs. Clicks
+        {t("Tracking People vs. Clicks", "Where Customers Drop Off")}
       </h2>
       <p className="mb-6 text-xs text-[var(--text-dim)]">
-        Impression → Click → Session → Lead, with retention % per stage.
+        {t(
+          "Impression → Click → Session → Lead, with retention % per stage.",
+          "How many people moved through each step toward becoming a lead.",
+        )}
       </p>
 
       {funnel.stages.map((stage, idx) => {
         const widthPct = Math.min(100, (stage.count / maxCount) * 100);
+        const stageName = plain
+          ? (PLAIN_STAGE_NAMES[stage.name] ?? stage.name)
+          : stage.name;
         return (
           <div key={stage.name} className="funnel-stage">
             <div
@@ -47,7 +64,7 @@ export default function FunnelLeakageChart({ funnel }: Props) {
             <div className="funnel-content">
               <div>
                 <div className="stage-label">
-                  [{String(idx + 1).padStart(2, "0")}] {stage.name}
+                  [{String(idx + 1).padStart(2, "0")}] {stageName}
                 </div>
                 <div className="mt-1 text-[10px] text-[var(--text-dim)]">
                   {stage.note}
@@ -59,7 +76,8 @@ export default function FunnelLeakageChart({ funnel }: Props) {
                   className="font-mono text-[10px]"
                   style={{ color: STATUS_COLOR[stage.status] }}
                 >
-                  {stage.retentionPct}% retained
+                  {stage.retentionPct}%{" "}
+                  {t("retained", "kept")}
                 </div>
               </div>
             </div>
@@ -68,15 +86,18 @@ export default function FunnelLeakageChart({ funnel }: Props) {
       })}
 
       <div className="insight-box">
-        <b>FORENSIC FINDING:</b> {funnel.primaryLeak}
+        <b>{t("FORENSIC FINDING:", "WHAT WE FOUND:")}</b> {funnel.primaryLeak}
         <br />
         <br />
-        <b>LEAKAGE SCORE:</b>{" "}
+        <b>{t("LEAKAGE SCORE:", "DROP-OFF SCORE:")}</b>{" "}
         <span style={{ color: funnel.leakageScore > 50 ? "var(--red)" : "#fbbf24" }}>
           {funnel.leakageScore}/100
         </span>
         <span className="ml-2 text-[var(--text-dim)]">
-          (higher = worse retention drop at the worst stage)
+          {t(
+            "(higher = worse retention drop at the worst stage)",
+            "(0 = no drop-off, 100 = total breakdown)",
+          )}
         </span>
       </div>
     </div>

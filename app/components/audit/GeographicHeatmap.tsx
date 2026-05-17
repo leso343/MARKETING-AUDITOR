@@ -1,36 +1,53 @@
 "use client";
 
 import type { GeographicWasteResult } from "@/engine/analyses/geographicWaste";
+import { useLang } from "@/context/LangContext";
 
 interface Props {
   geo: GeographicWasteResult;
 }
 
 const STATUS_BG: Record<string, string> = {
-  hot: "rgba(74,222,128,0.10)",
+  hot:   "rgba(74,222,128,0.10)",
   mixed: "rgba(251,191,36,0.10)",
-  cold: "rgba(251,191,36,0.15)",
-  leak: "rgba(255,0,0,0.15)",
+  cold:  "rgba(251,191,36,0.15)",
+  leak:  "rgba(255,0,0,0.15)",
 };
 const STATUS_TEXT: Record<string, string> = {
-  hot: "#4ade80",
+  hot:   "#4ade80",
   mixed: "#fbbf24",
-  cold: "#fbbf24",
-  leak: "#ff0000",
+  cold:  "#fbbf24",
+  leak:  "#ff0000",
+};
+
+const PLAIN_STATUS: Record<string, string> = {
+  hot:   "TOP AREA",
+  mixed: "OK AREA",
+  cold:  "WEAK AREA",
+  leak:  "WASTED",
 };
 
 export default function GeographicHeatmap({ geo }: Props) {
+  const { t, plain } = useLang();
   const maxSpend = Math.max(...geo.regions.map((r) => r.spend), 1);
 
   return (
     <div className="panel h-full">
-      <div className="panel-label">Geographic_Leakage_Audit</div>
+      <div className="panel-label">
+        {t("Geographic_Leakage_Audit", "Spending by Location")}
+      </div>
 
       <div className="mb-5 grid grid-cols-3 gap-3">
-        <Mini label="Zones_Mapped" value={String(geo.zonesMapped)} />
-        <Mini label="Core_Hot" value={`$${Math.round(geo.coreHotSpend).toLocaleString()}`} />
         <Mini
-          label="Leakage_Out"
+          label={t("Zones_Mapped", "Areas")}
+          value={String(geo.zonesMapped)}
+        />
+        <Mini
+          label={t("Core_Hot", "Best Area Spend")}
+          value={`$${Math.round(geo.coreHotSpend).toLocaleString()}`}
+        />
+        <Mini
+          label={t("Leakage_Out", "Wasted Budget")}
           value={`$${Math.round(geo.wasteUSD).toLocaleString()}`}
           tone="leak"
         />
@@ -39,31 +56,34 @@ export default function GeographicHeatmap({ geo }: Props) {
       <table className="data-table">
         <thead>
           <tr>
-            <th>Region</th>
-            <th className="text-right">Spend</th>
-            <th className="text-right">Leads</th>
-            <th className="text-right">CPL</th>
-            <th>Status</th>
+            <th>{t("Region", "Location")}</th>
+            <th className="text-right">{t("Spend", "Spent")}</th>
+            <th className="text-right">{t("Leads", "Leads")}</th>
+            <th className="text-right">{t("CPL", "Cost/Lead")}</th>
+            <th>{t("Status", "Result")}</th>
           </tr>
         </thead>
         <tbody>
           {geo.regions.length === 0 && (
             <tr>
               <td colSpan={5} className="py-6 text-center text-[var(--text-dim)]">
-                No DMA breakdown found. Drop a `breakdown_dma.csv` into the
-                client folder.
+                {t(
+                  "No geographic breakdown found. Drop breakdowns.csv into the client CSV folder.",
+                  "No location data found. Import a DMA breakdown export to see this section.",
+                )}
               </td>
             </tr>
           )}
           {geo.regions.map((r) => {
             const widthPct = (r.spend / maxSpend) * 100;
+            const statusLabel = plain
+              ? (PLAIN_STATUS[r.status] ?? r.status.toUpperCase())
+              : r.status.toUpperCase();
             return (
               <tr
                 key={r.name}
                 className="relative"
-                style={{
-                  background: STATUS_BG[r.status],
-                }}
+                style={{ background: STATUS_BG[r.status] }}
               >
                 <td className="font-mono text-xs font-bold">{r.name}</td>
                 <td className="text-right font-mono">
@@ -84,7 +104,7 @@ export default function GeographicHeatmap({ geo }: Props) {
                     className="status-pill"
                     style={{ color: STATUS_TEXT[r.status] }}
                   >
-                    {r.status.toUpperCase()}
+                    {statusLabel}
                   </span>
                 </td>
               </tr>
@@ -94,7 +114,7 @@ export default function GeographicHeatmap({ geo }: Props) {
       </table>
 
       <div className="insight-box">
-        <b>RECOMMENDATION:</b> {geo.recommendation}
+        <b>{t("RECOMMENDATION:", "SUGGESTED ACTION:")}</b> {geo.recommendation}
       </div>
     </div>
   );

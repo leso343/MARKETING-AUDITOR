@@ -37,8 +37,10 @@ function isTrafficObjective(o: string): boolean {
   return /traffic|link.?click|reach|aware|engagement/i.test(o);
 }
 
-function isLeadObjective(o: string): boolean {
-  return /lead|conversion|sales|appointment/i.test(o);
+function isLeadObjective(o: string, ri?: string): boolean {
+  if (/lead|conversion|sales|appointment/i.test(o)) return true;
+  if (ri && /leadgen|lead|pixel_lead/i.test(ri)) return true;
+  return false;
 }
 
 export function analyzeFunnelLeakage(
@@ -58,12 +60,16 @@ export function analyzeFunnelLeakage(
   }
   // Sum of Results from traffic-objective campaigns (Meta reports Link Clicks as Results there).
   const trafficClicks = sum(
-    campaigns.filter((c) => /^traffic$/i.test(c.objective) || /link.?click/i.test(c.objective)).map((c) => c.results),
+    campaigns.filter((c) =>
+      /^traffic$/i.test(c.objective) ||
+      /link.?click/i.test(c.objective) ||
+      /link_click/i.test(c.resultIndicator),
+    ).map((c) => c.results),
   );
   const totalClicks = Math.round(weightedClicks + trafficClicks);
 
   // Leads: results from lead-objective campaigns; fall back to ad-level results.
-  let totalLeads = sum(campaigns.filter((c) => isLeadObjective(c.objective)).map((c) => c.results));
+  let totalLeads = sum(campaigns.filter((c) => isLeadObjective(c.objective, c.resultIndicator)).map((c) => c.results));
   if (totalLeads === 0) {
     totalLeads = sum(ads.map((a) => a.results));
   }

@@ -1,14 +1,8 @@
 "use client";
 
-/**
- * ControlsPanel — sticky right-sidebar with live-tuneable controls.
- *
- * Sliders / dropdowns push their values into the URL via `onChange`.
- * The server component above re-runs the engine with the new benchmarks
- * and React re-renders the affected sections.
- */
 import { useState, useEffect } from "react";
-import { Settings2, Loader2 } from "lucide-react";
+import { Settings2, Loader2, Languages } from "lucide-react";
+import { useLang } from "@/context/LangContext";
 
 interface Props {
   targetCpl: number;
@@ -20,9 +14,9 @@ interface Props {
 }
 
 const TIME_WINDOWS = [
-  { key: "7", label: "Last 7 days" },
-  { key: "30", label: "Last 30 days" },
-  { key: "90", label: "Last 90 days" },
+  { key: "7",   label: "Last 7 days" },
+  { key: "30",  label: "Last 30 days" },
+  { key: "90",  label: "Last 90 days" },
   { key: "all", label: "All time" },
 ];
 
@@ -34,7 +28,7 @@ export default function ControlsPanel({
   onChange,
   isPending,
 }: Props) {
-  // Local state for smooth slider feedback; commits to URL on release.
+  const { t, plain, toggle } = useLang();
   const [localCpl, setLocalCpl] = useState(targetCpl);
   const [localCtr, setLocalCtr] = useState(targetCtr);
   const [timeWindow, setTimeWindow] = useState("all");
@@ -51,17 +45,44 @@ export default function ControlsPanel({
             className="text-sm font-bold uppercase tracking-tight"
             style={{ fontFamily: "var(--font-head)" }}
           >
-            Live Controls
+            {t("Live Controls", "Live Controls")}
           </div>
           {isPending && (
             <Loader2 className="ml-auto h-3.5 w-3.5 animate-spin text-[var(--red)]" />
           )}
         </div>
 
+        {/* Language toggle */}
+        <div className="mb-6">
+          <label className="mb-2 block font-mono text-[9px] uppercase tracking-[2px] text-[var(--text-dim)]">
+            {t("Language Mode", "Language Mode")}
+          </label>
+          <button
+            onClick={toggle}
+            className="flex w-full items-center justify-between border px-3 py-2.5 font-mono text-[10px] uppercase tracking-wider transition-colors"
+            style={{
+              borderColor: plain ? "#4ade80" : "var(--red-dim)",
+              background: plain ? "rgba(74,222,128,0.05)" : "rgba(255,0,0,0.05)",
+              color: plain ? "#4ade80" : "var(--red)",
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <Languages className="h-3.5 w-3.5" />
+              {plain ? "Plain English" : "Agency Mode"}
+            </div>
+            <span className="text-[8px] opacity-60">click to switch</span>
+          </button>
+          <div className="mt-1.5 font-mono text-[8px] uppercase tracking-wider text-[var(--text-dim)]">
+            {plain
+              ? "Simple language — no jargon"
+              : "Professional marketing terminology"}
+          </div>
+        </div>
+
         {/* Industry */}
         <div className="mb-6">
           <label className="mb-2 block font-mono text-[9px] uppercase tracking-[2px] text-[var(--text-dim)]">
-            Industry Benchmark
+            {t("Industry Benchmark", "Industry Type")}
           </label>
           <select
             className="dark-select"
@@ -84,7 +105,7 @@ export default function ControlsPanel({
         <div className="mb-6">
           <div className="mb-2 flex items-baseline justify-between">
             <label className="font-mono text-[9px] uppercase tracking-[2px] text-[var(--text-dim)]">
-              Target CPL
+              {t("Target CPL", "Target Cost Per Lead")}
             </label>
             <span className="font-mono text-sm font-bold text-[var(--red)]">
               ${localCpl}
@@ -98,12 +119,8 @@ export default function ControlsPanel({
             step={5}
             value={localCpl}
             onChange={(e) => setLocalCpl(Number(e.target.value))}
-            onMouseUp={(e) =>
-              onChange("cpl", String((e.target as HTMLInputElement).value))
-            }
-            onTouchEnd={(e) =>
-              onChange("cpl", String((e.target as HTMLInputElement).value))
-            }
+            onMouseUp={(e) => onChange("cpl", String((e.target as HTMLInputElement).value))}
+            onTouchEnd={(e) => onChange("cpl", String((e.target as HTMLInputElement).value))}
           />
           <div className="mt-1 flex justify-between font-mono text-[9px] text-[var(--text-dim)]">
             <span>$20</span>
@@ -115,7 +132,7 @@ export default function ControlsPanel({
         <div className="mb-6">
           <div className="mb-2 flex items-baseline justify-between">
             <label className="font-mono text-[9px] uppercase tracking-[2px] text-[var(--text-dim)]">
-              Target CTR
+              {t("Target CTR", "Target Click Rate")}
             </label>
             <span className="font-mono text-sm font-bold text-[var(--red)]">
               {localCtr.toFixed(1)}%
@@ -129,12 +146,8 @@ export default function ControlsPanel({
             step={0.1}
             value={localCtr}
             onChange={(e) => setLocalCtr(Number(e.target.value))}
-            onMouseUp={(e) =>
-              onChange("ctr", String((e.target as HTMLInputElement).value))
-            }
-            onTouchEnd={(e) =>
-              onChange("ctr", String((e.target as HTMLInputElement).value))
-            }
+            onMouseUp={(e) => onChange("ctr", String((e.target as HTMLInputElement).value))}
+            onTouchEnd={(e) => onChange("ctr", String((e.target as HTMLInputElement).value))}
           />
           <div className="mt-1 flex justify-between font-mono text-[9px] text-[var(--text-dim)]">
             <span>0.5%</span>
@@ -142,10 +155,10 @@ export default function ControlsPanel({
           </div>
         </div>
 
-        {/* Time window (UI only for now — engine ignores it until per-row dates exist) */}
+        {/* Time window */}
         <div className="mb-6">
           <label className="mb-2 block font-mono text-[9px] uppercase tracking-[2px] text-[var(--text-dim)]">
-            Time Window
+            {t("Time Window", "Date Range")}
           </label>
           <select
             className="dark-select"
@@ -153,18 +166,22 @@ export default function ControlsPanel({
             onChange={(e) => setTimeWindow(e.target.value)}
           >
             {TIME_WINDOWS.map((w) => (
-              <option key={w.key} value={w.key}>
-                {w.label}
-              </option>
+              <option key={w.key} value={w.key}>{w.label}</option>
             ))}
           </select>
           <div className="mt-2 font-mono text-[8px] uppercase tracking-wider text-[var(--text-dim)]">
-            Applies once date-stamped CSVs are imported.
+            {t(
+              "Applies once date-stamped CSVs are imported.",
+              "Works once you import dated exports.",
+            )}
           </div>
         </div>
 
         <div className="mt-8 border-t border-[var(--border)] pt-4 font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)]">
-          Drag sliders → release to recompute. URL is shareable.
+          {t(
+            "Drag sliders → release to recompute. URL is shareable.",
+            "Adjust sliders to update the analysis. URL saves your settings.",
+          )}
         </div>
       </div>
     </aside>

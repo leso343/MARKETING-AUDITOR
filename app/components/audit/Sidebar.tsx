@@ -6,39 +6,48 @@ import {
   AlertTriangle,
   ChevronLeft,
   Crosshair,
+  Download,
   FileBarChart,
   MapPinned,
+  PieChart,
   Users,
 } from "lucide-react";
+import { useLang } from "@/context/LangContext";
 
 interface Props {
   clientName: string;
   primaryLeak: string;
+  pdfPath?: string;
 }
 
-const navGroups: { label: string; items: { href: string; label: string; icon: typeof Activity }[] }[] = [
-  {
-    label: "Diagnostic",
-    items: [
-      { href: "#overview", label: "Executive Summary", icon: FileBarChart },
-      { href: "#leakage", label: "Funnel Integrity", icon: Activity },
-      { href: "#tracking", label: "Sentinel Audit", icon: AlertTriangle },
-    ],
-  },
-  {
-    label: "Market Segments",
-    items: [
-      { href: "#geo", label: "Geographic Sieve", icon: MapPinned },
-      { href: "#creative", label: "Creative Drill", icon: Users },
-    ],
-  },
-  {
-    label: "Protocol",
-    items: [{ href: "#plan", label: "30-Day Fix Queue", icon: Crosshair }],
-  },
-];
+export default function Sidebar({ clientName, primaryLeak, pdfPath }: Props) {
+  const { t } = useLang();
 
-export default function Sidebar({ clientName, primaryLeak }: Props) {
+  const navGroups = [
+    {
+      label: t("Diagnostic", "Analysis"),
+      items: [
+        { href: "#overview", label: t("Executive Summary", "Top Findings"), icon: FileBarChart },
+        { href: "#leakage", label: t("Funnel Integrity", "Customer Drop-Off"), icon: Activity },
+        { href: "#tracking", label: t("Sentinel Audit", "Tracking Check"), icon: AlertTriangle },
+      ],
+    },
+    {
+      label: t("Market Segments", "Audience & Creative"),
+      items: [
+        { href: "#geo", label: t("Geographic Sieve", "Location Data"), icon: MapPinned },
+        { href: "#creative", label: t("Creative Drill", "Ad Performance"), icon: Users },
+        { href: "#demographics", label: t("Demographics", "Age Breakdown"), icon: PieChart },
+      ],
+    },
+    {
+      label: t("Protocol", "Action Plan"),
+      items: [
+        { href: "#plan", label: t("30-Day Fix Queue", "Action Items"), icon: Crosshair },
+      ],
+    },
+  ];
+
   return (
     <aside
       className="hidden w-[260px] flex-shrink-0 flex-col border-r border-[var(--border)] bg-[var(--sidebar)] px-6 py-9 lg:flex"
@@ -49,14 +58,14 @@ export default function Sidebar({ clientName, primaryLeak }: Props) {
         className="mb-10 flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-[var(--text-dim)] transition-colors hover:text-white"
       >
         <ChevronLeft className="h-3 w-3" />
-        All clients
+        {t("All clients", "All clients")}
       </Link>
 
       <div
         className="mb-10 text-base font-extrabold uppercase tracking-tight text-[var(--red)]"
         style={{ fontFamily: "var(--font-head)" }}
       >
-        SNA_FORENSIC
+        {t("SNA_FORENSIC", "SNA Forensic")}
       </div>
 
       {navGroups.map((g) => (
@@ -82,15 +91,26 @@ export default function Sidebar({ clientName, primaryLeak }: Props) {
 
       <div className="mt-auto border-t border-[var(--border)] pt-5">
         <div className="mb-1 font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)]">
-          Client
+          {t("Client", "Client")}
         </div>
         <div className="text-sm font-bold text-white">{clientName}</div>
         <div className="mt-3 font-mono text-[9px] uppercase tracking-wider text-[var(--red)]">
-          Primary leak
+          {t("Primary leak", "Biggest issue")}
         </div>
-        <div className="mt-1 text-[11px] leading-snug text-[var(--text-dim)]">
+        <div className="mt-1 line-clamp-3 text-[11px] leading-snug text-[var(--text-dim)]">
           {primaryLeak}
         </div>
+
+        {pdfPath && (
+          <a
+            href={pdfPath}
+            download
+            className="mt-5 flex items-center gap-2 border border-[var(--border)] px-3 py-2 font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)] transition-colors hover:border-white hover:text-white"
+          >
+            <Download className="h-3 w-3 flex-shrink-0" />
+            {t("Download PDF Report", "Download PDF Report")}
+          </a>
+        )}
       </div>
     </aside>
   );

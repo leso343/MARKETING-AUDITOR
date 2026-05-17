@@ -23,8 +23,11 @@ function sum(nums: Array<number | null | undefined>): number {
   return nums.reduce<number>((a, b) => a + (b ?? 0), 0);
 }
 
-function isLeadObjective(o: string): boolean {
-  return /lead|conversion|sales|appointment/i.test(o);
+function isLeadObjective(o: string, ri?: string): boolean {
+  if (/lead|conversion|sales|appointment/i.test(o)) return true;
+  // campaigns.csv often lacks an Objective column; use Result Indicator as fallback
+  if (ri && /leadgen|lead|pixel_lead/i.test(ri)) return true;
+  return false;
 }
 
 export function analyzeSpendEfficiency(
@@ -34,7 +37,7 @@ export function analyzeSpendEfficiency(
   benchmarks: { targetCpl: number; targetCtr: number } = { targetCpl: 55, targetCtr: 1.5 },
 ): SpendEfficiencyResult {
   const totalSpend = sum(campaigns.map((c) => c.amountSpent));
-  const totalLeads = sum(campaigns.filter((c) => isLeadObjective(c.objective)).map((c) => c.results)) ||
+  const totalLeads = sum(campaigns.filter((c) => isLeadObjective(c.objective, c.resultIndicator)).map((c) => c.results)) ||
                      sum(ads.map((a) => a.results));
   const blendedCpl = totalLeads > 0 ? totalSpend / totalLeads : 0;
 
@@ -59,6 +62,7 @@ export function analyzeSpendEfficiency(
   }
   const averageFrequency = totalReach > 0 ? freqAcc / totalReach : 0;
 
+  const leadCampaignCount = campaigns.filter((c) => isLeadObjective(c.objective, c.resultIndicator)).length;
   const campaignsWithAttribIssues = campaigns.filter((c) => !c.attributionSetting).length;
 
   const cplStatus: StatusLevel =
@@ -118,7 +122,7 @@ export function analyzeSpendEfficiency(
       value: String(totalLeads),
       unit: 'Tracked Leads',
       status: totalLeads === 0 ? 'critical' : 'ok',
-      benchmark: `Across ${campaigns.filter((c) => isLeadObjective(c.objective)).length} lead campaigns`,
+      benchmark: `Across ${leadCampaignCount} lead campaigns`,
     },
     {
       label: 'Reach_Saturation',

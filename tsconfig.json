@@ -22,6 +22,7 @@
       "@/*": ["./*"],
       "@/engine/*": ["./engine/*"],
       "@/components/*": ["./app/components/*"],
+      "@/context/*": ["./app/context/*"],
       "@/data/*": ["./data/*"]
     },
     "forceConsistentCasingInFileNames": true,
