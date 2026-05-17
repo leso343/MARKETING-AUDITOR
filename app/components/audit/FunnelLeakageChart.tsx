@@ -2,6 +2,7 @@
 
 import type { FunnelLeakageResult } from "@/engine/analyses/funnelLeakage";
 import { useLang } from "@/context/LangContext";
+import { useReport } from "@/context/ReportContext";
 
 interface Props {
   funnel: FunnelLeakageResult;
@@ -22,6 +23,7 @@ const PLAIN_STAGE_NAMES: Record<string, string> = {
 
 export default function FunnelLeakageChart({ funnel }: Props) {
   const { t, plain } = useLang();
+  const { openReport } = useReport();
   const maxCount = Math.max(...funnel.stages.map((s) => s.count), 1);
 
   return (
@@ -106,6 +108,13 @@ export default function FunnelLeakageChart({ funnel }: Props) {
           )}
         </span>
       </div>
+
+      <button
+        onClick={() => openReport(1)}
+        className="mt-4 flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-wider text-[var(--red)] opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
+      >
+        → {t("View full analysis →", "See detailed breakdown →")}
+      </button>
     </div>
   );
 }

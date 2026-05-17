@@ -3,6 +3,7 @@
 import type { CreativeAnalysisResult, AdScore } from "@/engine/analyses/creativeAnalysis";
 import { Image as ImageIcon, TrendingUp, TrendingDown } from "lucide-react";
 import { useLang } from "@/context/LangContext";
+import { useReport } from "@/context/ReportContext";
 
 interface Props {
   creative: CreativeAnalysisResult;
@@ -10,6 +11,7 @@ interface Props {
 
 export default function CreativeAnalysisGrid({ creative }: Props) {
   const { t } = useLang();
+  const { openReport } = useReport();
 
   return (
     <div className="panel">
@@ -54,6 +56,13 @@ export default function CreativeAnalysisGrid({ creative }: Props) {
           <AdCard key={`waster-${w.adName}-${i}`} ad={w} tone="critical" />
         ))}
       </div>
+
+      <button
+        onClick={() => openReport(2)}
+        className="mt-4 flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-wider text-[var(--red)] opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
+      >
+        → {t("View full analysis →", "See detailed breakdown →")}
+      </button>
     </div>
   );
 }

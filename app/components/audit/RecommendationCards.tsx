@@ -4,6 +4,7 @@ import type { AuditResult } from "@/engine/runAudit";
 import copyBank from "@/data/copy-bank.json";
 import { CheckCircle2, AlertOctagon, AlertTriangle } from "lucide-react";
 import { useLang } from "@/context/LangContext";
+import { useReport } from "@/context/ReportContext";
 
 interface Props {
   audit: AuditResult;
@@ -124,6 +125,7 @@ const ICON_FOR: Record<string, typeof AlertOctagon> = {
 
 export default function RecommendationCards({ audit }: Props) {
   const { t } = useLang();
+  const { openReport } = useReport();
   const recos = buildRecos(audit);
 
   return (
@@ -226,6 +228,13 @@ export default function RecommendationCards({ audit }: Props) {
           ))}
         </ol>
       </div>
+
+      <button
+        onClick={() => openReport(3)}
+        className="mt-4 flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-wider text-[var(--red)] opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
+      >
+        → {t("View full analysis →", "See detailed breakdown →")}
+      </button>
     </div>
   );
 }

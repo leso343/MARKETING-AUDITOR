@@ -3,6 +3,7 @@
 import type { TrackingFailuresResult } from "@/engine/analyses/trackingFailures";
 import { AlertTriangle, CheckCircle2, ShieldAlert } from "lucide-react";
 import { useLang } from "@/context/LangContext";
+import { useReport } from "@/context/ReportContext";
 
 interface Props {
   tracking: TrackingFailuresResult;
@@ -16,6 +17,7 @@ const SEVERITY_ICON: Record<string, typeof AlertTriangle> = {
 
 export default function TrackingFailuresPanel({ tracking }: Props) {
   const { t, plain } = useLang();
+  const { openReport } = useReport();
   const wastedPct =
     tracking.totalLeadCampaigns > 0
       ? Math.round((tracking.brokenLeadCampaigns / tracking.totalLeadCampaigns) * 100)
@@ -103,6 +105,13 @@ export default function TrackingFailuresPanel({ tracking }: Props) {
           );
         })}
       </div>
+
+      <button
+        onClick={() => openReport(1)}
+        className="mt-4 flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-wider text-[var(--red)] opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
+      >
+        → {t("View full analysis →", "See detailed breakdown →")}
+      </button>
     </div>
   );
 }

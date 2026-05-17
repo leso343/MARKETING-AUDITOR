@@ -2,6 +2,7 @@
 
 import type { DemographicsResult } from "@/engine/analyses/demographics";
 import { useLang } from "@/context/LangContext";
+import { useReport } from "@/context/ReportContext";
 
 interface Props {
   demographics: DemographicsResult;
@@ -30,6 +31,7 @@ const OUTCOME_LABEL_PLAIN: Record<string, string> = {
 
 export default function DemographicsPanel({ demographics }: Props) {
   const { t, plain } = useLang();
+  const { openReport } = useReport();
 
   const activeBrackets = demographics.brackets.filter((b) => b.spend > 0);
   const best = demographics.brackets.reduce(
@@ -123,6 +125,13 @@ export default function DemographicsPanel({ demographics }: Props) {
           )}
         </div>
       )}
+
+      <button
+        onClick={() => openReport(2)}
+        className="mt-4 flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-wider text-[var(--red)] opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
+      >
+        → {t("View full analysis →", "See detailed breakdown →")}
+      </button>
     </div>
   );
 }
