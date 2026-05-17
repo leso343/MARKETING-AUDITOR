@@ -14,7 +14,7 @@ import GeographicHeatmap from "@/components/audit/GeographicHeatmap";
 import CreativeAnalysisGrid from "@/components/audit/CreativeAnalysisGrid";
 import DemographicsPanel from "@/components/audit/DemographicsPanel";
 import RecommendationCards from "@/components/audit/RecommendationCards";
-import { Languages } from "lucide-react";
+import { Languages, ExternalLink } from "lucide-react";
 
 interface Props {
   audit: AuditResult;
@@ -88,6 +88,15 @@ export default function AuditDashboard({
               FORENSIC AUDIT: {audit.clientName.toUpperCase()}
             </h1>
             <div className="flex items-center gap-3">
+              <a
+                href="/Interactive_Forensic_Audit.html"
+                target="_blank"
+                rel="noopener"
+                className="flex items-center gap-2 border border-[var(--red-dim)] bg-[rgba(255,0,0,0.05)] px-3 py-1.5 font-mono text-[9px] uppercase tracking-wider text-[var(--red)] transition-colors hover:bg-[rgba(255,0,0,0.1)]"
+              >
+                <ExternalLink className="h-3 w-3" />
+                Interactive Report
+              </a>
               <HeaderLangToggle />
               <div className="flex items-center gap-3 border border-[var(--red-dim)] bg-[rgba(255,0,0,0.05)] px-3 py-1.5 font-mono text-[9px] uppercase tracking-wider text-[var(--red)]">
                 <div className="pulse" />

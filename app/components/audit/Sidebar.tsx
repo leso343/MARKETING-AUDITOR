@@ -7,6 +7,7 @@ import {
   ChevronLeft,
   Crosshair,
   Download,
+  ExternalLink,
   FileBarChart,
   MapPinned,
   PieChart,
@@ -101,11 +102,22 @@ export default function Sidebar({ clientName, primaryLeak, pdfPath }: Props) {
           {primaryLeak}
         </div>
 
+        {/* Interactive HTML report — opens in new tab */}
+        <a
+          href="/Interactive_Forensic_Audit.html"
+          target="_blank"
+          rel="noopener"
+          className="mt-5 flex items-center gap-2 border border-[var(--red-dim)] bg-[rgba(255,0,0,0.04)] px-3 py-2.5 font-mono text-[9px] uppercase tracking-wider text-[var(--red)] transition-colors hover:border-[var(--red)] hover:bg-[rgba(255,0,0,0.08)]"
+        >
+          <ExternalLink className="h-3 w-3 flex-shrink-0" />
+          {t("Interactive Report", "Interactive Report")}
+        </a>
+
         {pdfPath && (
           <a
             href={pdfPath}
             download
-            className="mt-5 flex items-center gap-2 border border-[var(--border)] px-3 py-2 font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)] transition-colors hover:border-white hover:text-white"
+            className="mt-2 flex items-center gap-2 border border-[var(--border)] px-3 py-2 font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)] transition-colors hover:border-white hover:text-white"
           >
             <Download className="h-3 w-3 flex-shrink-0" />
             {t("Download PDF Report", "Download PDF Report")}
