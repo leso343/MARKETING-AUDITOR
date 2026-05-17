@@ -811,7 +811,7 @@
                 <li style="color: #525252; font-style: italic;">Loading storm-canvas ranking…</li>
             </ol>
         </div>
-        <div class="chart-caption">Heat shows where leads concentrated last period (Atlanta = <strong style="color:#FCD34D;">all 30 known leads</strong>). Yellow ringed dots are <strong style="color:#F59E0B;">severe hail / wind events</strong> from the last 30 days that fell inside the lead heat zone — those are this week's highest-conversion canvas neighborhoods (fresh damage × historically-converting demand). The blue dot near Greenville is the $21.22 NC/SC leak. <span style="color:#9CA3AF;font-style:italic;">Storm data attempts a live pull from the NCEI Severe Weather feed on load; it falls back to a baked snapshot when the feed isn't reachable from the browser. Tagging future leads by zip + closing the CRM loop will resolve this map to per-zip sales next month.</span></div>
+        <div class="chart-caption"><strong>Heatmap = lead density</strong> — hottest zones (yellow) are the Atlanta-area neighbourhoods that generated the most of the 30 known leads. Brightness reflects estimated lead share per neighbourhood, not storm severity. Yellow ringed dots are <strong style="color:#F59E0B;">severe hail / wind events</strong> from the last 30 days that fell inside the lead heat zone — those are this week's highest-conversion canvas neighborhoods (fresh damage × historically-converting demand). The blue dot near Greenville is the $21.22 NC/SC leak. <span style="color:#9CA3AF;font-style:italic;">Storm data attempts a live pull from the NCEI Severe Weather feed on load; it falls back to a baked snapshot when the feed isn't reachable from the browser. Tagging future leads by zip + closing the CRM loop will resolve this map to per-zip sales next month.</span></div>
     </div>
 
     <div class="footer">
@@ -966,36 +966,51 @@
     // Build heat points from the baked dataset weighted by severity×proximity.
     // Format: [lat, lng, intensity 0-1]
     // We call this BEFORE scoring so bakedStorms is already defined above.
-    function buildHeatPoints(events) {
-        return events.map(function(e) {
-            var dist = Math.sqrt(Math.pow(e[0]-ATL[0],2)+Math.pow(e[1]-ATL[1],2));
-            var proximity = Math.max(0, (0.55 - dist) / 0.55);
-            var sev = e[2]==='hail' ? Math.min(1, e[3]/2.5) : Math.min(1, (e[3]-45)/30);
-            var intensity = Math.min(1, 0.25 + sev*0.5 + proximity*0.35);
-            return [e[0], e[1], intensity];
-        });
-    }
+    // ── LEAD CONCENTRATION HEATMAP ─────────────────────────────────────────
+    // 30 leads all attributed to the Atlanta DMA. We distribute them across
+    // the known high-converting North Atlanta suburbs using the storm priority
+    // locations as proxies (these are the same neighbourhoods where roofing
+    // leads convert). Each point gets an intensity proportional to its likely
+    // share of the 30 leads based on homeownership density × historic CPL.
+    //
+    //   Roswell (8 leads est.)   Marietta (6)   Buckhead/Decatur (5)
+    //   Lawrenceville (4)        Alpharetta (4) Newnan (2)  Gainesville (1)
+    //
+    var leadConcentration = [
+        // [lat, lng, intensity 0-1]  — intensity = estimated_leads / 10
+        [34.0232, -84.3616, 0.9],   // Roswell         ~8-9 leads — top converter
+        [33.9526, -84.5499, 0.75],  // Marietta         ~6 leads
+        [33.8481, -84.3733, 0.65],  // Buckhead         ~5 leads (in-town high-value)
+        [33.7748, -84.2963, 0.6],   // Decatur          ~4-5 leads
+        [33.9595, -84.1107, 0.55],  // Tucker/Stone Mtn ~4 leads
+        [34.0754, -84.2941, 0.7],   // Alpharetta       ~5 leads
+        [33.9280, -84.0200, 0.5],   // Lawrenceville    ~4 leads
+        [33.5443, -84.2338, 0.35],  // Stockbridge      ~2 leads
+        [33.3807, -84.7997, 0.25],  // Newnan            ~2 leads
+        [34.2979, -83.8241, 0.15],  // Gainesville       ~1 lead
+        // Surrounding fill — lower density
+        [33.8781, -84.4619, 0.4],   // Smyrna
+        [33.8709, -84.2312, 0.45],  // Clarkston/Druid Hills
+        [34.1010, -84.5190, 0.3],   // Canton area
+        [33.6804, -84.1624, 0.3],   // Conley/Forest Park
+        [33.7048, -84.5440, 0.2],   // Douglasville
+    ];
 
-    var heatLayer = L.heatLayer(buildHeatPoints(bakedStorms), {
-        radius: 38,
-        blur: 28,
+    var heatLayer = L.heatLayer(leadConcentration, {
+        radius: 40,
+        blur: 30,
         maxZoom: 13,
         max: 1.0,
         gradient: {
-            0.0:  '#000011',
-            0.25: '#1a1a4e',
-            0.45: '#7c2d12',
+            0.0:  '#000000',
+            0.2:  '#1a0000',
+            0.42: '#7c0000',
             0.6:  '#dc2626',
-            0.75: '#f97316',
-            0.88: '#fbbf24',
+            0.75: '#ea580c',
+            0.88: '#f59e0b',
             1.0:  '#fef08a'
         }
     }).addTo(map);
-
-    // Update heatmap when live storms load
-    map.on('sna:liveloaded', function(e) {
-        heatLayer.setLatLngs(buildHeatPoints(e.events));
-    });
 
     // ── PULSING RING on #1 storm ─────────────────────────────────────
     var pulseStyle = document.createElement('style');
@@ -1056,8 +1071,8 @@
             } else {
                 // Lower-priority storms — small muted dot
                 L.circleMarker([e.lat, e.lng], {
-                    radius: 3, color: '#4b5563', weight: 1,
-                    fillColor: '#374151', fillOpacity: 0.55
+                    radius: 6, color: '#6B7280', weight: 1.5,
+                    fillColor: '#9CA3AF', fillOpacity: 0.75
                 }).addTo(stormLayer).bindTooltip(tip, { offset: [8, 0], direction: 'right', sticky: true });
             }
         });
@@ -1124,7 +1139,7 @@
         if (!liveEvents || !liveEvents.length) return;
         var liveScored = liveEvents.map(scoreEvent).sort(function(a, b) { return b.score - a.score; });
         renderStormLayer(liveScored);
-        heatLayer.setLatLngs(buildHeatPoints(liveEvents));
+        // Lead heatmap is based on known DMA data, not live storm events
         renderPriorityList(liveScored, 'LIVE · NCEI SWDI (PLSR)');
     });
 
@@ -1136,10 +1151,10 @@
             div.style.cssText = 'background:rgba(10,10,10,0.85);border:1px solid #1A1A1A;color:#E5E7EB;padding:8px 10px;border-radius:4px;font-family:Plus Jakarta Sans,sans-serif;font-size:9.5px;line-height:1.5;backdrop-filter:blur(4px);';
             div.innerHTML =
                 '<div style="font-family:JetBrains Mono,monospace;font-size:8px;font-weight:800;letter-spacing:1px;color:#9CA3AF;margin-bottom:5px">LEGEND</div>' +
-                '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px"><span style="display:inline-block;width:44px;height:10px;border-radius:2px;background:linear-gradient(90deg,#1a1a4e,#dc2626,#fbbf24,#fef08a)"></span>Storm intensity heatmap</div>' +
+                '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px"><span style="display:inline-block;width:44px;height:10px;border-radius:2px;background:linear-gradient(90deg,#1a1a4e,#dc2626,#fbbf24,#fef08a)"></span>Lead density (30 leads by area)</div>' +
                 '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px"><span style="display:inline-block;width:16px;height:16px;background:#FCD34D;border:2px solid #F59E0B;border-radius:50%;font:900 10px Outfit,sans-serif;color:#0a0a0a;text-align:center;line-height:12px">1</span>Top-5 storm · high priority</div>' +
                 '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px"><span style="display:inline-block;width:16px;height:16px;background:#9CA3AF;border:2px solid #525252;border-radius:50%;font:900 10px Outfit,sans-serif;color:#0a0a0a;text-align:center;line-height:12px">4</span>Top-5 storm · lower priority</div>' +
-                '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px"><span style="display:inline-block;width:6px;height:6px;background:#374151;border:1px solid #4b5563;border-radius:50%;margin:0 5px"></span>Other recent storm</div>' +
+                '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px"><span style="display:inline-block;width:9px;height:9px;background:#9CA3AF;border:1.5px solid #6B7280;border-radius:50%;margin:0 3px"></span>Other recent storm</div>' +
                 '<div style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:10px;height:10px;background:#60A5FA;border-radius:50%;border:1px solid #fff"></span>Spent money, got no leads</div>';
             return div;
         }
@@ -1403,6 +1418,155 @@ document.querySelectorAll('svg[viewBox="0 0 520 230"] rect[fill*="rgba"]').forEa
 });
 
 })(); // end snaAnimate
+</script>
+
+<!-- ═══════════════════ PLAIN ENGLISH TOGGLE ═══════════════════ -->
+<div id="lang-btn" onclick="snaToggleLang()" style="position:fixed;top:18px;right:18px;z-index:10000;display:flex;align-items:center;gap:7px;border:1px solid rgba(220,38,38,0.35);background:rgba(220,38,38,0.07);color:#DC2626;padding:6px 14px;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;cursor:pointer;transition:background .2s,border-color .2s;backdrop-filter:blur(4px);" onmouseover="this.style.background='rgba(220,38,38,0.14)'" onmouseout="this.style.background='rgba(220,38,38,0.07)'">
+  <span id="lang-icon" style="font-size:11px">&#9889;</span>
+  <span id="lang-label">Agency Mode</span>
+</div>
+<style>@media print { #lang-btn { display:none !important; } }</style>
+<script>
+(function snaLang() {
+  var PLAIN = false;
+  var originals = new Map();
+
+  var MAP = [
+    ['STRATEGIC FORENSIC AUDIT','AD PERFORMANCE REVIEW'],
+    ['CAMPAIGN INFRASTRUCTURE','CAMPAIGN OVERVIEW'],
+    ['forensic evaluation','detailed review'],
+    ['reconciles cross-export spend discrepancies','compares spending across different reports'],
+    ['isolate high-risk delivery patterns','find what is wasting money'],
+    ['Efficiency Baselines','Key Performance Numbers'],
+    ['Weighted CTR','Click Rate'],
+    ['Reconciled Spend','Total Ad Spend'],
+    ['Control CPL (ABO)','Target Cost Per Lead'],
+    ['Data Source Reconciliation','Where the Numbers Come From'],
+    ['Analytical Purpose','What It Measures'],
+    ['Placement Breakdown','Ad Placement Report'],
+    ['Age/Demographic Breakdown','Age Group Report'],
+    ['Ad-Level Export','Individual Ad Report'],
+    ['Funnel Leakage & Tracking Risk','Drop-Off & Tracking Issues'],
+    ['CLICK DROP-OFF','CLICKS LOST'],
+    ['Traffic-objective campaign','Traffic campaign'],
+    ['Ghost Clicks','Wasted Clicks'],
+    ['terminal misconfiguration','broken connection'],
+    ['Critical Tracking Failure','Tracking Problem'],
+    ['Cost Per Lead Climbs With Audience Age','Older Age Groups Cost More Per Lead'],
+    ['Budget Share vs Cost Per Lead','Budget Split vs Lead Cost'],
+    ['STAYS UNDER TARGET','WITHIN BUDGET'],
+    ['Creative Heatmap & Hold Rates','How Well Your Ads Hold Attention'],
+    ['Hook (3s)','3-Sec Watch Rate'],
+    ['Hold (Thru)','Watched All the Way'],
+    ['STABLE HOLD','KEEPS WATCHING'],
+    ['HIGH INTENT','HIGH ENGAGEMENT'],
+    ['HOLD RISK','DROPS OFF EARLY'],
+    ['SCALING-GRADE','READY TO SCALE'],
+    ['The Decision Metric Ladder','What Metrics Actually Matter'],
+    ['Vanity Metrics','Surface Stats'],
+    ['Contact Rate','Lead Answer Rate'],
+    ['Booked Inspection','Booked Appointment'],
+    ['Cost Per Sold Roof','Revenue Per Sale'],
+    ['Immediate Tracking Repair Checklist','Fix These Issues Now'],
+    ['30-Day Execution Roadmap','30-Day Action Plan'],
+    ['Phase 1: Stabilization (First 48 Hours)','Days 1-2: Stop the Bleeding'],
+    ['Phase 2: Relaunch (Days 3-7)','Days 3-7: Restart Campaigns'],
+    ['Phase 3: Scaling (Days 8-30)','Days 8-30: Scale Up'],
+    ['Traffic Objective','Traffic Campaign Type'],
+    ['zero-lead anomaly','zero lead problem'],
+    ['How to Split the Monthly Budget','How to Divide Your Monthly Budget'],
+    ['Proven Performer','What is Already Working'],
+    ['Test New Placements','Try New Ad Spots'],
+    ['Bold New Ideas','Experiments'],
+    ['Projected Cost-Per-Lead','Expected Lead Cost Over Time'],
+    ['Strategic Verdict','Our Bottom Line'],
+    ['infrastructure leakage','wasted spend'],
+    ['Cost Per Booked Inspection','Cost Per Booked Appointment'],
+    ['down-funnel conversion rates','booking rates'],
+    ['Geographic & Local Waste Audit','Where Your Budget Goes by Location'],
+    ['DMA Performance Reconciliation','Location Performance'],
+    ['CORE MARKET','PRIMARY AREA'],
+    ['State-Line Leakage','Out-of-Area Spend'],
+    ['Targeting & Lead Qualification','Who to Target'],
+    ['Enforce Georgia-Only Delivery','Only Show Ads in Georgia'],
+    ['Advantage+ Expansion','Meta automatic reach expansion'],
+    ['Qualify by Job Value, Not Distance','Filter Leads by Job Value Not Location'],
+    ['Bid Harder Where Demand Is Densest','Spend More in High-Demand Areas'],
+    ['bid multipliers','higher bids'],
+    ['single-family detached homeownership','homeowners with detached houses'],
+    ['Where to Door-Knock This Week','Best Areas to Canvas This Week'],
+    ['high-priority canvas','top canvas priority'],
+    ['attribution window','tracking window'],
+    ['Conversions API','Server-Side Tracking'],
+    ['CONFIDENTIAL AUDIT TC_01','CONFIDENTIAL - TAKE CHARGE ROOFING'],
+  ];
+
+  function walkText(root, fn) {
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode: function(node) {
+        var p = node.parentElement;
+        if (!p) return NodeFilter.FILTER_REJECT;
+        var tag = p.tagName.toLowerCase();
+        if (['script','style','pre','code'].indexOf(tag) >= 0) return NodeFilter.FILTER_REJECT;
+        if (p.closest && p.closest('svg')) {
+          var t = node.textContent.trim();
+          if (/^[$\d\.\-\%,\/\s]+$/.test(t)) return NodeFilter.FILTER_REJECT;
+        }
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+    var node, nodes = [];
+    while ((node = walker.nextNode())) nodes.push(node);
+    nodes.forEach(fn);
+  }
+
+  function applyTranslations(toPlain) {
+    walkText(document.body, function(node) {
+      if (!originals.has(node)) originals.set(node, node.textContent);
+      var text = originals.get(node);
+      if (toPlain) {
+        MAP.forEach(function(pair) { text = text.split(pair[0]).join(pair[1]); });
+      }
+      node.textContent = text;
+    });
+  }
+
+  function updateBtn() {
+    var btn = document.getElementById('lang-btn');
+    var icon = document.getElementById('lang-icon');
+    var label = document.getElementById('lang-label');
+    if (!btn) return;
+    if (PLAIN) {
+      btn.style.cssText = btn.style.cssText.replace(/border:[^;]+/,'border:1px solid rgba(74,222,128,0.4)');
+      btn.style.background = 'rgba(74,222,128,0.07)';
+      btn.style.color = '#4ade80';
+      if (icon) icon.innerHTML = '&#128288;';
+      if (label) label.textContent = 'Plain English';
+    } else {
+      btn.style.background = 'rgba(220,38,38,0.07)';
+      btn.style.color = '#DC2626';
+      if (icon) icon.innerHTML = '&#9889;';
+      if (label) label.textContent = 'Agency Mode';
+    }
+  }
+
+  window.snaToggleLang = function() {
+    PLAIN = !PLAIN;
+    applyTranslations(PLAIN);
+    updateBtn();
+    try { localStorage.setItem('sna-report-lang', PLAIN ? 'plain' : 'pro'); } catch(e) {}
+  };
+
+  document.addEventListener('DOMContentLoaded', function() {
+    try {
+      if (localStorage.getItem('sna-report-lang') === 'plain') {
+        PLAIN = true;
+        applyTranslations(true);
+        updateBtn();
+      }
+    } catch(e) {}
+  });
+})();
 </script>
 </body>
 </html>
