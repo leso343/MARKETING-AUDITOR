@@ -811,6 +811,58 @@
     </div>
 </div>
 
+<!-- ═══════════════ ANIMATION LAYER (screen only — print untouched) ═══════════════ -->
+<div id="sna-glow" style="position:fixed;width:700px;height:700px;background:radial-gradient(circle,rgba(220,38,38,0.055) 0%,transparent 68%);pointer-events:none;z-index:9998;transform:translate(-50%,-50%);left:-999px;top:-999px;transition:left .12s ease-out,top .12s ease-out;will-change:left,top;"></div>
+<div id="sna-progress" style="position:fixed;top:0;left:0;height:2px;width:0%;background:linear-gradient(90deg,#7f1d1d,#EF4444,#F87171);z-index:9999;box-shadow:0 0 8px rgba(239,68,68,0.65);pointer-events:none;transition:none;"></div>
+
+<style>
+@media screen {
+  .pdf-page { opacity:0; transform:translateY(14px); transition:opacity .85s ease-out, transform .85s ease-out; }
+  .pdf-page.pg-in { opacity:1; transform:none; }
+
+  .rv { opacity:0; transform:translateY(18px); transition:opacity .65s cubic-bezier(.16,1,.3,1), transform .65s cubic-bezier(.16,1,.3,1); will-change:opacity,transform; }
+  .rv.in { opacity:1; transform:none; }
+  .d1{transition-delay:.05s} .d2{transition-delay:.1s} .d3{transition-delay:.15s}
+  .d4{transition-delay:.2s}  .d5{transition-delay:.25s} .d6{transition-delay:.3s}
+
+  .stat-card { transition:transform .22s ease, border-color .22s ease, box-shadow .22s ease !important; cursor:default; }
+  .stat-card:hover { transform:translateY(-4px) !important; border-color:rgba(220,38,38,.4) !important; box-shadow:0 8px 28px rgba(220,38,38,.12); }
+
+  .chart-card { transition:border-color .22s ease, box-shadow .22s ease !important; }
+  .chart-card:hover { border-color:#2d2d2d !important; box-shadow:0 4px 22px rgba(0,0,0,.5); }
+
+  .matrix-card { transition:transform .22s ease, border-color .22s ease !important; }
+  .matrix-card:hover { transform:translateY(-3px); border-color:rgba(220,38,38,.3) !important; }
+
+  .roadmap-phase { transition:border-left-color .2s ease, background .2s ease !important; }
+  .roadmap-phase:hover { background:rgba(220,38,38,.04) !important; border-left-color:var(--red) !important; }
+
+  .ladder-step { transition:border-color .2s, background .2s !important; cursor:default; }
+  .ladder-step:hover { border-color:rgba(220,38,38,.35) !important; background:rgba(220,38,38,.04) !important; }
+
+  .check-item { transition:color .2s; cursor:default; }
+  .check-item:hover { color:#fff !important; }
+  .check-item:hover .check-box { border-color:#fff !important; }
+
+  /* Scan-line shimmer on pdf-pages */
+  .pdf-page::after {
+    content:'';position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(180deg,transparent 0%,rgba(220,38,38,.015) 50%,transparent 100%);
+    background-size:100% 200%;
+    animation:scanline 8s linear infinite;
+    opacity:0;transition:opacity 1s;
+  }
+  .pdf-page.pg-in::after { opacity:1; }
+  @keyframes scanline { 0%{background-position:0 -200%} 100%{background-position:0 200%} }
+
+  /* Header line pulse */
+  .header .line { animation:linepulse 3s ease-in-out infinite; }
+  @keyframes linepulse {
+    0%,100%{opacity:.6} 50%{opacity:1;box-shadow:0 0 12px rgba(220,38,38,.4)}
+  }
+}
+</style>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script>
 (function initAtlantaMap() {
@@ -1051,6 +1103,250 @@
     window.addEventListener('resize', fitToViewport);
     window.addEventListener('load', fitToViewport);
 })();
+
+/* ═══════════════════════════════════════════════════════════════════
+   SNA ANIMATION ENGINE
+   ═══════════════════════════════════════════════════════════════════ */
+(function snaAnimate() {
+'use strict';
+
+// ── SCROLL PROGRESS ──────────────────────────────────────────────
+var progressBar = document.getElementById('sna-progress');
+function updateProgress() {
+  var max = document.documentElement.scrollHeight - window.innerHeight;
+  if (max > 0) progressBar.style.width = (window.scrollY / max * 100) + '%';
+}
+window.addEventListener('scroll', updateProgress, { passive: true });
+
+// ── CURSOR GLOW ──────────────────────────────────────────────────
+var glow = document.getElementById('sna-glow');
+document.addEventListener('mousemove', function(e) {
+  glow.style.left = e.clientX + 'px';
+  glow.style.top  = e.clientY + 'px';
+});
+
+// ── OBSERVER FACTORY ─────────────────────────────────────────────
+function makeIO(cb, opts) {
+  return new IntersectionObserver(cb, Object.assign({ threshold: 0.1 }, opts));
+}
+
+// ── PAGES ────────────────────────────────────────────────────────
+var pageIO = makeIO(function(entries) {
+  entries.forEach(function(e) {
+    if (e.isIntersecting) { e.target.classList.add('pg-in'); pageIO.unobserve(e.target); }
+  });
+}, { threshold: 0.04 });
+
+// ── GENERAL REVEAL ───────────────────────────────────────────────
+var revealIO = makeIO(function(entries) {
+  entries.forEach(function(e) {
+    if (e.isIntersecting) { e.target.classList.add('in'); revealIO.unobserve(e.target); }
+  });
+}, { threshold: 0.08 });
+
+function rev(el, d) { el.classList.add('rv'); if (d) el.classList.add('d' + d); revealIO.observe(el); }
+
+document.querySelectorAll('.pdf-page').forEach(function(page, pi) {
+  pageIO.observe(page);
+  page.querySelectorAll('.hero,.stats-grid,.sec-title').forEach(function(el, i) { rev(el, i % 3 + 1); });
+  page.querySelectorAll('.stat-card').forEach(function(el, i) { rev(el, i + 1); });
+  page.querySelectorAll('.chart-card').forEach(function(el, i) { rev(el, i % 2 + 1); });
+  page.querySelectorAll('.matrix-card').forEach(function(el, i) { rev(el, i * 2 + 1); });
+  page.querySelectorAll('.roadmap-phase').forEach(function(el, i) { rev(el, i + 1); });
+  page.querySelectorAll('.ladder-step').forEach(function(el, i) { rev(el, i + 1); });
+  page.querySelectorAll('.check-item').forEach(function(el, i) { rev(el, Math.min(i + 1, 6)); });
+  page.querySelectorAll('.data-table tbody tr').forEach(function(el, i) { rev(el, Math.min(i + 1, 5)); });
+});
+
+// ── COUNTER ROLL-UP ──────────────────────────────────────────────
+function rollUp(el) {
+  var raw = el.textContent.trim();
+  var num = parseFloat(raw.replace(/[$,%,]/g, '').replace(/,/g,''));
+  if (!num) return;
+  var hasDollar = raw.charAt(0) === '$';
+  var hasPct    = raw.slice(-1) === '%';
+  var dec       = (raw.split('.')[1] || '').replace(/[^0-9]/g,'').length;
+  var dur = 1600, t0 = null;
+  (function tick(now) {
+    if (!t0) t0 = now;
+    var p = Math.min(1, (now - t0) / dur);
+    var e = 1 - Math.pow(1 - p, 4);
+    var v = (num * e).toFixed(dec);
+    if (hasDollar) {
+      var parts = v.split('.');
+      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      v = '$' + parts.join('.');
+    }
+    if (hasPct) v += '%';
+    el.textContent = v;
+    if (p < 1) requestAnimationFrame(tick);
+    else el.textContent = raw;
+  })(performance.now());
+}
+
+var counterIO = makeIO(function(entries) {
+  entries.forEach(function(e) {
+    if (e.isIntersecting) { rollUp(e.target); counterIO.unobserve(e.target); }
+  });
+}, { threshold: 0.5 });
+
+document.querySelectorAll('.stat-card .value').forEach(function(el) { counterIO.observe(el); });
+
+// ── SVG LINE PATH DRAWING ────────────────────────────────────────
+function drawPath(path, delay, duration) {
+  var len = 0;
+  try { len = path.getTotalLength(); } catch(e) { return; }
+  if (!len) return;
+  path.style.strokeDasharray  = len + ' ' + len;
+  path.style.strokeDashoffset = len;
+  path.style.transition = 'none';
+  var svg = path.closest('svg');
+  if (!svg) return;
+  var pIO = makeIO(function(entries) {
+    entries.forEach(function(e) {
+      if (!e.isIntersecting) return;
+      setTimeout(function() {
+        path.style.transition = 'stroke-dashoffset ' + (duration||1600) + 'ms cubic-bezier(.16,1,.3,1)';
+        path.style.strokeDashoffset = '0';
+      }, delay || 0);
+      pIO.unobserve(e.target);
+    });
+  }, { threshold: 0.2 });
+  pIO.observe(svg);
+}
+
+// CPL age-band gradient line
+document.querySelectorAll('path[stroke="url(#gAgeCost)"]').forEach(function(p) { drawPath(p, 100, 1800); });
+// Area fill under CPL line
+document.querySelectorAll('path[fill="url(#gAgeArea)"]').forEach(function(p) {
+  p.style.opacity = '0'; p.style.transition = 'opacity 1s ease .8s';
+  var aIO = makeIO(function(entries) {
+    entries.forEach(function(e) { if (e.isIntersecting) { p.style.opacity='1'; aIO.unobserve(e.target); }});
+  }, {threshold:0.2}); aIO.observe(p.closest('svg'));
+});
+// Projected CPL — green "with fixes"
+document.querySelectorAll('path[stroke="#10B981"][fill="none"]').forEach(function(p) { drawPath(p, 300, 1800); });
+// Projected CPL — dashed red "without fixes"
+document.querySelectorAll('path[stroke="#EF4444"][fill="none"]').forEach(function(p) { drawPath(p, 900, 1400); });
+
+// ── SVG DATA POINT CIRCLES (pop after line) ───────────────────────
+document.querySelectorAll('svg').forEach(function(svg) {
+  if (svg.querySelector('circle[pathLength]')) return; // skip donut
+  var dots = svg.querySelectorAll('circle[r]');
+  var cIO = makeIO(function(entries) {
+    entries.forEach(function(e) {
+      if (!e.isIntersecting) return;
+      dots.forEach(function(c, i) {
+        var r = parseFloat(c.getAttribute('r'));
+        if (r > 10) return;
+        var cx = c.getAttribute('cx'), cy = c.getAttribute('cy');
+        c.style.transformOrigin = cx + 'px ' + cy + 'px';
+        c.style.transform = 'scale(0)';
+        c.style.transition = 'transform .45s cubic-bezier(.34,1.56,.64,1)';
+        c.style.transitionDelay = (500 + i * 130) + 'ms';
+        setTimeout(function() { c.style.transform = 'scale(1)'; }, 10);
+      });
+      cIO.unobserve(e.target);
+    });
+  }, { threshold: 0.3 });
+  if (dots.length) cIO.observe(svg);
+});
+
+// ── SVG BAR GROWTH (heatmap + age budget) ─────────────────────────
+function animSvgBars(svgSelector) {
+  document.querySelectorAll(svgSelector).forEach(function(svg) {
+    var bars = svg.querySelectorAll('rect[fill*="url(#g"]');
+    bars.forEach(function(rect) {
+      var tw = parseFloat(rect.getAttribute('width'));
+      if (!tw || tw < 8) return;
+      rect._tw = tw;
+      rect.setAttribute('width', '0');
+    });
+    var bIO = makeIO(function(entries) {
+      entries.forEach(function(e) {
+        if (!e.isIntersecting) return;
+        bars.forEach(function(rect, i) {
+          if (!rect._tw) return;
+          var tw = rect._tw, start = null, dur = 1100, delay = i * 60;
+          setTimeout(function() {
+            (function tick(now) {
+              if (!start) start = now;
+              var t = Math.min(1, (now - start) / dur);
+              var ease = 1 - Math.pow(1 - t, 3);
+              rect.setAttribute('width', (tw * ease).toFixed(1));
+              if (t < 1) requestAnimationFrame(tick);
+            })(performance.now());
+          }, delay);
+        });
+        bIO.unobserve(e.target);
+      });
+    }, { threshold: 0.25 });
+    bIO.observe(svg);
+  });
+}
+animSvgBars('svg[viewBox="0 0 480 170"]'); // heatmap bars
+animSvgBars('svg[viewBox="0 0 480 162"]'); // age budget bars
+
+// ── FUNNEL TRAPEZOID REVEAL ───────────────────────────────────────
+document.querySelectorAll('svg[viewBox="0 0 520 108"]').forEach(function(svg) {
+  var poly = svg.querySelector('polygon');
+  var top  = svg.querySelector('rect[fill="url(#gRedSoft)"]');
+  var bot  = svg.querySelector('rect[fill="url(#gRedDeep)"]');
+  [poly, top, bot].forEach(function(el) {
+    if (!el) return;
+    el.style.opacity = '0'; el.style.transition = 'none';
+  });
+  var fIO = makeIO(function(entries) {
+    entries.forEach(function(e) {
+      if (!e.isIntersecting) return;
+      if (top) { setTimeout(function() { top.style.transition='opacity .5s'; top.style.opacity='1'; }, 100); }
+      if (poly) { setTimeout(function() { poly.style.transition='opacity .7s .2s'; poly.style.opacity='1'; }, 200); }
+      if (bot)  { setTimeout(function() { bot.style.transition='opacity .5s .6s'; bot.style.opacity='1'; }, 600); }
+      fIO.unobserve(e.target);
+    });
+  }, { threshold: 0.3 });
+  fIO.observe(svg);
+});
+
+// ── DONUT CHART SPIN-IN ───────────────────────────────────────────
+var donutSvg = document.querySelector('svg[viewBox="0 0 140 140"]');
+if (donutSvg) {
+  var rings = donutSvg.querySelectorAll('g circle[stroke-dasharray]');
+  rings.forEach(function(c) {
+    var finalDash = c.getAttribute('stroke-dasharray');
+    c.setAttribute('stroke-dasharray', '0 100');
+    var dIO = makeIO(function(entries) {
+      entries.forEach(function(e) {
+        if (!e.isIntersecting) return;
+        setTimeout(function() {
+          c.style.transition = 'stroke-dasharray 1.4s cubic-bezier(.16,1,.3,1)';
+          c.setAttribute('stroke-dasharray', finalDash);
+        }, 300);
+        dIO.unobserve(e.target);
+      });
+    }, { threshold: 0.5 });
+    dIO.observe(donutSvg);
+  });
+}
+
+// ── PHASE BAND OPACITY (projected CPL chart) ─────────────────────
+document.querySelectorAll('svg[viewBox="0 0 520 230"] rect[fill*="rgba"]').forEach(function(r, i) {
+  r.style.opacity = '0';
+  var rIO = makeIO(function(entries) {
+    entries.forEach(function(e) {
+      if (!e.isIntersecting) return;
+      setTimeout(function() {
+        r.style.transition = 'opacity .6s';
+        r.style.opacity = '1';
+      }, i * 120 + 200);
+      rIO.unobserve(e.target);
+    });
+  }, { threshold: 0.2 });
+  var svg = r.closest('svg');
+  if (svg) rIO.observe(svg);
+});
+
+})(); // end snaAnimate
 </script>
 </body>
 </html>
