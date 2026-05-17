@@ -53,8 +53,14 @@ export default function GeographicHeatmap({ geo }: Props) {
         />
       </div>
 
-      <div className="overflow-x-auto">
-      <table className="data-table w-full">
+      <table className="data-table w-full" style={{ tableLayout: "fixed" }}>
+        <colgroup>
+          <col style={{ width: "38%" }} />
+          <col style={{ width: "22%" }} />
+          <col style={{ width: "12%" }} />
+          <col style={{ width: "18%" }} />
+          <col style={{ width: "10%" }} />
+        </colgroup>
         <thead>
           <tr>
             <th>{t("Region", "Location")}</th>
@@ -86,7 +92,13 @@ export default function GeographicHeatmap({ geo }: Props) {
                 className="relative"
                 style={{ background: STATUS_BG[r.status] }}
               >
-                <td className="font-mono text-xs font-bold">{r.name}</td>
+                <td
+                  className="font-mono text-xs font-bold"
+                  style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                  title={r.name}
+                >
+                  {r.name}
+                </td>
                 <td className="text-right font-mono">
                   ${r.spend.toLocaleString()}
                   <div className="mt-1 h-[2px] w-full bg-[#111]">
@@ -113,7 +125,6 @@ export default function GeographicHeatmap({ geo }: Props) {
           })}
         </tbody>
       </table>
-      </div>
 
       <div className="insight-box">
         <b>{t("RECOMMENDATION:", "SUGGESTED ACTION:")}</b> {geo.recommendation}
