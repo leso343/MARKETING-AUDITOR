@@ -102,9 +102,9 @@ export default function Sidebar({ clientName, primaryLeak, pdfPath }: Props) {
           {primaryLeak}
         </div>
 
-        {/* Interactive HTML report — opens in new tab */}
+        {/* Full interactive campaign report — opens in new tab */}
         <a
-          href="/Interactive_Forensic_Audit.html"
+          href="/campaign_report.html"
           target="_blank"
           rel="noopener"
           className="mt-5 flex items-center gap-2 border border-[var(--red-dim)] bg-[rgba(255,0,0,0.04)] px-3 py-2.5 font-mono text-[9px] uppercase tracking-wider text-[var(--red)] transition-colors hover:border-[var(--red)] hover:bg-[rgba(255,0,0,0.08)]"

@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Take Charge Roofing - Strategic Performance Remediation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Outfit:wght@300;400;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+    <style>
+        /* Stop iOS Safari from auto-enlarging small text when the page is zoom-scaled */
+        html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+        :root {
+            --red: #DC2626;
+            --bg: #030303;
+            --card-bg: #0A0A0A;
+            --border: #1A1A1A;
+            --text: #FFFFFF;
+            --text-dim: #D1D5DB;
+            --text-muted: #9CA3AF;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        @page { size: A4; margin: 0; }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.3;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        /* ── PAGE ARCHITECTURE ── */
+        .pdf-page {
+            width: 210mm;
+            min-height: 296mm;
+            padding: 35px 45px;
+            background: linear-gradient(160deg, #070707 0%, #020202 100%);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            page-break-after: always;
+            border-bottom: 5px solid var(--red);
+        }
+
+        /* ── HEADER ── */
+        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; gap: 20px; }
+        .header img, .header .logo { height: 35px; width: 150px; flex-shrink: 0; display: block; }
+        .header .line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--red), transparent); }
+
+        /* ── HERO ── */
+        .hero { border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 12px; }
+        .badge { background: var(--red); color: #FFF; padding: 3px 10px; font-size: 8.5px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; display: inline-block; margin-bottom: 5px; }
+        h1 { font-family: 'Outfit', sans-serif; font-size: 28px; font-weight: 900; line-height: 1.05; margin-bottom: 4px; }
+        .lead { font-size: 12.5px; color: var(--text-dim); max-width: 700px; font-weight: 300; }
+
+        /* ── SECTION TITLES ── */
+        .sec-title { font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 800; display: flex; align-items: center; gap: 8px; margin: 15px 0 8px 0; text-transform: uppercase; letter-spacing: 0.8px; }
+        .sec-title::before { content: ''; width: 4px; height: 14px; background: var(--red); }
+
+        /* ── TABLES ── */
+        .data-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+        .data-table th { text-align: left; padding: 8px; font-size: 8.5px; color: var(--text-muted); border-bottom: 1px solid var(--border); text-transform: uppercase; font-weight: 800; }
+        .data-table td { padding: 8px; font-size: 10.5px; border-bottom: 1px solid #0F0F0F; }
+
+        /* ── STATS ── */
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 12px; }
+        .stat-card { background: var(--card-bg); border: 1px solid var(--border); border-top: 3px solid #FFF; padding: 10px; }
+        .stat-card.accent { border-top-color: var(--red); }
+        .stat-card .label { font-size: 8.5px; color: var(--text-dim); text-transform: uppercase; font-weight: 800; margin-bottom: 2px; }
+        .stat-card .value { font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 700; }
+
+        /* ── CONFIDENCE MATRIX ── */
+        .matrix-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+        .matrix-card { border: 1px solid var(--border); background: #080808; padding: 10px; }
+        .conf-badge { font-size: 7px; padding: 2px 5px; border-radius: 2px; font-weight: 900; text-transform: uppercase; display: inline-block; margin-bottom: 4px; }
+        .conf-high { background: rgba(16,185,129,0.15); color: #10B981; }
+        .conf-med { background: rgba(245,158,11,0.15); color: #F59E0B; }
+        .matrix-card h4 { font-size: 11px; margin-bottom: 3px; font-weight: 700; }
+        .matrix-card p { font-size: 9.5px; color: var(--text-dim); line-height: 1.3; }
+
+        /* ── CHECKLIST ── */
+        .checklist { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+        .check-item { display: flex; gap: 8px; font-size: 9.5px; color: var(--text-dim); align-items: flex-start; padding: 5px 0; border-bottom: 1px solid #0F0F0F; }
+        .check-box { width: 10px; height: 10px; border: 1px solid var(--red); flex-shrink: 0; margin-top: 2px; }
+
+        /* ── ROADMAP ── */
+        .roadmap { display: flex; flex-direction: column; gap: 8px; }
+        .roadmap-phase { border-left: 3px solid var(--red); padding: 10px 15px; background: rgba(220,38,38,0.02); border: 1px solid var(--border); border-left-width: 3px; }
+        .phase-title { font-family: 'Outfit', sans-serif; font-size: 11px; font-weight: 900; text-transform: uppercase; color: #FFF; margin-bottom: 4px; display: flex; justify-content: space-between; }
+        .phase-list { font-size: 9.5px; color: var(--text-dim); padding-left: 15px; }
+        .phase-list li { margin-bottom: 3px; }
+
+        /* ── METRIC LADDER ── */
+        .ladder { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
+        .ladder-step { display: flex; align-items: center; gap: 10px; background: #0A0A0A; border: 1px solid var(--border); padding: 6px 12px; }
+        .ladder-step.active { border-color: var(--red); background: rgba(220,38,38,0.05); }
+        .ladder-label { width: 120px; font-size: 9px; font-weight: 800; color: #FFF; text-transform: uppercase; }
+        .ladder-desc { font-size: 9px; color: var(--text-muted); font-style: italic; }
+
+        /* ── FOOTER ── */
+        .footer { margin-top: auto; display: flex; justify-content: space-between; padding-top: 10px; border-top: 1px solid var(--border); font-size: 8.5px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
+
+        .tag-win { background: rgba(16,185,129,0.1); color: #10B981; padding: 2px 5px; border-radius: 2px; font-size: 7.5px; font-weight: 900; }
+        .tag-loss { background: rgba(239,68,68,0.1); color: #EF4444; padding: 2px 5px; border-radius: 2px; font-size: 7.5px; font-weight: 900; }
+        .text-red { color: var(--red); }
+
+        /* ── CHARTS & DIAGRAMS ── */
+        .chart-card { background: #080808; border: 1px solid var(--border); padding: 12px 14px; margin-bottom: 12px; }
+        .chart-title { font-family: 'Outfit', sans-serif; font-size: 9.5px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.1px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .chart-title::before { content: ''; width: 3px; height: 10px; background: var(--red); }
+        .chart-caption { font-size: 8px; color: var(--text-muted); margin-top: 6px; font-style: italic; }
+        .chart-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .donut-row { display: grid; grid-template-columns: 130px 1fr; gap: 14px; align-items: center; }
+        .donut-legend { display: flex; flex-direction: column; gap: 5px; }
+        .legend-item { display: flex; align-items: center; gap: 8px; font-size: 9.5px; color: var(--text-dim); line-height: 1.3; }
+        .legend-swatch { width: 10px; height: 10px; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.06); }
+        .legend-pct { font-family: 'Outfit', sans-serif; font-weight: 700; color: #FFF; margin-left: auto; font-size: 11.5px; }
+
+        /* ── AUTO-FIT ZOOM (screen only — print stays at 100%) ── */
+        @media screen { body { zoom: var(--page-zoom, 1); } }
+        @media print  { body { zoom: 1 !important; } }
+    </style>
+</head>
+<body>
+
+<!-- ── GLOBAL SVG DEFS (shared gradients/patterns) ── -->
+<svg width="0" height="0" style="position:absolute;left:-9999px;" aria-hidden="true">
+    <defs>
+        <linearGradient id="gRedH" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#7f1d1d"/>
+            <stop offset="100%" stop-color="#EF4444"/>
+        </linearGradient>
+        <linearGradient id="gRedSoft" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#7f1d1d" stop-opacity="0.6"/>
+            <stop offset="100%" stop-color="#DC2626" stop-opacity="0.6"/>
+        </linearGradient>
+        <linearGradient id="gRedFunnelTrap" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#DC2626" stop-opacity="0.22"/>
+            <stop offset="100%" stop-color="#DC2626" stop-opacity="0.02"/>
+        </linearGradient>
+        <linearGradient id="gRedDeep" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#1f0a0a"/>
+            <stop offset="100%" stop-color="#3b1414"/>
+        </linearGradient>
+        <linearGradient id="gGreenH" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#065F46"/>
+            <stop offset="100%" stop-color="#10B981"/>
+        </linearGradient>
+        <linearGradient id="gBlueH" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#1e3a8a"/>
+            <stop offset="100%" stop-color="#3B82F6"/>
+        </linearGradient>
+        <linearGradient id="gAgeCost" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#10B981"/>
+            <stop offset="55%" stop-color="#F59E0B"/>
+            <stop offset="100%" stop-color="#EF4444"/>
+        </linearGradient>
+        <linearGradient id="gAgeArea" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#EF4444" stop-opacity="0.18"/>
+            <stop offset="100%" stop-color="#10B981" stop-opacity="0.02"/>
+        </linearGradient>
+        <linearGradient id="gGold" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#92400e"/>
+            <stop offset="100%" stop-color="#F59E0B"/>
+        </linearGradient>
+        <linearGradient id="gGray" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#374151"/>
+            <stop offset="100%" stop-color="#9CA3AF"/>
+        </linearGradient>
+        <linearGradient id="gDonutRed" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#7f1d1d"/>
+            <stop offset="100%" stop-color="#EF4444"/>
+        </linearGradient>
+        <linearGradient id="gDonutGray" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#374151"/>
+            <stop offset="100%" stop-color="#9CA3AF"/>
+        </linearGradient>
+        <linearGradient id="gDonutWhite" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#9CA3AF"/>
+            <stop offset="100%" stop-color="#F3F4F6"/>
+        </linearGradient>
+        <linearGradient id="gMapBase" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#0c0c10"/>
+            <stop offset="100%" stop-color="#040406"/>
+        </linearGradient>
+        <linearGradient id="gWater" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#1e3a8a"/>
+            <stop offset="100%" stop-color="#0c1d4d"/>
+        </linearGradient>
+        <radialGradient id="gRadiusGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#DC2626" stop-opacity="0.34"/>
+            <stop offset="60%" stop-color="#DC2626" stop-opacity="0.11"/>
+            <stop offset="100%" stop-color="#DC2626" stop-opacity="0"/>
+        </radialGradient>
+        <pattern id="pMapGrid" width="22" height="22" patternUnits="userSpaceOnUse">
+            <path d="M 22 0 L 0 0 0 22" fill="none" stroke="#16161c" stroke-width="0.5"/>
+        </pattern>
+        <!-- Logos as SVG symbols -->
+        <symbol id="logoSNA" viewBox="0 0 150 35" preserveAspectRatio="xMinYMid meet">
+            <text x="0" y="26" font-family="Outfit, sans-serif" font-size="24" font-weight="900" fill="#FFFFFF" letter-spacing="-1.4">SNA</text>
+            <rect x="52" y="14" width="5" height="5" fill="#DC2626"/>
+            <text x="62" y="13" font-family="Outfit, sans-serif" font-size="7.5" font-weight="900" fill="#FFFFFF" letter-spacing="2.2">FORENSIC</text>
+            <text x="62" y="24" font-family="JetBrains Mono, monospace" font-size="6" font-weight="700" fill="#9CA3AF" letter-spacing="1.6">MARKETING ENGINE</text>
+        </symbol>
+        <symbol id="logoTC" viewBox="0 0 150 35" preserveAspectRatio="xMaxYMid meet">
+            <rect x="0" y="3" width="42" height="10" rx="1.5" fill="rgba(220,38,38,0.14)" stroke="#DC2626" stroke-width="0.6"/>
+            <text x="21" y="10.5" font-family="JetBrains Mono, monospace" font-size="6" font-weight="900" fill="#DC2626" text-anchor="middle" letter-spacing="1.4">CLIENT</text>
+            <text x="150" y="23" font-family="Outfit, sans-serif" font-size="13" font-weight="900" fill="#FFFFFF" letter-spacing="0.2" text-anchor="end">TAKE CHARGE</text>
+            <text x="150" y="33" font-family="JetBrains Mono, monospace" font-size="6.5" font-weight="700" fill="#9CA3AF" letter-spacing="2.4" text-anchor="end">ROOFING · ATLANTA</text>
+        </symbol>
+    </defs>
+</svg>
+
+<!-- ════════════════════ PAGE 1: DIAGNOSTIC RECONCILIATION ════════════════════ -->
+<div class="pdf-page">
+    <div class="header">
+        <svg class="logo" viewBox="0 0 150 35" aria-label="SNA Forensic Marketing Engine"><use href="#logoSNA"/></svg>
+        <div class="line"></div>
+        <svg class="logo" viewBox="0 0 150 35" aria-label="Take Charge Roofing"><use href="#logoTC"/></svg>
+    </div>
+
+    <div class="hero">
+        <div class="badge">STRATEGIC FORENSIC AUDIT</div>
+        <h1>CAMPAIGN INFRASTRUCTURE <span class="text-red">DIAGNOSTIC</span></h1>
+        <p class="lead">A forensic evaluation of the Take Charge Roofing ad ecosystem. This report reconciles cross-export spend discrepancies to isolate high-risk delivery patterns and tracking failures.</p>
+    </div>
+
+    <h2 class="sec-title">Efficiency Baselines</h2>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <p class="label">Weighted CTR</p>
+            <p class="value">2.08%</p>
+        </div>
+        <div class="stat-card">
+            <p class="label">Reconciled Spend</p>
+            <p class="value">$3,137.11</p>
+        </div>
+        <div class="stat-card accent">
+            <p class="label">Control CPL (ABO)</p>
+            <p class="value">$60.78</p>
+        </div>
+    </div>
+
+    <h2 class="sec-title">Data Source Reconciliation</h2>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Reporting Source</th>
+                <th>Spend Verified</th>
+                <th>Analytical Purpose</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Campaign-Level Export</strong></td>
+                <td>$3,137.11</td>
+                <td>Primary 30-day audit performance baseline.</td>
+            </tr>
+            <tr>
+                <td><strong>Placement Breakdown</strong></td>
+                <td>~$3,172.73</td>
+                <td>Platform delivery and placement efficiency review.</td>
+            </tr>
+            <tr>
+                <td><strong>Age/Demographic Breakdown</strong></td>
+                <td>~$3,173.80</td>
+                <td>Targeting accuracy and budget over-allocation review.</td>
+            </tr>
+            <tr>
+                <td><strong>Ad-Level Export</strong></td>
+                <td>~$3,195.31</td>
+                <td>Asset-level engagement (Hook/Hold) and creative heatmap.</td>
+            </tr>
+        </tbody>
+    </table>
+    <p style="font-size:8px; color:var(--text-muted); font-style:italic; margin-top:-8px;">*Discrepancies are expected due to export timing, attribution window shifts, and real-time reporting delays. Campaign-level data remains the master audit baseline.</p>
+
+    <h2 class="sec-title">Funnel Leakage & Tracking Risk</h2>
+    <div style="background: rgba(220,38,38,0.06); border: 1px dashed var(--red); padding: 14px 16px; margin-bottom: 12px;">
+        <div style="display: flex; align-items: center; gap: 18px; margin-bottom: 12px;">
+            <div style="text-align: center; border-right: 1px solid var(--border); padding-right: 18px;">
+                <p style="font-size: 30px; font-weight: 900; color: #FFF; line-height: 1; font-family: 'Outfit', sans-serif; letter-spacing: -1.2px;">54%</p>
+                <p style="font-size: 7.5px; font-weight: 800; color: var(--red); margin-top: 4px; letter-spacing: 1.2px;">CLICK DROP-OFF</p>
+            </div>
+            <p style="font-size: 11.5px; line-height: 1.45;">Out of every <strong>951 clicks paid for</strong>, only <strong>433 people actually reached the website</strong>. The current Traffic-objective campaign is losing more than half of every dollar before visitors ever see the page.</p>
+        </div>
+        <svg viewBox="0 0 520 108" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: auto; display: block;">
+            <rect x="0" y="8" width="520" height="28" rx="4" fill="url(#gRedSoft)" stroke="rgba(220,38,38,0.55)" stroke-width="1"/>
+            <text x="14" y="19" font-family="JetBrains Mono, monospace" font-size="7" fill="rgba(255,255,255,0.65)" font-weight="800" letter-spacing="1.4">CLICKS PAID FOR</text>
+            <text x="14" y="31" font-family="Outfit, sans-serif" font-size="13" fill="#FFFFFF" font-weight="900" letter-spacing="-0.3">Ad Clicks</text>
+            <text x="506" y="31" font-family="Outfit, sans-serif" font-size="20" fill="#FFFFFF" font-weight="900" text-anchor="end" letter-spacing="-0.8">951</text>
+
+            <polygon points="0,36 520,36 374,72 146,72" fill="url(#gRedFunnelTrap)"/>
+            <line x1="0" y1="36" x2="146" y2="72" stroke="#DC2626" stroke-width="0.6" stroke-dasharray="3 2" opacity="0.65"/>
+            <line x1="520" y1="36" x2="374" y2="72" stroke="#DC2626" stroke-width="0.6" stroke-dasharray="3 2" opacity="0.65"/>
+            <text x="260" y="55" font-family="Outfit, sans-serif" font-size="13" fill="#FFFFFF" font-weight="900" text-anchor="middle" letter-spacing="-0.3">518 People Dropped Off</text>
+            <text x="260" y="67" font-family="JetBrains Mono, monospace" font-size="7" fill="#EF4444" font-weight="800" text-anchor="middle" letter-spacing="1.3">LOST BEFORE THE WEBSITE LOADED</text>
+
+            <rect x="146" y="72" width="228" height="28" rx="4" fill="url(#gRedDeep)" stroke="#DC2626" stroke-width="1.2"/>
+            <text x="158" y="83" font-family="JetBrains Mono, monospace" font-size="7" fill="rgba(255,255,255,0.7)" font-weight="800" letter-spacing="1.4">ACTUALLY ARRIVED</text>
+            <text x="158" y="95" font-family="Outfit, sans-serif" font-size="13" fill="#FFFFFF" font-weight="900" letter-spacing="-0.3">Reached Website</text>
+            <text x="362" y="95" font-family="Outfit, sans-serif" font-size="20" fill="#FFFFFF" font-weight="900" text-anchor="end" letter-spacing="-0.8">433</text>
+        </svg>
+    </div>
+
+    <div style="background: #0C0909; border: 1px solid var(--border); border-left: 4px solid var(--red); padding: 12px;">
+        <h4 style="color:#EF4444; font-size: 11px; margin-bottom: 4px; text-transform: uppercase; font-weight: 800;">⚠ Critical Tracking Failure</h4>
+        <p style="font-size: 11px;">The active <strong>Lead Forms campaign</strong> spent <strong>$186.32 with 0 tracked leads</strong>. This indicates a terminal misconfiguration in the Instant Form attachment or CRM API sync. Tracking repair is the #1 priority.</p>
+    </div>
+
+    <div class="footer">
+        <span>SNA MARKETING // CONFIDENTIAL AUDIT TC_01</span>
+        <span>Page 1 / 4</span>
+    </div>
+</div>
+
+<!-- ════════════════════ PAGE 2: CONFIDENCE & CREATIVE ════════════════════ -->
+<div class="pdf-page">
+    <div class="header">
+        <svg class="logo" viewBox="0 0 150 35" aria-label="SNA Forensic Marketing Engine"><use href="#logoSNA"/></svg>
+        <div class="line"></div>
+        <svg class="logo" viewBox="0 0 150 35" aria-label="Take Charge Roofing"><use href="#logoTC"/></svg>
+    </div>
+
+    <h2 class="sec-title">Cost Per Lead Climbs With Audience Age</h2>
+    <div class="chart-card">
+        <div class="chart-title">Cost Per Lead by Audience Age Band</div>
+        <svg viewBox="0 0 520 260" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: auto; display: block;">
+            <!-- Legend -->
+            <g transform="translate(60, 10)">
+                <line x1="0" y1="0" x2="22" y2="0" stroke="url(#gAgeCost)" stroke-width="3"/>
+                <text x="28" y="3" font-family="Plus Jakarta Sans, sans-serif" font-size="9" fill="#E5E7EB" font-weight="700">Cost per lead by age</text>
+                <line x1="170" y1="0" x2="186" y2="0" stroke="#F59E0B" stroke-width="1" stroke-dasharray="4 2"/>
+                <text x="190" y="3" font-family="Plus Jakarta Sans, sans-serif" font-size="9" fill="#E5E7EB" font-weight="700">$60 target</text>
+            </g>
+
+            <!-- Zone shading: target (below $60) and over-target (above $60) -->
+            <rect x="60" y="106" width="440" height="114" fill="#10B981" opacity="0.04"/>
+            <rect x="60" y="30"  width="440" height="76"  fill="#EF4444" opacity="0.04"/>
+
+            <!-- Y axis frame -->
+            <line x1="60" y1="30" x2="60" y2="220" stroke="#1A1A1A"/>
+            <line x1="60" y1="220" x2="500" y2="220" stroke="#1A1A1A"/>
+
+            <!-- Y gridlines ($0 → $100) -->
+            <line x1="60" y1="220" x2="500" y2="220" stroke="#0F0F0F"/>
+            <text x="55" y="223" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="end" font-weight="700">$0</text>
+            <line x1="60" y1="182" x2="500" y2="182" stroke="#0F0F0F"/>
+            <text x="55" y="185" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="end" font-weight="700">$20</text>
+            <line x1="60" y1="144" x2="500" y2="144" stroke="#0F0F0F"/>
+            <text x="55" y="147" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="end" font-weight="700">$40</text>
+            <line x1="60" y1="106" x2="500" y2="106" stroke="#F59E0B" stroke-width="0.9" stroke-dasharray="4 2"/>
+            <text x="55" y="109" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#F59E0B" text-anchor="end" font-weight="900">$60</text>
+            <line x1="60" y1="68" x2="500" y2="68" stroke="#0F0F0F"/>
+            <text x="55" y="71" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="end" font-weight="700">$80</text>
+            <line x1="60" y1="30" x2="500" y2="30" stroke="#0F0F0F"/>
+            <text x="55" y="33" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="end" font-weight="700">$100</text>
+
+            <!-- Y axis title -->
+            <text transform="rotate(-90 18 130)" x="18" y="130" font-family="JetBrains Mono, monospace" font-size="7" fill="#9CA3AF" font-weight="800" letter-spacing="0.8" text-anchor="middle">COST PER LEAD</text>
+
+            <!-- X axis: 6 age bands -->
+            <text x="100" y="234" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="middle" font-weight="700">25–34</text>
+            <text x="171" y="234" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="middle" font-weight="700">35–44</text>
+            <text x="242" y="234" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="middle" font-weight="700">45–54</text>
+            <text x="313" y="234" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="middle" font-weight="700">55–64</text>
+            <text x="384" y="234" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="middle" font-weight="700">65–74</text>
+            <text x="455" y="234" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="middle" font-weight="700">75+</text>
+            <text x="280" y="250" font-family="JetBrains Mono, monospace" font-size="7" fill="#9CA3AF" text-anchor="middle" font-weight="800" letter-spacing="0.8">AUDIENCE AGE BAND</text>
+
+            <!-- Area fill under the curve -->
+            <path d="M 100 174.4 C 135 172 150 170 171 168.7 C 200 167 215 166 242 164.9 C 275 163 295 160 313 157.3 C 335 154 355 110 384 71.8 C 410 60 430 45 455 33.8 L 455 220 L 100 220 Z" fill="url(#gAgeArea)"/>
+
+            <!-- The single CPL line, gradient-stroked: green left → orange middle → red right -->
+            <path d="M 100 174.4 C 135 172 150 170 171 168.7 C 200 167 215 166 242 164.9 C 275 163 295 160 313 157.3 C 335 154 355 110 384 71.8 C 410 60 430 45 455 33.8" fill="none" stroke="url(#gAgeCost)" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"/>
+
+            <!-- Data points colored to match position on the gradient -->
+            <circle cx="100" cy="174.4" r="3.5" fill="#10B981" stroke="#0a0a0a" stroke-width="1"/>
+            <circle cx="171" cy="168.7" r="3.5" fill="#10B981" stroke="#0a0a0a" stroke-width="1"/>
+            <circle cx="242" cy="164.9" r="3.5" fill="#10B981" stroke="#0a0a0a" stroke-width="1"/>
+            <circle cx="313" cy="157.3" r="3.5" fill="#34D399" stroke="#0a0a0a" stroke-width="1"/>
+            <circle cx="384" cy="71.8"  r="3.8" fill="#F87171" stroke="#0a0a0a" stroke-width="1"/>
+            <circle cx="455" cy="33.8"  r="4.5" fill="#EF4444" stroke="#FFFFFF" stroke-width="1.6"/>
+
+            <!-- "STAYS UNDER TARGET" label across the 35-64 flat region -->
+            <text x="207" y="148" font-family="JetBrains Mono, monospace" font-size="7" fill="#10B981" text-anchor="middle" font-weight="900" letter-spacing="0.6">STAYS UNDER TARGET</text>
+
+            <!-- "SHARP CLIMB" callout at the 55-64 → 65-74 transition -->
+            <path d="M 350 115 L 360 100" stroke="#EF4444" stroke-width="0.8"/>
+            <text x="346" y="113" font-family="Outfit, sans-serif" font-size="10" fill="#EF4444" font-weight="900" text-anchor="end">Sharp climb at 65+</text>
+
+            <!-- Endpoint labels -->
+            <rect x="412" y="14" width="80" height="16" rx="2.5" fill="#EF4444"/>
+            <text x="452" y="25" font-family="Outfit, sans-serif" font-size="10" fill="#FFFFFF" font-weight="900" text-anchor="middle">~$98 / lead</text>
+
+            <rect x="92" y="184" width="80" height="16" rx="2.5" fill="#10B981"/>
+            <text x="132" y="195" font-family="Outfit, sans-serif" font-size="10" fill="#FFFFFF" font-weight="900" text-anchor="middle">~$27 / lead</text>
+        </svg>
+        <div class="chart-caption">Cost-per-lead stays comfortably <strong style="color:#10B981;">under the $60 target</strong> through the 35–64 core, then climbs sharply once the audience crosses 65 — peaking near <strong style="color:#EF4444;">$98 per lead</strong> at 75+. The 35–64 band is the most cost-efficient sweet spot. <span style="color:#9CA3AF;">Reported bands are 35–64 ($29.35 avg) and 65+ ($88.06 avg); sub-bands shown are modeled from those averages.</span></div>
+    </div>
+
+    <h2 class="sec-title">Where Each Age Group's Money Actually Converts</h2>
+    <div class="chart-card">
+        <div class="chart-title">Budget Share vs Cost Per Lead — by Age</div>
+        <svg viewBox="0 0 480 162" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: auto; display: block;">
+            <text x="0" y="12" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#6B7280" font-weight="800" letter-spacing="1.2">AGE GROUP</text>
+            <text x="150" y="12" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#6B7280" font-weight="800" letter-spacing="1.2">BUDGET USED</text>
+            <text x="270" y="12" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#6B7280" font-weight="800" letter-spacing="1.2">COST PER LEAD</text>
+
+            <!-- ROW 1: 65+ -->
+            <text x="0" y="48" font-family="Outfit, sans-serif" font-size="22" fill="#FFFFFF" font-weight="900" letter-spacing="-0.8">65+</text>
+            <text x="0" y="62" font-family="Plus Jakarta Sans, sans-serif" font-size="8" fill="#60A5FA" font-weight="800" letter-spacing="0.4">STEADY DEMAND</text>
+
+            <rect x="150" y="34" width="100" height="18" rx="3" fill="rgba(255,255,255,0.04)" stroke="#1A1A1A" stroke-width="0.6"/>
+            <rect x="150" y="34" width="45" height="18" rx="3" fill="url(#gRedH)"/>
+            <text x="200" y="47" font-family="Outfit, sans-serif" font-size="11" fill="#FFFFFF" font-weight="900" text-anchor="middle">45%</text>
+
+            <rect x="270" y="34" width="200" height="18" rx="3" fill="rgba(255,255,255,0.04)" stroke="#1A1A1A" stroke-width="0.6"/>
+            <rect x="270" y="34" width="176.12" height="18" rx="3" fill="url(#gRedH)"/>
+            <text x="440" y="47" font-family="Outfit, sans-serif" font-size="12" fill="#FFFFFF" font-weight="900" text-anchor="end">$88.06</text>
+
+            <!-- ROW 2: 35-64 -->
+            <text x="0" y="98" font-family="Outfit, sans-serif" font-size="22" fill="#FFFFFF" font-weight="900" letter-spacing="-0.8">35–64</text>
+            <text x="0" y="112" font-family="Plus Jakarta Sans, sans-serif" font-size="8" fill="#10B981" font-weight="800" letter-spacing="0.4">TOP CONVERTER</text>
+
+            <rect x="150" y="84" width="100" height="18" rx="3" fill="rgba(255,255,255,0.04)" stroke="#1A1A1A" stroke-width="0.6"/>
+            <rect x="150" y="84" width="55" height="18" rx="3" fill="url(#gGray)"/>
+            <text x="200" y="97" font-family="Outfit, sans-serif" font-size="11" fill="#FFFFFF" font-weight="900" text-anchor="middle">55%</text>
+
+            <rect x="270" y="84" width="200" height="18" rx="3" fill="rgba(255,255,255,0.04)" stroke="#1A1A1A" stroke-width="0.6"/>
+            <rect x="270" y="84" width="58.7" height="18" rx="3" fill="url(#gGreenH)"/>
+            <text x="332" y="97" font-family="Outfit, sans-serif" font-size="12" fill="#10B981" font-weight="900">$29.35</text>
+
+            <!-- $60 target reference -->
+            <line x1="390" y1="26" x2="390" y2="108" stroke="#F59E0B" stroke-width="0.9" stroke-dasharray="4 2"/>
+            <text x="390" y="22" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#F59E0B" text-anchor="middle" font-weight="800" letter-spacing="0.8">$60 TARGET</text>
+
+            <!-- 3× lower CPL callout (positive framing for 35–64) -->
+            <path d="M 388 95 Q 405 75 388 55" fill="none" stroke="#10B981" stroke-width="0.9" stroke-dasharray="2 2"/>
+            <text x="406" y="72" font-family="Outfit, sans-serif" font-size="9" fill="#10B981" font-weight="900" letter-spacing="0.4">3× CHEAPER</text>
+            <text x="406" y="83" font-family="Outfit, sans-serif" font-size="9" fill="#10B981" font-weight="900" letter-spacing="0.4">PER LEAD</text>
+
+            <!-- X-axis scale -->
+            <line x1="270" y1="118" x2="470" y2="118" stroke="#1A1A1A"/>
+            <text x="270" y="130" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" font-weight="700">$0</text>
+            <text x="370" y="130" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" font-weight="700" text-anchor="middle">$50</text>
+            <text x="470" y="130" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" font-weight="700" text-anchor="end">$100</text>
+
+            <text x="0" y="152" font-family="Plus Jakarta Sans, sans-serif" font-size="8.5" fill="#9CA3AF" font-style="italic">Shifting more weight to 35–64 — already converting at ~$29 per lead — is the fastest way to pull blended cost back to target.</text>
+        </svg>
+        <div class="chart-caption">35–64 is the audience already converting at roughly <strong style="color:#10B981;">three times the rate per dollar</strong>. Re-weighting the budget toward them should pull blended cost-per-lead under the $60 target quickly, without losing 65+ reach entirely.</div>
+    </div>
+
+    <h2 class="sec-title">Creative Heatmap & Hold Rates</h2>
+    <div class="matrix-card" style="margin-bottom: 15px;">
+        <table class="data-table" style="margin-bottom: 0;">
+            <thead>
+                <tr>
+                    <th>Asset Grouping*</th>
+                    <th>Hook (3s)</th>
+                    <th>Hold (Thru)</th>
+                    <th>Verdict</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Insurance / Educational</strong></td>
+                    <td style="color:#10B981">21.2%</td>
+                    <td style="color:#10B981">39.8%</td>
+                    <td><span class="tag-win">STABLE HOLD</span></td>
+                </tr>
+                <tr>
+                    <td><strong>Roof Shoot / Jobsite</strong></td>
+                    <td>24.5%</td>
+                    <td>38.9%</td>
+                    <td><span class="tag-win">HIGH INTENT</span></td>
+                </tr>
+                <tr>
+                    <td><strong>Generic Promotion Series</strong></td>
+                    <td style="color:#EF4444">22.1%</td>
+                    <td style="color:#EF4444">30.5%</td>
+                    <td><span class="tag-loss">HOLD RISK</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <svg viewBox="0 0 480 170" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: auto; margin-top: 12px; display: block;">
+            <!-- Legend swatches -->
+            <rect x="0" y="2" width="11" height="9" rx="1.5" fill="url(#gBlueH)"/>
+            <text x="16" y="10" font-family="JetBrains Mono, monospace" font-size="7" fill="#9CA3AF" font-weight="800" letter-spacing="0.6">FIRST 3 SECONDS</text>
+            <rect x="135" y="2" width="11" height="9" rx="1.5" fill="url(#gGreenH)"/>
+            <text x="151" y="10" font-family="JetBrains Mono, monospace" font-size="7" fill="#9CA3AF" font-weight="800" letter-spacing="0.6">WATCHED ALL THE WAY THROUGH</text>
+
+            <line x1="135" y1="22" x2="135" y2="142" stroke="#1A1A1A" stroke-width="1"/>
+            <line x1="135" y1="142" x2="455" y2="142" stroke="#1A1A1A" stroke-width="1"/>
+
+            <line x1="199" y1="22" x2="199" y2="142" stroke="#0F0F0F"/><text x="199" y="152" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="middle">10%</text>
+            <line x1="263" y1="22" x2="263" y2="142" stroke="#0F0F0F"/><text x="263" y="152" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="middle">20%</text>
+            <line x1="327" y1="22" x2="327" y2="142" stroke="#0F0F0F"/><text x="327" y="152" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="middle">30%</text>
+            <line x1="391" y1="22" x2="391" y2="142" stroke="#0F0F0F"/><text x="391" y="152" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="middle">40%</text>
+            <line x1="455" y1="22" x2="455" y2="142" stroke="#0F0F0F"/><text x="455" y="152" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="middle">50%</text>
+
+            <!-- Row 1: Insurance Stories -->
+            <text x="130" y="36" font-family="Plus Jakarta Sans, sans-serif" font-size="9.5" fill="#FFFFFF" text-anchor="end" font-weight="700">Insurance Stories</text>
+            <text x="130" y="46" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#10B981" text-anchor="end" font-weight="800" letter-spacing="0.5">STRONG</text>
+            <rect x="135" y="26" width="135.7" height="9" rx="2" fill="url(#gBlueH)"/>
+            <text x="275" y="33" font-family="Outfit, sans-serif" font-size="9" fill="#60A5FA" font-weight="900">21.2%</text>
+            <rect x="135" y="36" width="254.7" height="9" rx="2" fill="url(#gGreenH)"/>
+            <text x="394" y="43" font-family="Outfit, sans-serif" font-size="9" fill="#10B981" font-weight="900">39.8%</text>
+
+            <!-- Row 2: Real Job Site Footage -->
+            <text x="130" y="70" font-family="Plus Jakarta Sans, sans-serif" font-size="9.5" fill="#FFFFFF" text-anchor="end" font-weight="700">Real Job Site Footage</text>
+            <text x="130" y="80" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#10B981" text-anchor="end" font-weight="800" letter-spacing="0.5">STRONG</text>
+            <rect x="135" y="60" width="156.8" height="9" rx="2" fill="url(#gBlueH)"/>
+            <text x="296" y="67" font-family="Outfit, sans-serif" font-size="9" fill="#60A5FA" font-weight="900">24.5%</text>
+            <rect x="135" y="70" width="248.96" height="9" rx="2" fill="url(#gGreenH)"/>
+            <text x="388" y="77" font-family="Outfit, sans-serif" font-size="9" fill="#10B981" font-weight="900">38.9%</text>
+
+            <!-- Row 3: Generic Promo -->
+            <text x="130" y="104" font-family="Plus Jakarta Sans, sans-serif" font-size="9.5" fill="#FFFFFF" text-anchor="end" font-weight="700">Generic Promo Ads</text>
+            <text x="130" y="114" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#EF4444" text-anchor="end" font-weight="800" letter-spacing="0.5">WEAK</text>
+            <rect x="135" y="94" width="141.4" height="9" rx="2" fill="url(#gBlueH)"/>
+            <text x="281" y="101" font-family="Outfit, sans-serif" font-size="9" fill="#60A5FA" font-weight="900">22.1%</text>
+            <rect x="135" y="104" width="195.2" height="9" rx="2" fill="url(#gRedH)"/>
+            <text x="335" y="111" font-family="Outfit, sans-serif" font-size="9" fill="#EF4444" font-weight="900">30.5%</text>
+
+            <!-- Strong engagement target line at 35% -->
+            <line x1="359" y1="24" x2="359" y2="120" stroke="#F59E0B" stroke-width="0.9" stroke-dasharray="4 2"/>
+            <text x="359" y="20" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#F59E0B" text-anchor="middle" font-weight="800" letter-spacing="0.6">SCALING-GRADE ≥ 35%</text>
+
+            <text x="0" y="168" font-family="Plus Jakarta Sans, sans-serif" font-size="8.5" fill="#9CA3AF" font-style="italic">Generic Promo loses people once they start watching — it shouldn't receive scaling budget until it improves.</text>
+        </svg>
+
+        <p style="font-size:7.5px; color:var(--text-muted); margin-top:8px;">*Groupings derived from asset naming conventions (Insurance Owes You, Roof Shoot). Verify groupings before final scaling. "Scaling-grade" is the internal threshold for committing budget at scale.</p>
+    </div>
+
+    <h2 class="sec-title">The Decision Metric Ladder</h2>
+    <div class="ladder">
+        <div class="ladder-step"><div class="ladder-label">CTR / CPM</div><div class="ladder-desc">Vanity Metrics: Only measures attention, not revenue.</div></div>
+        <div class="ladder-step"><div class="ladder-label">CPL</div><div class="ladder-desc">Cost of Lead: Useful for pacing, but can hide poor lead quality.</div></div>
+        <div class="ladder-step"><div class="ladder-label">Contact Rate</div><div class="ladder-desc">Lead Integrity: Are we reaching real homeowners?</div></div>
+        <div class="ladder-step active"><div class="ladder-label">Booked Inspection</div><div class="ladder-desc">Primary Decision Metric: The ladder starts here.</div></div>
+        <div class="ladder-step active"><div class="ladder-label">Cost Per Sold Roof</div><div class="ladder-desc">Ultimate ROI: The final arbiter of campaign success.</div></div>
+    </div>
+    <p style="font-size:9.5px; color:var(--text-dim); margin-top:8px;"><strong>Strategic Goal:</strong> Shift optimization from "Cheapest Leads" to "Most Profitable Booked Inspections."</p>
+
+    <div class="footer">
+        <span>SNA MARKETING // CONFIDENTIAL AUDIT TC_01</span>
+        <span>Page 2 / 4</span>
+    </div>
+</div>
+
+<!-- ════════════════════ PAGE 3: REMEDIATION ROADMAP ════════════════════ -->
+<div class="pdf-page">
+    <div class="header">
+        <svg class="logo" viewBox="0 0 150 35" aria-label="SNA Forensic Marketing Engine"><use href="#logoSNA"/></svg>
+        <div class="line"></div>
+        <svg class="logo" viewBox="0 0 150 35" aria-label="Take Charge Roofing"><use href="#logoTC"/></svg>
+    </div>
+
+    <h2 class="sec-title">Immediate Tracking Repair Checklist</h2>
+    <div class="checklist">
+        <div class="check-item"><div class="check-box"></div>Submit test lead from mobile device & verify delivery.</div>
+        <div class="check-item"><div class="check-box"></div>Verify Instant Form attachment to active campaign.</div>
+        <div class="check-item"><div class="check-box"></div>Confirm CRM/Zapier/GHL API sync status.</div>
+        <div class="check-item"><div class="check-box"></div>Match Meta Lead Center count against CRM totals.</div>
+        <div class="check-item"><div class="check-box"></div>Rebuild deleted/missing 'LP Lead' pixel event.</div>
+        <div class="check-item"><div class="check-box"></div>Verify Conversions API status in Events Manager.</div>
+        <div class="check-item"><div class="check-box"></div>Audit Form fields: Name, Phone, Email, Zip, Homeowner?</div>
+        <div class="check-item"><div class="check-box"></div>Confirm automated Lead Timestamping in CRM.</div>
+    </div>
+
+    <h2 class="sec-title">30-Day Execution Roadmap</h2>
+    <div class="roadmap">
+        <div class="roadmap-phase">
+            <div class="phase-title">Phase 1: Stabilization (First 48 Hours) <span style="color:var(--red);">▼ PRIORITY</span></div>
+            <ul class="phase-list">
+                <li>Pause <strong>Traffic Objective</strong> as primary lead source.</li>
+                <li>Execute full-form test-submission to solve zero-lead anomaly.</li>
+                <li>Fix broken Wix/Public routing links in ad copy.</li>
+            </ul>
+        </div>
+        <div class="roadmap-phase">
+            <div class="phase-title">Phase 2: Relaunch (Days 3-7)</div>
+            <ul class="phase-list">
+                <li>Relaunch <strong>LF ABO</strong> as the control baseline ($60.78 CPL target).</li>
+                <li>Implement 70/20/10 Budget Framework: Control / Placement Test / R&D.</li>
+                <li>Create Capped 65+ test set vs 35-64 Main Core.</li>
+                <li>Deploy <strong>"Higher Intent"</strong> vs "More Volume" Form split-test.</li>
+            </ul>
+        </div>
+        <div class="roadmap-phase">
+            <div class="phase-title">Phase 3: Scaling (Days 8-30)</div>
+            <ul class="phase-list">
+                <li>Scale budget based on <strong>Cost Per Booked Inspection</strong>.</li>
+                <li>Retire creative with low hold rates or poor lead-to-contact ratios.</li>
+                <li>Activate 10% "Creative R&D" for Storm and Offer-specific hooks.</li>
+                <li>Build Retargeting audience from page engagers & video viewers.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="chart-card" style="margin-top: 12px;">
+        <div class="chart-title">How to Split the Monthly Budget</div>
+        <div class="donut-row">
+            <svg viewBox="0 0 140 140" style="width: 140px; height: 140px; display: block;">
+                <circle cx="70" cy="70" r="55" fill="#0a0a0a"/>
+                <g transform="rotate(-90 70 70)">
+                    <circle cx="70" cy="70" r="55" fill="none" stroke="url(#gDonutRed)" stroke-width="22" pathLength="100" stroke-dasharray="70 30" stroke-dashoffset="0"/>
+                    <circle cx="70" cy="70" r="55" fill="none" stroke="url(#gDonutGray)" stroke-width="22" pathLength="100" stroke-dasharray="20 80" stroke-dashoffset="-70"/>
+                    <circle cx="70" cy="70" r="55" fill="none" stroke="url(#gDonutWhite)" stroke-width="22" pathLength="100" stroke-dasharray="10 90" stroke-dashoffset="-90"/>
+                </g>
+                <circle cx="70" cy="70" r="44" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/>
+                <text x="70" y="66" font-family="Outfit, sans-serif" font-size="13" font-weight="900" fill="#FFFFFF" text-anchor="middle" letter-spacing="-0.5">MONTHLY</text>
+                <text x="70" y="80" font-family="Outfit, sans-serif" font-size="13" font-weight="900" fill="#FFFFFF" text-anchor="middle" letter-spacing="-0.5">BUDGET</text>
+            </svg>
+            <div class="donut-legend">
+                <div class="legend-item"><span class="legend-swatch" style="background:linear-gradient(135deg,#7f1d1d,#EF4444);"></span><span><strong>Proven Performer</strong> — keep doing what's already converting</span><span class="legend-pct">70%</span></div>
+                <div class="legend-item"><span class="legend-swatch" style="background:linear-gradient(135deg,#374151,#9CA3AF);"></span><span><strong>Test New Placements</strong> — try Reels &amp; Stories safely</span><span class="legend-pct">20%</span></div>
+                <div class="legend-item"><span class="legend-swatch" style="background:linear-gradient(135deg,#9CA3AF,#F3F4F6);"></span><span><strong>Bold New Ideas</strong> — Storm-season hooks, fresh offers</span><span class="legend-pct">10%</span></div>
+            </div>
+        </div>
+        <div class="chart-caption">Keep most of the spend on what's already working. A small slice tests new placements; an even smaller slice runs bold experiments — so growth never costs the baseline.</div>
+    </div>
+
+    <div class="chart-card" style="margin-top: 12px;">
+        <div class="chart-title">Projected Cost-Per-Lead — Implementing the 30-Day Roadmap</div>
+        <svg viewBox="0 0 520 230" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: auto; display: block;">
+            <!-- Phase bands -->
+            <rect x="60" y="30" width="29" height="170" fill="rgba(239,68,68,0.05)"/>
+            <rect x="89" y="30" width="74" height="170" fill="rgba(245,158,11,0.05)"/>
+            <rect x="163" y="30" width="337" height="170" fill="rgba(16,185,129,0.05)"/>
+
+            <!-- Phase labels -->
+            <text x="74" y="22" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#EF4444" font-weight="900" text-anchor="middle" letter-spacing="0.6">PHASE 1</text>
+            <text x="126" y="22" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#F59E0B" font-weight="900" text-anchor="middle" letter-spacing="0.6">PHASE 2</text>
+            <text x="330" y="22" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#10B981" font-weight="900" text-anchor="middle" letter-spacing="0.6">PHASE 3 — SCALE</text>
+
+            <!-- Y axis -->
+            <line x1="60" y1="30" x2="60" y2="200" stroke="#1A1A1A"/>
+            <line x1="60" y1="200" x2="500" y2="200" stroke="#1A1A1A"/>
+
+            <!-- Y gridlines + labels -->
+            <line x1="60" y1="200" x2="500" y2="200" stroke="#0F0F0F"/><text x="55" y="203" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="end" font-weight="700">$20</text>
+            <line x1="60" y1="166" x2="500" y2="166" stroke="#0F0F0F"/><text x="55" y="169" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="end" font-weight="700">$40</text>
+            <line x1="60" y1="132" x2="500" y2="132" stroke="#0F0F0F"/><text x="55" y="135" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="end" font-weight="700">$60</text>
+            <line x1="60" y1="98" x2="500" y2="98" stroke="#0F0F0F"/><text x="55" y="101" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="end" font-weight="700">$80</text>
+            <line x1="60" y1="64" x2="500" y2="64" stroke="#0F0F0F"/><text x="55" y="67" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="end" font-weight="700">$100</text>
+            <line x1="60" y1="30" x2="500" y2="30" stroke="#0F0F0F"/><text x="55" y="33" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="end" font-weight="700">$120</text>
+
+            <!-- X labels -->
+            <text x="60" y="215" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="middle" font-weight="700">Day 0</text>
+            <text x="89" y="215" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="middle" font-weight="700">Day 2</text>
+            <text x="163" y="215" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="middle" font-weight="700">Day 7</text>
+            <text x="265" y="215" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="middle" font-weight="700">Day 14</text>
+            <text x="368" y="215" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="middle" font-weight="700">Day 21</text>
+            <text x="500" y="215" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#525252" text-anchor="middle" font-weight="700">Day 30</text>
+
+            <!-- $60 target horizontal line -->
+            <line x1="60" y1="132" x2="500" y2="132" stroke="#F59E0B" stroke-width="0.9" stroke-dasharray="4 2"/>
+            <rect x="445" y="124" width="52" height="14" rx="2" fill="#0a0a0a" stroke="#F59E0B" stroke-width="0.8"/>
+            <text x="471" y="134" font-family="JetBrains Mono, monospace" font-size="7" fill="#F59E0B" text-anchor="middle" font-weight="900" letter-spacing="0.6">$60 TARGET</text>
+
+            <!-- Without-fixes trajectory (dashed red, drifts up) -->
+            <path d="M 60 58 Q 200 53 350 50 T 500 47" fill="none" stroke="#EF4444" stroke-width="2.2" stroke-dasharray="5 3"/>
+            <circle cx="500" cy="47" r="3.5" fill="#EF4444" stroke="#0a0a0a" stroke-width="0.8"/>
+            <text x="492" y="42" font-family="Outfit, sans-serif" font-size="9.5" fill="#EF4444" font-weight="900" text-anchor="end">$115+</text>
+
+            <!-- With-fixes trajectory (solid green, declining) -->
+            <path d="M 60 58 L 89 64 L 163 101 L 265 118 L 368 127 L 500 132 L 500 200 L 60 200 Z" fill="url(#gGreenH)" opacity="0.07"/>
+            <path d="M 60 58 L 89 64 L 163 101 L 265 118 L 368 127 L 500 132" fill="none" stroke="#10B981" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
+
+            <!-- Data points -->
+            <circle cx="60" cy="58" r="4" fill="#10B981" stroke="#0a0a0a" stroke-width="1.2"/>
+            <circle cx="89" cy="64" r="3" fill="#10B981" stroke="#0a0a0a" stroke-width="0.9"/>
+            <circle cx="163" cy="101" r="3" fill="#10B981" stroke="#0a0a0a" stroke-width="0.9"/>
+            <circle cx="265" cy="118" r="3" fill="#10B981" stroke="#0a0a0a" stroke-width="0.9"/>
+            <circle cx="368" cy="127" r="3" fill="#10B981" stroke="#0a0a0a" stroke-width="0.9"/>
+            <circle cx="500" cy="132" r="5" fill="#10B981" stroke="#FFFFFF" stroke-width="1.5"/>
+
+            <!-- Today callout (start of green line) -->
+            <rect x="66" y="40" width="56" height="14" rx="2" fill="#0a0a0a" stroke="#10B981" stroke-width="0.8"/>
+            <text x="94" y="50" font-family="Outfit, sans-serif" font-size="9" fill="#FFFFFF" font-weight="900" text-anchor="middle">$103.45</text>
+            <text x="66" y="74" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#9CA3AF" font-weight="800" letter-spacing="0.5">TODAY</text>
+
+            <!-- Target hit callout (end of green line) -->
+            <rect x="430" y="140" width="68" height="14" rx="2" fill="#10B981"/>
+            <text x="464" y="150" font-family="Outfit, sans-serif" font-size="9" fill="#FFFFFF" font-weight="900" text-anchor="middle">$60.00 · HIT</text>
+
+            <!-- Legend -->
+            <g transform="translate(180, 7)">
+                <line x1="0" y1="0" x2="16" y2="0" stroke="#10B981" stroke-width="2.6"/>
+                <text x="20" y="3" font-family="Plus Jakarta Sans, sans-serif" font-size="8.5" fill="#E5E7EB" font-weight="700">With the fixes</text>
+                <line x1="100" y1="0" x2="116" y2="0" stroke="#EF4444" stroke-width="2.2" stroke-dasharray="5 3"/>
+                <text x="120" y="3" font-family="Plus Jakarta Sans, sans-serif" font-size="8.5" fill="#E5E7EB" font-weight="700">Without fixes</text>
+            </g>
+        </svg>
+        <div class="chart-caption">Executing the 30-day roadmap should pull cost-per-lead from <strong>$103.45</strong> back to the <strong style="color:#10B981;">$60 control baseline</strong> by Day 30. Without the fixes, current leakage trends toward <strong style="color:#EF4444;">$115+</strong>.</div>
+    </div>
+
+    <div style="margin-top: auto; padding: 20px; border: 1px solid var(--border); background: #050505; border-left: 4px solid #FFF;">
+        <h3 style="font-family:'Outfit'; font-size: 14px; margin-bottom: 5px;">STRATEGIC VERDICT</h3>
+        <p style="font-size: 11.5px; color: var(--text-dim); line-height: 1.4;">The Take Charge Roofing account possesses strong creative assets but is suffering from fundamental infrastructure leakage. By stabilizing the control campaign, repairing the Lead Form sync, and pivoting from raw CPL optimization to <strong>Cost Per Booked Inspection</strong>, the account should restore baseline performance to the $60 range while significantly increasing lead quality and down-funnel conversion rates.</p>
+    </div>
+
+    <div class="footer">
+        <span>SNA MARKETING // CONFIDENTIAL AUDIT TC_01</span>
+        <span>Page 3 / 4</span>
+    </div>
+</div>
+
+<!-- ════════════════════ PAGE 4: GEOGRAPHIC & LOCAL WASTE ════════════════════ -->
+<div class="pdf-page">
+    <div class="header">
+        <svg class="logo" viewBox="0 0 150 35" aria-label="SNA Forensic Marketing Engine"><use href="#logoSNA"/></svg>
+        <div class="line"></div>
+        <svg class="logo" viewBox="0 0 150 35" aria-label="Take Charge Roofing"><use href="#logoTC"/></svg>
+    </div>
+
+    <h2 class="sec-title">Geographic & Local Waste Audit</h2>
+    
+    <div style="background: var(--card-bg); border: 1px solid var(--border); padding: 15px; margin-bottom: 15px;">
+        <h4 style="font-size: 11px; margin-bottom: 8px; color: #FFF; text-transform: uppercase;">DMA Performance Reconciliation</h4>
+        <table class="data-table" style="margin-bottom: 0;">
+            <thead>
+                <tr>
+                    <th>Target Market (DMA)</th>
+                    <th>Spend Verified</th>
+                    <th>Leads</th>
+                    <th>CPL</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Atlanta, GA</strong></td>
+                    <td>$3,103.47</td>
+                    <td>30</td>
+                    <td>$103.45</td>
+                    <td><span class="tag-win">CORE MARKET</span></td>
+                </tr>
+                <tr>
+                    <td><strong>Greenvll-Spart-Ashevll-And (NC/SC)</strong></td>
+                    <td>$21.22</td>
+                    <td>0</td>
+                    <td>$0.00</td>
+                    <td><span class="tag-loss">LEAKAGE</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="matrix-grid">
+        <div class="matrix-card" style="grid-column: span 1;">
+            <span class="conf-badge conf-high">Validated</span>
+            <h4>Atlanta Metro = Primary Demand</h4>
+            <p>99.3% of spend lands in the Atlanta DMA, which matches where the demand actually is. Crews working statewide means anywhere in Georgia is fair game at the right job value — no in-state distance restriction is needed.</p>
+        </div>
+        <div class="matrix-card" style="grid-column: span 1;">
+            <span class="conf-badge conf-med">State-Line Leakage</span>
+            <h4>$21.22 Crossed Into NC / SC</h4>
+            <p>Advantage+ Expansion delivered a small slice across the Georgia state line. That's the only real geographic boundary worth enforcing — leads outside Georgia can't be serviced regardless of price.</p>
+        </div>
+    </div>
+
+    <h2 class="sec-title">Targeting & Lead Qualification</h2>
+    <div class="roadmap">
+        <div class="roadmap-phase" style="border-left-color: #FFF;">
+            <div class="phase-title">1. Enforce Georgia-Only Delivery</div>
+            <p style="font-size: 9.5px; color: var(--text-dim);">Set targeting to <strong>Georgia state</strong> and disable Advantage+ audience expansion so no spend crosses into NC, SC, AL, TN, or FL. Inside GA, any job at the right price is fair game — no radius needed.</p>
+        </div>
+        <div class="roadmap-phase" style="border-left-color: #FFF;">
+            <div class="phase-title">2. Qualify by Job Value, Not Distance</div>
+            <p style="font-size: 9.5px; color: var(--text-dim);">Add Lead-Form fields for <strong>roof age, ownership status, and repair vs. full replacement</strong>. Disqualify on job value (renters, mobile homes, sub-threshold repairs) — not on how far the property sits from Atlanta.</p>
+        </div>
+        <div class="roadmap-phase" style="border-left-color: #FFF;">
+            <div class="phase-title">3. Bid Harder Where Demand Is Densest</div>
+            <p style="font-size: 9.5px; color: var(--text-dim);">Keep delivery available statewide, but use bid multipliers to weight spend toward zip codes with high <strong>single-family detached homeownership</strong>. The Atlanta metro stays the primary demand cluster without excluding profitable jobs elsewhere in GA.</p>
+        </div>
+    </div>
+
+    <div class="chart-card" style="margin-top: 15px;">
+        <div class="chart-title">Where to Door-Knock This Week</div>
+        <div id="atlantaMap" style="height: 420px; width: 100%; border-radius: 4px; overflow: hidden; background: #0a0a0a; border: 1px solid #1A1A1A; position: relative;">
+            <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #525252; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 1.5px;">LOADING METRO ATLANTA MAP …</div>
+        </div>
+
+        <div style="margin-top: 12px; padding: 11px 13px; background: #050505; border: 1px solid #1A1A1A; border-left: 4px solid #F59E0B;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px;">
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 7.5px; font-weight: 800; color: #F59E0B; letter-spacing: 1.4px;">★ TOP NEIGHBORHOODS TO CANVAS THIS WEEK</div>
+                <div id="priorityZonesSource" style="font-family: 'JetBrains Mono', monospace; font-size: 7px; font-weight: 700; color: #525252; letter-spacing: 0.6px;">STORM DATA · LAST 30 DAYS</div>
+            </div>
+            <ol id="priorityZonesList" style="font-size: 10px; color: var(--text-dim); padding-left: 18px; line-height: 1.65; margin: 0;">
+                <li style="color: #525252; font-style: italic;">Loading storm-canvas ranking…</li>
+            </ol>
+        </div>
+        <div class="chart-caption">Heat shows where leads concentrated last period (Atlanta = <strong style="color:#FCD34D;">all 30 known leads</strong>). Yellow ringed dots are <strong style="color:#F59E0B;">severe hail / wind events</strong> from the last 30 days that fell inside the lead heat zone — those are this week's highest-conversion canvas neighborhoods (fresh damage × historically-converting demand). The blue dot near Greenville is the $21.22 NC/SC leak. <span style="color:#9CA3AF;font-style:italic;">Storm data attempts a live pull from the NCEI Severe Weather feed on load; it falls back to a baked snapshot when the feed isn't reachable from the browser. Tagging future leads by zip + closing the CRM loop will resolve this map to per-zip sales next month.</span></div>
+    </div>
+
+    <div class="footer">
+        <span>SNA MARKETING // CONFIDENTIAL AUDIT TC_01</span>
+        <span>Page 4 / 4</span>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+(function initAtlantaMap() {
+    if (typeof L === 'undefined') return;
+    var el = document.getElementById('atlantaMap');
+    if (!el) return;
+    el.innerHTML = '';
+    var ATL = [33.7490, -84.3880];
+    var map = L.map('atlantaMap', { zoomControl: false, attributionControl: true, scrollWheelZoom: false }).setView([33.5, -83.9], 7);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        subdomains: 'abcd', maxZoom: 18,
+        attribution: '&copy; OpenStreetMap &copy; CARTO'
+    }).addTo(map);
+
+    // Faint Georgia state outline for geographic context
+    var gaPolygon = [
+        [34.99, -85.61], [34.99, -83.10], [34.49, -83.10], [33.97, -82.78],
+        [33.51, -82.20], [32.78, -81.46], [32.04, -81.10], [31.40, -81.49],
+        [30.72, -81.50], [30.72, -84.86], [30.99, -85.00], [31.62, -85.07],
+        [32.46, -85.17], [33.13, -85.04], [34.27, -85.42], [34.99, -85.61]
+    ];
+    L.polygon(gaPolygon, {
+        color: '#3a3a44', weight: 1, dashArray: '3 3',
+        fillColor: 'transparent', fillOpacity: 0
+    }).addTo(map);
+
+    // Lead concentration at Atlanta — stacked concentric circles
+    // (single honest data point: 30 leads in the Atlanta DMA, decaying
+    // outward through metro). Reliable across browsers, no plugin.
+    [
+        { r: 55000, fill: '#F59E0B', op: 0.05 },
+        { r: 32000, fill: '#FBBF24', op: 0.09 },
+        { r: 18000, fill: '#FCD34D', op: 0.16 },
+        { r:  8000, fill: '#FDE68A', op: 0.28 }
+    ].forEach(function(ring) {
+        L.circle(ATL, {
+            radius: ring.r, color: 'transparent', weight: 0,
+            fillColor: ring.fill, fillOpacity: ring.op,
+            interactive: false
+        }).addTo(map);
+    });
+
+    // Atlanta label — pinned to the hot spot (the heat layer itself shows the intensity)
+    L.marker(ATL, { icon: L.divIcon({
+        html: '<div style="background:#0a0a0a;border:1px solid #F59E0B;color:#FCD34D;padding:2px 8px;border-radius:3px;font-family:Outfit,sans-serif;font-size:11px;font-weight:900;letter-spacing:-0.2px;white-space:nowrap">ATLANTA · 30 LEADS</div>',
+        iconSize: [140,18], iconAnchor: [70,9], className: ''
+    })}).addTo(map);
+
+    // Reference cities — kept light so the heat does the talking
+    [['Marietta',33.9526,-84.5499],['Roswell',34.0232,-84.3616],['Decatur',33.7748,-84.2963],
+     ['Newnan',33.3807,-84.7997],['Carrollton',33.5801,-85.0766],['Gainesville',34.2979,-83.8241],
+     ['Athens',33.9519,-83.3576],['Macon',32.8407,-83.6324],['Augusta',33.4735,-82.0105],
+     ['Columbus',32.4610,-84.9877],['Savannah',32.0809,-81.0912],['Rome',34.2570,-85.1647]
+    ].forEach(function(c){
+        L.marker([c[1],c[2]], { icon: L.divIcon({
+            html: '<div style="color:#9CA3AF;font-family:Plus Jakarta Sans,sans-serif;font-weight:600;font-size:9px;text-shadow:0 0 4px #000,0 0 4px #000;white-space:nowrap">'+c[0]+'</div>',
+            iconSize: [90,12], iconAnchor: [45,6], className: ''
+        })}).addTo(map);
+    });
+
+    // NC / SC leakage — the only known cold zone
+    var leak = [34.85, -82.40];
+    L.marker(leak, { icon: L.divIcon({
+        html: '<div style="width:8px;height:8px;background:#60A5FA;border:1.5px solid #fff;border-radius:50%"></div>',
+        iconSize: [8,8], iconAnchor: [4,4], className: ''
+    })}).addTo(map);
+    L.marker(leak, { icon: L.divIcon({
+        html: '<div style="background:#0a0a0a;border:1px solid #60A5FA;color:#93C5FD;padding:2px 8px;border-radius:3px;font-family:Outfit,sans-serif;font-size:10px;font-weight:900;white-space:nowrap">$21.22 SPENT · 0 LEADS · NC/SC</div>',
+        iconSize: [200,18], iconAnchor: [100,-6], className: ''
+    })}).addTo(map);
+
+    // ════════ PHASE 1: BAKED STORM DATASET (last ~30 days, GA) ════════
+    // Used as fallback / illustration when the live feed isn't reachable.
+    // Schema: [lat, lng, type ('hail'|'wind'), magnitude, date, location]
+    // hail = inches, wind = mph.
+    var bakedStorms = [
+        [33.9526, -84.5499, 'hail', 1.50, '2026-04-28', 'Marietta'],
+        [33.8400, -84.3800, 'hail', 1.00, '2026-05-02', 'Buckhead'],
+        [33.6650, -84.0200, 'hail', 1.25, '2026-04-22', 'Conyers'],
+        [33.9500, -83.9900, 'wind', 70,   '2026-05-08', 'Lawrenceville'],
+        [33.3807, -84.7997, 'hail', 0.88, '2026-04-19', 'Newnan'],
+        [33.5443, -84.2338, 'hail', 1.00, '2026-05-05', 'Stockbridge'],
+        [33.9519, -83.3576, 'wind', 65,   '2026-05-01', 'Athens'],
+        [34.0232, -84.3616, 'hail', 1.75, '2026-04-25', 'Roswell'],
+        [33.7748, -84.2963, 'wind', 60,   '2026-05-07', 'Decatur'],
+        [33.8081, -84.1702, 'hail', 0.75, '2026-04-30', 'Stone Mountain'],
+        [34.2979, -83.8241, 'hail', 2.00, '2026-04-18', 'Gainesville'],
+        [33.7048, -84.5440, 'wind', 55,   '2026-05-09', 'Douglasville'],
+        [33.9595, -84.1107, 'hail', 1.00, '2026-04-26', 'Tucker'],
+        [34.0754, -84.2941, 'hail', 1.50, '2026-05-04', 'Alpharetta'],
+        [33.5807, -84.3216, 'wind', 62,   '2026-04-23', 'Forest Park']
+    ];
+
+    var stormLayer = L.featureGroup().addTo(map);
+
+    // ════════ PHASE 3: SCORE EVENTS BY STORM × LEAD-HEAT INTERSECTION ════════
+    // heatBonus: 1.0 when at Atlanta center, 0 when ≥ 0.4° (~27 mi) away.
+    // severityScore: hail-inches × 2 OR (wind-mph − 50)/15 — normalized so a
+    // 1.5" hail event scores ≈ 3.0 and a 65 mph wind event scores ≈ 1.0.
+    function scoreEvent(e) {
+        var dist = Math.sqrt(Math.pow(e[0] - ATL[0], 2) + Math.pow(e[1] - ATL[1], 2));
+        var heatBonus = Math.max(0, (0.40 - dist) / 0.40);
+        var sev = e[2] === 'hail' ? e[3] * 2 : Math.max(0.3, (e[3] - 50) / 15);
+        return {
+            lat: e[0], lng: e[1], type: e[2], mag: e[3], date: e[4], location: e[5],
+            heatBonus: heatBonus,
+            inHeat: heatBonus > 0.3,
+            score: sev * (1 + heatBonus * 2)
+        };
+    }
+
+    function renderStormLayer(events) {
+        stormLayer.clearLayers();
+        events.forEach(function(e, i) {
+            var rank = i + 1;
+            var tip =
+                '<b>#' + rank + ' &middot; ' + e.location + '</b><br>' +
+                (e.type === 'hail' ? e.mag.toFixed(2) + '&quot; hail' : e.mag + ' mph wind') +
+                '<br>' + e.date +
+                (e.inHeat ? '<br><span style="color:#FCD34D">&#9733; high-priority canvas</span>' : '');
+
+            if (rank <= 5) {
+                // Numbered priority pin (1-5) — matches the ranked list below
+                var bg   = e.inHeat ? '#FCD34D' : '#9CA3AF';
+                var ring = e.inHeat ? '#F59E0B' : '#525252';
+                L.marker([e.lat, e.lng], {
+                    icon: L.divIcon({
+                        html: '<div style="width:26px;height:26px;background:' + bg +
+                              ';border:2.5px solid ' + ring +
+                              ';color:#0a0a0a;display:flex;align-items:center;justify-content:center;' +
+                              'font-family:Outfit,sans-serif;font-weight:900;font-size:14px;' +
+                              'border-radius:50%;line-height:1">' + rank + '</div>',
+                        iconSize: [26, 26], iconAnchor: [13, 13], className: ''
+                    })
+                }).addTo(stormLayer).bindTooltip(tip, { offset: [12, 0], direction: 'right', sticky: true });
+            } else {
+                // Lower-priority storms — small muted dot
+                L.circleMarker([e.lat, e.lng], {
+                    radius: 3, color: '#4b5563', weight: 1,
+                    fillColor: '#374151', fillOpacity: 0.55
+                }).addTo(stormLayer).bindTooltip(tip, { offset: [8, 0], direction: 'right', sticky: true });
+            }
+        });
+    }
+
+    function renderPriorityList(zones, sourceLabel) {
+        var listEl = document.getElementById('priorityZonesList');
+        var srcEl  = document.getElementById('priorityZonesSource');
+        if (!listEl) return;
+        if (!zones || !zones.length) {
+            listEl.innerHTML = '<li style="color:#525252;font-style:italic">No severe storm events found for the last 30 days.</li>';
+            return;
+        }
+        listEl.innerHTML = zones.slice(0, 5).map(function(z) {
+            var sev = z.type === 'hail'
+                ? z.mag.toFixed(2) + '" hail'
+                : z.mag + ' mph wind';
+            var heatTag = z.inHeat
+                ? '<span style="color:#FCD34D;font-family:JetBrains Mono,monospace;font-size:8px;font-weight:800;letter-spacing:0.6px;margin-left:7px">★ HIGH PRIORITY</span>'
+                : '<span style="color:#9CA3AF;font-family:JetBrains Mono,monospace;font-size:8px;font-weight:700;letter-spacing:0.6px;margin-left:7px">· lower priority</span>';
+            return '<li><strong style="color:#fff;font-weight:700">' + z.location + '</strong> ' +
+                   '<span style="color:#9CA3AF">— ' + sev + ' · ' + z.date + '</span>' + heatTag + '</li>';
+        }).join('');
+        if (srcEl && sourceLabel) srcEl.textContent = sourceLabel;
+    }
+
+    // ════════ INITIAL RENDER WITH BAKED DATA ════════
+    var scored = bakedStorms.map(scoreEvent).sort(function(a, b) { return b.score - a.score; });
+    renderStormLayer(scored);
+    renderPriorityList(scored, 'BAKED SNAPSHOT · NCEI SCHEMA');
+
+    // ════════ PHASE 2: LIVE FETCH ATTEMPT (NCEI SWDI — may fail on CORS) ════════
+    function fmtDate(d) {
+        return d.getFullYear().toString() +
+               String(d.getMonth() + 1).padStart(2, '0') +
+               String(d.getDate()).padStart(2, '0');
+    }
+    function fetchLiveStorms() {
+        var endD = new Date();
+        var startD = new Date(endD.getTime() - 30 * 24 * 60 * 60 * 1000);
+        // NCEI Severe Weather Data Inventory — Preliminary Local Storm Reports
+        var url = 'https://www.ncdc.noaa.gov/swdiws/json/plsr/' +
+                  fmtDate(startD) + ':' + fmtDate(endD) +
+                  '?bbox=-85.6,30.7,-81.0,35.0';
+        return fetch(url, { mode: 'cors' })
+            .then(function(r) { return r.ok ? r.json() : null; })
+            .then(function(data) {
+                if (!data || !data.result) return null;
+                return data.result
+                    .filter(function(r) { return r.PHENOM === 'HAIL' || r.PHENOM === 'WIND'; })
+                    .map(function(r) {
+                        return [
+                            parseFloat(r.LAT), parseFloat(r.LON),
+                            r.PHENOM === 'HAIL' ? 'hail' : 'wind',
+                            parseFloat(r.MAG) || 0,
+                            r.YYYYMMDD || '',
+                            (r.LOCATION || 'Unknown').split(',')[0]
+                        ];
+                    });
+            })
+            .catch(function() { return null; });
+    }
+    fetchLiveStorms().then(function(liveEvents) {
+        if (!liveEvents || !liveEvents.length) return;
+        var liveScored = liveEvents.map(scoreEvent).sort(function(a, b) { return b.score - a.score; });
+        renderStormLayer(liveScored);
+        renderPriorityList(liveScored, 'LIVE · NCEI SWDI (PLSR)');
+    });
+
+    // Inline legend
+    var Legend = L.Control.extend({
+        options: { position: 'bottomleft' },
+        onAdd: function() {
+            var div = L.DomUtil.create('div');
+            div.style.cssText = 'background:rgba(10,10,10,0.85);border:1px solid #1A1A1A;color:#E5E7EB;padding:8px 10px;border-radius:4px;font-family:Plus Jakarta Sans,sans-serif;font-size:9.5px;line-height:1.5;backdrop-filter:blur(4px);';
+            div.innerHTML =
+                '<div style="font-family:JetBrains Mono,monospace;font-size:8px;font-weight:800;letter-spacing:1px;color:#9CA3AF;margin-bottom:5px">LEGEND</div>' +
+                '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px"><span style="display:inline-block;width:14px;height:14px;background:radial-gradient(circle,#FDE68A 0%,#FCD34D 40%,rgba(245,158,11,0.15) 100%);border-radius:50%"></span>Where leads come from</div>' +
+                '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px"><span style="display:inline-block;width:16px;height:16px;background:#FCD34D;border:2px solid #F59E0B;border-radius:50%;font:900 10px Outfit,sans-serif;color:#0a0a0a;text-align:center;line-height:12px">1</span>Top-5 storm · high priority</div>' +
+                '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px"><span style="display:inline-block;width:16px;height:16px;background:#9CA3AF;border:2px solid #525252;border-radius:50%;font:900 10px Outfit,sans-serif;color:#0a0a0a;text-align:center;line-height:12px">4</span>Top-5 storm · lower priority</div>' +
+                '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px"><span style="display:inline-block;width:6px;height:6px;background:#374151;border:1px solid #4b5563;border-radius:50%;margin:0 5px"></span>Other recent storm</div>' +
+                '<div style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:10px;height:10px;background:#60A5FA;border-radius:50%;border:1px solid #fff"></span>Spent money, got no leads</div>';
+            return div;
+        }
+    });
+    map.addControl(new Legend());
+})();
+
+(function() {
+    var pageWidthPx = 210 * 3.7795275591; // 210mm → CSS px
+    function fitToViewport() {
+        var available = window.innerWidth;
+        var pad = available < 480 ? 0 : 16;
+        var scale = Math.min(1, (available - pad) / pageWidthPx);
+        document.documentElement.style.setProperty('--page-zoom', scale);
+    }
+    fitToViewport();
+    window.addEventListener('resize', fitToViewport);
+    window.addEventListener('load', fitToViewport);
+})();
+</script>
+</body>
+</html>

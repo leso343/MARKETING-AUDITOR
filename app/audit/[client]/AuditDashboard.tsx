@@ -89,7 +89,7 @@ export default function AuditDashboard({
             </h1>
             <div className="flex items-center gap-3">
               <a
-                href="/Interactive_Forensic_Audit.html"
+                href="/campaign_report.html"
                 target="_blank"
                 rel="noopener"
                 className="flex items-center gap-2 border border-[var(--red-dim)] bg-[rgba(255,0,0,0.05)] px-3 py-1.5 font-mono text-[9px] uppercase tracking-wider text-[var(--red)] transition-colors hover:bg-[rgba(255,0,0,0.1)]"
