@@ -1,21 +1,33 @@
 {
   "name": "sna-marketing-auditor",
-  "version": "1.0.0",
-  "description": "SNA Forensic Marketing Auditor: ingests Meta Ads Manager CSV exports and emits a dynamic HTML audit dashboard.",
+  "version": "2.0.0",
+  "description": "SNA Forensic Marketing Auditor — Next.js live shell with dynamic audit engine.",
   "private": true,
   "scripts": {
-    "build": "tsc -p . && node ./engine/scripts/postbuild.js",
-    "audit": "node dist/engine/index.js",
-    "clean": "rm -rf dist",
-    "postbuild": "node ./engine/scripts/postbuild.js"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "audit": "tsc -p tsconfig.engine.json && node ./dist/engine/index.js",
+    "engine:test": "tsc -p tsconfig.engine.json && node ./dist/engine/index.js --csv-dir ./public/csvs/take-charge-roofing --client \"Take Charge Roofing\" --output ./reports/take-charge-roofing.html",
+    "clean": "rm -rf .next dist"
   },
   "dependencies": {
     "commander": "^12.1.0",
-    "papaparse": "^5.4.1"
+    "lucide-react": "^0.460.0",
+    "next": "15.0.3",
+    "papaparse": "^5.4.1",
+    "react": "19.0.0-rc-66855b96-20241106",
+    "react-dom": "19.0.0-rc-66855b96-20241106",
+    "recharts": "^2.13.3"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.0.0-beta.4",
     "@types/node": "^20.12.7",
     "@types/papaparse": "^5.3.14",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "tailwindcss": "^4.0.0-beta.4",
     "typescript": "^5.4.5"
   }
 }

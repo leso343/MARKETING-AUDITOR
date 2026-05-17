@@ -1,0 +1,206 @@
+@import "tailwindcss";
+
+/* ───────────────────────────────────────────────────────────────────────
+   SNA FORENSIC — design tokens (ported from engine/report/template.html)
+   ──────────────────────────────────────────────────────────────────── */
+@theme {
+  --color-bg: #030303;
+  --color-sidebar: #060606;
+  --color-card: #0a0a0a;
+  --color-red: #ff0000;
+  --color-red-dim: rgba(255, 0, 0, 0.1);
+  --color-border: #151515;
+  --color-text: #ffffff;
+  --color-text-dim: #666666;
+
+  --font-main: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-head: "Space Grotesk", "Outfit", ui-sans-serif, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
+}
+
+:root {
+  --bg: #030303;
+  --sidebar: #060606;
+  --card: #0a0a0a;
+  --red: #ff0000;
+  --red-dim: rgba(255, 0, 0, 0.1);
+  --border: #151515;
+  --text: #ffffff;
+  --text-dim: #666666;
+  --font-main: "Inter", sans-serif;
+  --font-head: "Space Grotesk", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
+
+* { box-sizing: border-box; scroll-behavior: smooth; }
+
+html, body { background: var(--bg); color: var(--text); }
+body {
+  font-family: var(--font-main);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── reusable panel shell (glass card) ─── */
+.panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 30px;
+  position: relative;
+}
+
+.panel-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.panel-label::before { content: ">"; color: var(--red); }
+
+/* ─── headline numbers ─── */
+.stat-val { font-size: 2.5rem; font-weight: 900; letter-spacing: -1.5px; line-height: 1; }
+.stat-desc { font-size: 11px; color: var(--text-dim); text-transform: uppercase; font-weight: 700; letter-spacing: 1px; }
+
+/* ─── status pills ─── */
+.status-pill {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  padding: 3px 8px;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  display: inline-flex;
+  align-items: center;
+}
+.status-ok       { color: #4ade80; }
+.status-warn     { color: #fbbf24; }
+.status-critical { color: var(--red); }
+
+/* ─── pulse dot (header) ─── */
+.pulse {
+  width: 6px; height: 6px;
+  background: var(--red); border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+/* ─── insight box (red left border) ─── */
+.insight-box {
+  margin-top: 20px;
+  padding: 15px;
+  background: #000;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--red);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-dim);
+}
+.insight-box b { color: #fff; }
+
+/* ─── funnel ─── */
+.funnel-stage {
+  border: 1px solid var(--border);
+  margin-bottom: 10px;
+  padding: 15px;
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.3s;
+  overflow: hidden;
+}
+.funnel-stage:hover { background: rgba(255,255,255,0.02); border-color: #333; }
+.funnel-fill {
+  position: absolute; left: 0; top: 0;
+  height: 100%; background: var(--red-dim);
+  z-index: 1; transition: width 0.8s ease-out;
+}
+.funnel-content {
+  position: relative; z-index: 2;
+  display: flex; justify-content: space-between;
+  width: 100%; align-items: center;
+}
+.stage-label { font-size: 12px; font-weight: 800; font-family: var(--font-mono); }
+.stage-val { font-family: var(--font-mono); font-size: 13px; color: #fff; }
+
+/* ─── data tables ─── */
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th {
+  text-align: left;
+  padding: 12px;
+  font-size: 9px;
+  color: var(--text-dim);
+  border-bottom: 1px solid var(--border);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+.data-table td {
+  padding: 15px 12px;
+  font-size: 13px;
+  border-bottom: 1px solid #111;
+}
+
+/* ─── waste meter (tracking panel) ─── */
+.waste-meter {
+  height: 4px; width: 100%;
+  background: #111; border-radius: 10px;
+  margin: 15px 0; overflow: hidden;
+}
+.waste-fill {
+  height: 100%; background: var(--red);
+  transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ─── range slider (sidebar controls) ─── */
+.range-input {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 2px;
+  background: #1f1f1f;
+  border-radius: 2px;
+  outline: none;
+}
+.range-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--red);
+  cursor: pointer;
+  border: 2px solid #000;
+  box-shadow: 0 0 8px rgba(255,0,0,0.5);
+}
+.range-input::-moz-range-thumb {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--red);
+  cursor: pointer;
+  border: 2px solid #000;
+}
+
+/* ─── selects ─── */
+.dark-select {
+  width: 100%;
+  background: #060606;
+  color: #fff;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 8px 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  outline: none;
+  cursor: pointer;
+}
+.dark-select:hover { border-color: #333; }
+.dark-select:focus { border-color: var(--red); }

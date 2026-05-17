@@ -1,0 +1,70 @@
+{
+  "$schema": "https://sna-forensic.local/schemas/benchmarks.v1.json",
+  "$comment": "Industry CPL / CTR / frequency benchmarks. Populate from research output if available. These defaults are conservative US-market estimates for home-service verticals.",
+  "default": {
+    "label": "Default (Home Services)",
+    "targetCpl": 55,
+    "targetCtr": 1.5,
+    "healthyFrequencyMax": 2.5,
+    "fatigueFrequency": 4.0,
+    "minSessionToLeadPct": 5,
+    "minClickToSessionPct": 50
+  },
+  "industries": {
+    "roofing": {
+      "label": "Roofing",
+      "targetCpl": 65,
+      "targetCtr": 1.8,
+      "healthyFrequencyMax": 2.5,
+      "fatigueFrequency": 4.0,
+      "minSessionToLeadPct": 4,
+      "minClickToSessionPct": 50,
+      "notes": "Roofing has higher intent + larger ticket → CPLs in $40-$90 are realistic. Storm seasons compress CPL temporarily."
+    },
+    "auto-detailing": {
+      "label": "Auto Detailing",
+      "targetCpl": 25,
+      "targetCtr": 2.2,
+      "healthyFrequencyMax": 2.5,
+      "fatigueFrequency": 4.0,
+      "minSessionToLeadPct": 6,
+      "minClickToSessionPct": 55
+    },
+    "flooring": {
+      "label": "Flooring",
+      "targetCpl": 70,
+      "targetCtr": 1.4,
+      "healthyFrequencyMax": 2.5,
+      "fatigueFrequency": 4.0,
+      "minSessionToLeadPct": 4,
+      "minClickToSessionPct": 50
+    },
+    "dental": {
+      "label": "Dental",
+      "targetCpl": 90,
+      "targetCtr": 1.0,
+      "healthyFrequencyMax": 2.5,
+      "fatigueFrequency": 4.0,
+      "minSessionToLeadPct": 3,
+      "minClickToSessionPct": 55
+    },
+    "hvac": {
+      "label": "HVAC",
+      "targetCpl": 60,
+      "targetCtr": 1.6,
+      "healthyFrequencyMax": 2.5,
+      "fatigueFrequency": 4.0,
+      "minSessionToLeadPct": 4,
+      "minClickToSessionPct": 50
+    },
+    "gutter": {
+      "label": "Gutters / Exterior",
+      "targetCpl": 60,
+      "targetCtr": 1.5,
+      "healthyFrequencyMax": 2.5,
+      "fatigueFrequency": 4.0,
+      "minSessionToLeadPct": 4,
+      "minClickToSessionPct": 50
+    }
+  }
+}
