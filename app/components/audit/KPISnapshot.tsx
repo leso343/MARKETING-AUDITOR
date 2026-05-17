@@ -63,41 +63,42 @@ export default function KPISnapshot({ kpis }: Props) {
   const { t, plain } = useLang();
 
   return (
-    <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
-      {kpis.map((k) => {
-        const displayLabel = plain
-          ? (PLAIN_DISPLAY[k.label] ?? k.label.replace(/_/g, " "))
-          : (PRO_DISPLAY[k.label] ?? k.label);
-        const displayUnit = plain ? (PLAIN_UNIT[k.unit] ?? k.unit) : k.unit;
-        const displayBenchmark = plain ? translateBenchmark(k.benchmark) : k.benchmark;
+    <div className="overflow-x-auto pb-1">
+      <div className="flex gap-4" style={{ minWidth: "max-content" }}>
+        {kpis.map((k) => {
+          const displayLabel = plain
+            ? (PLAIN_DISPLAY[k.label] ?? k.label.replace(/_/g, " "))
+            : (PRO_DISPLAY[k.label] ?? k.label);
+          const displayUnit = plain ? (PLAIN_UNIT[k.unit] ?? k.unit) : k.unit;
+          const displayBenchmark = plain ? translateBenchmark(k.benchmark) : k.benchmark;
 
-        return (
-          <div
-            key={k.label}
-            className="relative border border-[var(--border)] bg-[var(--card)] p-5"
-            title={k.label}
-          >
-            <div className="mb-3 flex items-center justify-between gap-1">
-              <div className="overflow-hidden font-mono text-[9px] uppercase tracking-[2px] text-[var(--text-dim)]"
-                style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
-              >
-                {displayLabel}
+          return (
+            <div
+              key={k.label}
+              className="relative border border-[var(--border)] bg-[var(--card)] p-5 flex-shrink-0"
+              style={{ width: "clamp(148px, 13vw, 200px)" }}
+              title={k.label}
+            >
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <div className="font-mono text-[9px] uppercase tracking-[2px] text-[var(--text-dim)] leading-tight">
+                  {displayLabel}
+                </div>
+                <div
+                  className="h-2 w-2 flex-shrink-0 rounded-full"
+                  style={{ background: STATUS_DOT[k.status] ?? "#666" }}
+                />
               </div>
-              <div
-                className="h-2 w-2 flex-shrink-0 rounded-full"
-                style={{ background: STATUS_DOT[k.status] ?? "#666" }}
-              />
+              <div className="stat-val">{k.value}</div>
+              <div className="mt-2 text-[10px] uppercase tracking-wider text-[var(--text-dim)] leading-snug">
+                {displayUnit}
+              </div>
+              <div className="mt-3 border-t border-[var(--border)] pt-2 font-mono text-[9px] text-[var(--text-dim)] leading-snug">
+                {displayBenchmark}
+              </div>
             </div>
-            <div className="stat-val">{k.value}</div>
-            <div className="mt-2 text-[10px] uppercase tracking-wider text-[var(--text-dim)]">
-              {displayUnit}
-            </div>
-            <div className="mt-3 border-t border-[var(--border)] pt-2 font-mono text-[9px] text-[var(--text-dim)]">
-              {displayBenchmark}
-            </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 }

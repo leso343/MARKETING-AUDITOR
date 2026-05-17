@@ -25,7 +25,7 @@ export default function FunnelLeakageChart({ funnel }: Props) {
   const maxCount = Math.max(...funnel.stages.map((s) => s.count), 1);
 
   return (
-    <div className="panel h-full">
+    <div className="panel">
       <div className="panel-label">
         {t("Funnel_Integrity_Diagnostic", "Customer Drop-Off Analysis")}
       </div>
@@ -72,13 +72,19 @@ export default function FunnelLeakageChart({ funnel }: Props) {
               </div>
               <div className="flex flex-col items-end gap-1">
                 <div className="stage-val">{stage.count.toLocaleString()}</div>
-                <div
-                  className="font-mono text-[10px]"
-                  style={{ color: STATUS_COLOR[stage.status] }}
-                >
-                  {stage.retentionPct}%{" "}
-                  {t("retained", "kept")}
-                </div>
+                {idx === 0 ? (
+                  <div className="font-mono text-[10px] text-[var(--text-dim)]">
+                    {t("— baseline", "— starting point")}
+                  </div>
+                ) : (
+                  <div
+                    className="font-mono text-[10px]"
+                    style={{ color: STATUS_COLOR[stage.status] }}
+                  >
+                    {stage.retentionPct}%{" "}
+                    {t("retained", "kept")}
+                  </div>
+                )}
               </div>
             </div>
           </div>

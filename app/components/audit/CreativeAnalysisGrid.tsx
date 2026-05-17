@@ -12,7 +12,7 @@ export default function CreativeAnalysisGrid({ creative }: Props) {
   const { t } = useLang();
 
   return (
-    <div className="panel h-full">
+    <div className="panel">
       <div className="panel-label">
         {t("Creative_Performance_Drill", "Best vs. Worst Ads")}
       </div>

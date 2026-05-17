@@ -32,7 +32,7 @@ export default function GeographicHeatmap({ geo }: Props) {
   const maxSpend = Math.max(...geo.regions.map((r) => r.spend), 1);
 
   return (
-    <div className="panel h-full">
+    <div className="panel">
       <div className="panel-label">
         {t("Geographic_Leakage_Audit", "Spending by Location")}
       </div>
@@ -53,7 +53,8 @@ export default function GeographicHeatmap({ geo }: Props) {
         />
       </div>
 
-      <table className="data-table">
+      <div className="overflow-x-auto">
+      <table className="data-table w-full">
         <thead>
           <tr>
             <th>{t("Region", "Location")}</th>
@@ -112,6 +113,7 @@ export default function GeographicHeatmap({ geo }: Props) {
           })}
         </tbody>
       </table>
+      </div>
 
       <div className="insight-box">
         <b>{t("RECOMMENDATION:", "SUGGESTED ACTION:")}</b> {geo.recommendation}

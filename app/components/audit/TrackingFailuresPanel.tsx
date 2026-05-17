@@ -22,7 +22,7 @@ export default function TrackingFailuresPanel({ tracking }: Props) {
       : 0;
 
   return (
-    <div className="panel h-full">
+    <div className="panel">
       <div className="panel-label">
         {t("Sentinel_Tracking_Audit", "Ad Tracking Health")}
       </div>
