@@ -114,7 +114,7 @@ export default function AuditRibbon({ audit }: Props) {
 
   return (
     <div
-      className="flex items-center gap-2 overflow-x-auto px-10 py-2"
+      className="flex items-center gap-2 overflow-x-auto px-4 py-2 sm:px-10"
       style={{
         background: "#070707",
         borderBottom: "1px solid var(--border)",

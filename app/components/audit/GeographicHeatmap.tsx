@@ -39,7 +39,7 @@ export default function GeographicHeatmap({ geo }: Props) {
         {t("Geographic_Leakage_Audit", "Spending by Location")}
       </div>
 
-      <div className="mb-5 grid grid-cols-3 gap-3">
+      <div className="mb-5 grid grid-cols-3 gap-2 sm:gap-3">
         <Mini
           label={t("Zones_Mapped", "Areas")}
           value={String(geo.zonesMapped)}
@@ -55,7 +55,8 @@ export default function GeographicHeatmap({ geo }: Props) {
         />
       </div>
 
-      <table className="data-table w-full" style={{ tableLayout: "fixed" }}>
+      <div className="overflow-x-auto">
+      <table className="data-table w-full" style={{ tableLayout: "fixed", minWidth: "420px" }}>
         <colgroup>
           <col style={{ width: "30%" }} />
           <col style={{ width: "22%" }} />
@@ -133,6 +134,7 @@ export default function GeographicHeatmap({ geo }: Props) {
           })}
         </tbody>
       </table>
+      </div>
 
       <div className="insight-box">
         <b>{t("RECOMMENDATION:", "SUGGESTED ACTION:")}</b> {geo.recommendation}

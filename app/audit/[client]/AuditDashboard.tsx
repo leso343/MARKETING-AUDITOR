@@ -90,23 +90,23 @@ export default function AuditDashboard({
             pdfPath={pdfPath}
           />
 
-          {/* Center column */}
-          <main className="flex-1 overflow-y-auto">
+          {/* Center column — pt-[52px] offsets the fixed mobile nav bar */}
+          <main className="flex-1 overflow-y-auto pt-[52px] lg:pt-0">
             {/* Sticky header */}
             <header
-              className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-[var(--border)] px-10 py-6 backdrop-blur-xl"
+              className="sticky top-0 z-30 flex flex-col gap-2 border-b border-[var(--border)] px-4 py-3 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-10 sm:py-6"
               style={{ background: "rgba(3,3,3,0.9)" }}
             >
               <h1
-                className="text-lg font-bold tracking-tight"
+                className="truncate text-sm font-bold tracking-tight sm:text-lg"
                 style={{ fontFamily: "var(--font-head)" }}
               >
                 FORENSIC AUDIT: {audit.clientName.toUpperCase()}
               </h1>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2">
                 <ReportOpenButton />
                 <HeaderLangToggle />
-                <div className="flex items-center gap-3 border border-[var(--red-dim)] bg-[rgba(255,0,0,0.05)] px-3 py-1.5 font-mono text-[9px] uppercase tracking-wider text-[var(--red)]">
+                <div className="flex items-center gap-2 border border-[var(--red-dim)] bg-[rgba(255,0,0,0.05)] px-2 py-1.5 font-mono text-[9px] uppercase tracking-wider text-[var(--red)] sm:gap-3 sm:px-3">
                   <div className="pulse" />
                   {isPending ? "Recomputing…" : "Engine: Live"}
                 </div>
@@ -116,7 +116,7 @@ export default function AuditDashboard({
             {/* Fact ribbon (below sticky header, not sticky itself) */}
             <AuditRibbon audit={audit} />
 
-            <div className="grid grid-cols-12 gap-5 p-10">
+            <div className="grid grid-cols-12 gap-4 p-4 sm:gap-5 sm:p-6 lg:p-10">
               {/* Executive summary */}
               <section id="overview" className="col-span-12">
                 <ExecutiveSummary audit={audit} />

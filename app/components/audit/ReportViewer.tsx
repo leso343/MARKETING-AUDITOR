@@ -104,26 +104,27 @@ export default function ReportViewer({ open, page, onClose }: Props) {
     >
       {/* Top nav bar */}
       <nav
-        className="flex shrink-0 items-center gap-2 border-b border-[var(--border)] px-4 py-2"
-        style={{ background: "rgba(6,6,6,0.98)", backdropFilter: "blur(8px)" }}
+        className="flex shrink-0 items-center gap-2 overflow-x-auto border-b border-[var(--border)] px-2 py-2 sm:px-4"
+        style={{ background: "rgba(6,6,6,0.98)", backdropFilter: "blur(8px)", scrollbarWidth: "none" }}
       >
         {/* Back button */}
         <button
           onClick={onClose}
-          className="flex items-center gap-1.5 border border-[var(--border)] px-3 py-1.5 font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)] transition-colors hover:border-[var(--red)] hover:text-white"
+          className="flex shrink-0 items-center gap-1.5 border border-[var(--border)] px-2 py-1.5 font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)] transition-colors hover:border-[var(--red)] hover:text-white sm:px-3"
         >
           <ChevronLeft className="h-3 w-3" />
-          {t("← Back to Dashboard", "← Back to Dashboard")}
+          <span className="hidden sm:inline">{t("← Back to Dashboard", "← Back to Dashboard")}</span>
+          <span className="sm:hidden">Back</span>
         </button>
 
-        <div className="mx-2 h-4 w-px bg-[var(--border)]" />
+        <div className="mx-1 h-4 w-px shrink-0 bg-[var(--border)] sm:mx-2" />
 
         {/* Page tabs */}
         {PAGE_TABS.map((tab) => (
           <button
             key={tab.page}
             onClick={() => scrollToPage(tab.page)}
-            className="border px-3 py-1.5 font-mono text-[9px] uppercase tracking-wider transition-colors"
+            className="shrink-0 border px-2 py-1.5 font-mono text-[9px] uppercase tracking-wider transition-colors sm:px-3"
             style={{
               borderColor: activePage === tab.page ? "var(--red)" : "var(--border)",
               color: activePage === tab.page ? "var(--red)" : "var(--text-dim)",
@@ -135,7 +136,7 @@ export default function ReportViewer({ open, page, onClose }: Props) {
           </button>
         ))}
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
           {/* Print */}
           <button
             onClick={() => {
@@ -145,28 +146,28 @@ export default function ReportViewer({ open, page, onClose }: Props) {
                 window.print();
               }
             }}
-            className="flex items-center gap-1.5 border border-[var(--border)] px-3 py-1.5 font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)] transition-colors hover:border-[var(--red)] hover:text-white"
+            className="flex items-center gap-1.5 border border-[var(--border)] px-2 py-1.5 font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)] transition-colors hover:border-[var(--red)] hover:text-white sm:px-3"
             title="Print Report"
           >
             <Printer className="h-3 w-3" />
-            {t("Print", "Print")}
+            <span className="hidden sm:inline">{t("Print", "Print")}</span>
           </button>
 
           {/* PDF download */}
           <a
             href="/SNA_Marketing_TakeCharge_Audit.pdf"
             download
-            className="flex items-center gap-1.5 border border-[var(--border)] px-3 py-1.5 font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)] transition-colors hover:border-[var(--red)] hover:text-white"
+            className="flex items-center gap-1.5 border border-[var(--border)] px-2 py-1.5 font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)] transition-colors hover:border-[var(--red)] hover:text-white sm:px-3"
             title="Download PDF"
           >
             <Download className="h-3 w-3" />
-            {t("PDF", "PDF")}
+            <span className="hidden sm:inline">{t("PDF", "PDF")}</span>
           </a>
 
           {/* Close */}
           <button
             onClick={onClose}
-            className="flex items-center gap-1.5 border border-[var(--red-dim)] bg-[rgba(255,0,0,0.05)] px-3 py-1.5 font-mono text-[9px] uppercase tracking-wider text-[var(--red)] transition-colors hover:bg-[rgba(255,0,0,0.12)]"
+            className="flex items-center gap-1.5 border border-[var(--red-dim)] bg-[rgba(255,0,0,0.05)] px-2 py-1.5 font-mono text-[9px] uppercase tracking-wider text-[var(--red)] transition-colors hover:bg-[rgba(255,0,0,0.12)] sm:px-3"
             title="Close"
           >
             <X className="h-3 w-3" />

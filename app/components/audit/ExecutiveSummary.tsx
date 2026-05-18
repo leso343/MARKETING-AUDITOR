@@ -72,7 +72,7 @@ export default function ExecutiveSummary({ audit }: Props) {
 
   return (
     <div className="panel">
-      <div className="mb-7 flex items-end justify-between">
+      <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="panel-label" style={{ marginBottom: 8 }}>
             {t("Executive_Summary", "Top Findings")}
@@ -90,7 +90,7 @@ export default function ExecutiveSummary({ audit }: Props) {
             )}
           </p>
         </div>
-        <div className="text-right">
+        <div className="sm:text-right">
           <div className="font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)]">
             {t("Total Recoverable", "Money at Risk")}
           </div>

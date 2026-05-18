@@ -65,7 +65,8 @@ export default function DemographicsPanel({ demographics }: Props) {
           )}
         </div>
       ) : (
-        <table className="data-table">
+        <div className="overflow-x-auto">
+        <table className="data-table" style={{ minWidth: "380px" }}>
           <thead>
             <tr>
               <th>{t("Age", "Age Group")}</th>
@@ -114,6 +115,7 @@ export default function DemographicsPanel({ demographics }: Props) {
             })}
           </tbody>
         </table>
+        </div>
       )}
 
       {best.cpl > 0 && (

@@ -131,7 +131,7 @@ export default function RecommendationCards({ audit }: Props) {
   return (
     <div className="panel">
       <div className="panel-label">{t("30_Day_Fix_Queue", "Action Plan")}</div>
-      <div className="mb-5 flex items-end justify-between">
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h2
             className="text-2xl font-bold tracking-tight"

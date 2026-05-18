@@ -10,9 +10,9 @@ import { Activity, Building2, Plus } from "lucide-react";
 
 export default function Home() {
   return (
-    <main className="min-h-screen p-12 lg:p-16">
+    <main className="min-h-screen p-5 sm:p-8 lg:p-16">
       {/* header */}
-      <div className="mb-14 flex items-end justify-between">
+      <div className="mb-10 flex flex-col gap-4 sm:mb-14 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="mb-3 font-mono text-[10px] uppercase tracking-[3px] text-[var(--text-dim)]">
             &gt; SNA_Forensic / Active_Audits

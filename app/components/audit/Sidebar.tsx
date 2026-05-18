@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import {
   Activity,
@@ -10,8 +11,10 @@ import {
   ExternalLink,
   FileBarChart,
   MapPinned,
+  Menu,
   PieChart,
   Users,
+  X,
 } from "lucide-react";
 import { useLang } from "@/context/LangContext";
 
@@ -23,6 +26,7 @@ interface Props {
 
 export default function Sidebar({ clientName, primaryLeak, pdfPath }: Props) {
   const { t } = useLang();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const navGroups = [
     {
@@ -49,14 +53,12 @@ export default function Sidebar({ clientName, primaryLeak, pdfPath }: Props) {
     },
   ];
 
-  return (
-    <aside
-      className="hidden w-[260px] flex-shrink-0 flex-col border-r border-[var(--border)] bg-[var(--sidebar)] px-6 py-9 lg:flex"
-      style={{ minHeight: "100vh", position: "sticky", top: 0, height: "100vh" }}
-    >
+  const navContent = (
+    <>
       <Link
         href="/"
         className="mb-10 flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-[var(--text-dim)] transition-colors hover:text-white"
+        onClick={() => setMobileOpen(false)}
       >
         <ChevronLeft className="h-3 w-3" />
         {t("All clients", "All clients")}
@@ -80,6 +82,7 @@ export default function Sidebar({ clientName, primaryLeak, pdfPath }: Props) {
               <a
                 key={item.href}
                 href={item.href}
+                onClick={() => setMobileOpen(false)}
                 className="mb-1 flex items-center gap-3 rounded px-3 py-2.5 text-[13px] font-medium text-[var(--text-dim)] transition-colors hover:bg-white/[0.03] hover:text-white"
               >
                 <Icon className="h-3.5 w-3.5" />
@@ -124,6 +127,56 @@ export default function Sidebar({ clientName, primaryLeak, pdfPath }: Props) {
           </a>
         )}
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile top bar — visible below lg */}
+      <div
+        className="fixed left-0 right-0 top-0 z-40 flex items-center justify-between border-b border-[var(--border)] px-4 py-3 lg:hidden"
+        style={{ background: "rgba(6,6,6,0.97)", backdropFilter: "blur(8px)" }}
+      >
+        <div
+          className="text-sm font-extrabold uppercase tracking-tight text-[var(--red)]"
+          style={{ fontFamily: "var(--font-head)" }}
+        >
+          {t("SNA_FORENSIC", "SNA Forensic")}
+        </div>
+        <button
+          onClick={() => setMobileOpen((v) => !v)}
+          className="flex items-center gap-1.5 border border-[var(--border)] px-2 py-1.5 font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)] transition-colors hover:text-white"
+          aria-label="Toggle navigation"
+        >
+          {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+        </button>
+      </div>
+
+      {/* Mobile drawer */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-30 flex lg:hidden"
+          onClick={() => setMobileOpen(false)}
+        >
+          <div
+            className="flex w-72 flex-col overflow-y-auto border-r border-[var(--border)] bg-[var(--sidebar)] px-6 pb-9 pt-20"
+            style={{ minHeight: "100vh" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {navContent}
+          </div>
+          {/* backdrop */}
+          <div className="flex-1 bg-black/60" />
+        </div>
+      )}
+
+      {/* Desktop sidebar — hidden on mobile */}
+      <aside
+        className="hidden w-[260px] flex-shrink-0 flex-col border-r border-[var(--border)] bg-[var(--sidebar)] px-6 py-9 lg:flex"
+        style={{ minHeight: "100vh", position: "sticky", top: 0, height: "100vh" }}
+      >
+        {navContent}
+      </aside>
+    </>
   );
 }
