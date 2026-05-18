@@ -3,9 +3,20 @@
 import type { DemographicsResult } from "@/engine/analyses/demographics";
 import { useLang } from "@/context/LangContext";
 import { useReport } from "@/context/ReportContext";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ReferenceLine,
+  ResponsiveContainer,
+} from "recharts";
 
 interface Props {
   demographics: DemographicsResult;
+  targetCpl?: number;
 }
 
 const OUTCOME_COLOR: Record<string, string> = {
@@ -29,7 +40,30 @@ const OUTCOME_LABEL_PLAIN: Record<string, string> = {
   NO_DATA: "—",
 };
 
-export default function DemographicsPanel({ demographics }: Props) {
+const BRACKET_ORDER = ["25-34", "35-44", "45-54", "55-64", "65+"];
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function CplTooltip({ active, payload }: any) {
+  if (!active || !payload?.length) return null;
+  const d = payload[0].payload;
+  return (
+    <div
+      style={{
+        background: "#111",
+        border: "1px solid #333",
+        padding: "6px 10px",
+        fontFamily: "monospace",
+        fontSize: 11,
+        color: "#fff",
+      }}
+    >
+      <div style={{ color: "#888", marginBottom: 2 }}>Age {d.bracket}</div>
+      <div>${d.cpl.toFixed(2)} / lead</div>
+    </div>
+  );
+}
+
+export default function DemographicsPanel({ demographics, targetCpl }: Props) {
   const { t, plain } = useLang();
   const { openReport } = useReport();
 
@@ -38,6 +72,13 @@ export default function DemographicsPanel({ demographics }: Props) {
     (a, b) => (b.outcome === "SCALABLE" && b.cpl > 0 && (a.cpl === 0 || b.cpl < a.cpl) ? b : a),
     { bracket: "—", cpl: 0 } as (typeof demographics.brackets)[0],
   );
+
+  const chartData = demographics.brackets
+    .filter((b) => b.cpl > 0)
+    .sort(
+      (a, b) =>
+        BRACKET_ORDER.indexOf(a.bracket) - BRACKET_ORDER.indexOf(b.bracket),
+    );
 
   return (
     <div className="panel h-full">
@@ -56,6 +97,64 @@ export default function DemographicsPanel({ demographics }: Props) {
           "How much you're spending on each age group and what each lead costs.",
         )}
       </p>
+
+      {chartData.length > 0 && (
+        <div className="mb-5">
+          <div
+            className="mb-1 text-right font-mono"
+            style={{ fontSize: 9, color: "var(--red-dim, #7f1d1d)", letterSpacing: "0.1em", textTransform: "uppercase" }}
+          >
+            CPL CURVE
+          </div>
+          <ResponsiveContainer width="100%" height={180}>
+            <AreaChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id="cplGradient" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stopColor="#4ade80" />
+                  <stop offset="50%" stopColor="#fbbf24" />
+                  <stop offset="100%" stopColor="#ff0000" />
+                </linearGradient>
+                <linearGradient id="cplFill" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stopColor="#4ade80" stopOpacity={0.15} />
+                  <stop offset="50%" stopColor="#fbbf24" stopOpacity={0.08} />
+                  <stop offset="100%" stopColor="#ff0000" stopOpacity={0.15} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid vertical={false} stroke="#1a1a1a" />
+              <XAxis
+                dataKey="bracket"
+                tick={{ fill: "#666", fontSize: 10, fontFamily: "monospace" }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis
+                tickFormatter={(v) => "$" + v}
+                tick={{ fill: "#666", fontSize: 10, fontFamily: "monospace" }}
+                axisLine={false}
+                tickLine={false}
+                width={40}
+              />
+              <Tooltip content={<CplTooltip />} />
+              {targetCpl != null && (
+                <ReferenceLine
+                  y={targetCpl}
+                  stroke="#fbbf24"
+                  strokeDasharray="4 4"
+                  label={{ value: "Target", position: "insideRight", fill: "#fbbf24", fontSize: 9, fontFamily: "monospace" }}
+                />
+              )}
+              <Area
+                type="monotone"
+                dataKey="cpl"
+                stroke="url(#cplGradient)"
+                strokeWidth={2}
+                fill="url(#cplFill)"
+                dot={false}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      )}
 
       {activeBrackets.length === 0 ? (
         <div className="border border-[var(--border)] p-4 text-xs text-[var(--text-dim)]">

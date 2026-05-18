@@ -155,7 +155,7 @@ export default function AuditDashboard({
               {/* Demographics (age/gender CPL breakdown) */}
               {audit.demographics.brackets.some((b) => b.spend > 0) && (
                 <section id="demographics" className="col-span-12">
-                  <DemographicsPanel demographics={audit.demographics} />
+                  <DemographicsPanel demographics={audit.demographics} targetCpl={audit.benchmarks.targetCpl} />
                 </section>
               )}
 
