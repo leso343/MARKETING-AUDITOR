@@ -68,7 +68,7 @@ function Chip({ label, value, status, anchor }: ChipProps) {
 
 function Divider() {
   return (
-    <span className="shrink-0 font-mono text-[10px] text-[#333]" aria-hidden>
+    <span className="shrink-0 font-mono text-[10px] text-[#555]" aria-hidden>
       |
     </span>
   );

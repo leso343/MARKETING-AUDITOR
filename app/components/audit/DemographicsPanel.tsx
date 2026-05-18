@@ -12,7 +12,7 @@ const OUTCOME_COLOR: Record<string, string> = {
   SCALABLE: "#4ade80",
   MIXED: "#fbbf24",
   REDUCE: "#ff0000",
-  NO_DATA: "#333",
+  NO_DATA: "#666",
 };
 
 const OUTCOME_LABEL_PRO: Record<string, string> = {

@@ -104,7 +104,7 @@ function AdCard({ ad, tone }: { ad: AdScore; tone: "ok" | "critical" }) {
 function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-[8px] uppercase tracking-wider text-[#444]">{label}</div>
+      <div className="text-[8px] uppercase tracking-wider text-[#888]">{label}</div>
       <div className="font-bold text-white">{value}</div>
     </div>
   );

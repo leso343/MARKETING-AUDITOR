@@ -71,7 +71,7 @@ export default function Sidebar({ clientName, primaryLeak, pdfPath }: Props) {
 
       {navGroups.map((g) => (
         <div key={g.label} className="mb-7">
-          <div className="mb-4 font-mono text-[9px] uppercase tracking-[2px] text-[#333]">
+          <div className="mb-4 font-mono text-[9px] uppercase tracking-[2px] text-[#666]">
             {g.label}
           </div>
           {g.items.map((item) => {

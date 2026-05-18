@@ -128,7 +128,7 @@ function Mini({
   const color = tone === "ok" ? "#4ade80" : tone === "warn" ? "#fbbf24" : "#ff0000";
   return (
     <div className="border border-[#111] p-3">
-      <div className="font-mono text-[9px] uppercase tracking-wider text-[#444]">{label}</div>
+      <div className="font-mono text-[9px] uppercase tracking-wider text-[#888]">{label}</div>
       <div className="mt-1 text-sm font-extrabold" style={{ color }}>
         {value}
       </div>

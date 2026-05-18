@@ -165,7 +165,7 @@ function Mini({
       >
         {value}
       </div>
-      <div className="mt-1.5 font-mono text-[8px] uppercase tracking-[1.5px] text-[#444]">
+      <div className="mt-1.5 font-mono text-[8px] uppercase tracking-[1.5px] text-[#888]">
         {label}
       </div>
     </div>
