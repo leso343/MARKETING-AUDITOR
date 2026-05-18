@@ -27,6 +27,14 @@ function prettyClient(slug: string): string {
     .join(" ");
 }
 
+function findAsset(dir: string, base: string): string | null {
+  for (const ext of ["svg", "png", "jpg", "webp"]) {
+    const abs = path.join(dir, `${base}.${ext}`);
+    if (fs.existsSync(abs)) return abs.replace(path.join(process.cwd(), "public"), "");
+  }
+  return null;
+}
+
 export default async function AuditPage({ params, searchParams }: PageProps) {
   const { client } = await params;
   const search = await searchParams;
@@ -35,6 +43,17 @@ export default async function AuditPage({ params, searchParams }: PageProps) {
   if (!fs.existsSync(csvDir)) {
     notFound();
   }
+
+  // Read optional per-client config (displayName, subtitle, industry)
+  let clientConfig: { displayName?: string; subtitle?: string; industry?: string } = {};
+  const configPath = path.join(csvDir, "client.json");
+  if (fs.existsSync(configPath)) {
+    try { clientConfig = JSON.parse(fs.readFileSync(configPath, "utf8")); } catch { /* ignore */ }
+  }
+
+  // Resolve logo paths (served as /logos/... or /csvs/[client]/...)
+  const agencyLogo = findAsset(path.join(process.cwd(), "public", "logos"), "agency");
+  const clientLogo = findAsset(csvDir, "logo");
 
   // Resolve benchmarks: ?industry overrides default; ?cpl / ?ctr override either.
   type IndustryBench = {
@@ -89,7 +108,10 @@ export default async function AuditPage({ params, searchParams }: PageProps) {
     <AuditDashboard
       audit={audit}
       clientSlug={client}
-      industry={industry}
+      clientSubtitle={clientConfig.subtitle}
+      agencyLogo={agencyLogo ?? undefined}
+      clientLogo={clientLogo ?? undefined}
+      industry={clientConfig.industry ?? industry}
       industryOptions={industryOptions}
     />
   );
