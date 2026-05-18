@@ -225,10 +225,10 @@ export default function Sidebar({ clientName, clientSubtitle, primaryLeak, pdfPa
         </div>
       )}
 
-      {/* Desktop sidebar — hidden on mobile */}
+      {/* Desktop sidebar — hidden on mobile, scrollable */}
       <aside
-        className="hidden w-[260px] flex-shrink-0 border-r border-[var(--border)] bg-[var(--sidebar)] px-6 py-9 lg:flex lg:flex-col"
-        style={{ minHeight: "100vh", position: "sticky", top: 0, height: "100vh" }}
+        className="hidden w-[260px] flex-shrink-0 border-r border-[var(--border)] bg-[var(--sidebar)] px-6 py-9 lg:flex lg:flex-col overflow-y-auto"
+        style={{ height: "100vh", position: "sticky", top: 0, scrollbarWidth: "thin", scrollbarColor: "var(--red) #040404" }}
       >
         {navContent}
       </aside>

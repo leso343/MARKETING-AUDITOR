@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Settings2, Loader2, Languages } from "lucide-react";
+import { Settings2, Loader2, Languages, SlidersHorizontal, X, RotateCcw } from "lucide-react";
 import { useLang } from "@/context/LangContext";
 
 import type { ReportingPeriod } from "@/engine/runAudit";
@@ -46,12 +46,14 @@ export default function ControlsPanel({
 }: Props) {
   const { t, plain, toggle } = useLang();
   const [timeWindow, setTimeWindow] = useState("all");
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const cplModified = targetCpl !== originalCpl;
   const ctrModified = targetCtr !== originalCtr;
+  const anyModified = cplModified || ctrModified;
 
-  return (
-    <aside className="hidden w-[280px] flex-shrink-0 border-l border-[var(--border)] bg-[var(--sidebar)] xl:flex xl:flex-col" style={{ height: "100vh", overflowY: "auto" }}>
+  // The controls content is shared between desktop sidebar and mobile sheet
+  const controlsContent = (
       <div className="px-6 py-9">
         <div className="mb-6 flex items-center gap-2">
           <Settings2 className="h-4 w-4 text-[var(--red)]" />
@@ -245,6 +247,97 @@ export default function ControlsPanel({
           )}
         </div>
       </div>
-    </aside>
+  ); // end controlsContent
+
+  return (
+    <>
+      {/* ── Desktop sidebar (xl+) ─────────────────────────────────── */}
+      <aside
+        className="hidden w-[280px] flex-shrink-0 border-l border-[var(--border)] bg-[var(--sidebar)] xl:flex xl:flex-col"
+        style={{ height: "100vh", overflowY: "auto" }}
+      >
+        {controlsContent}
+      </aside>
+
+      {/* ── Mobile: floating pill + bottom sheet (below xl) ──────── */}
+      <div className="xl:hidden">
+        {/* Floating pill — always visible at bottom right */}
+        <button
+          onClick={() => setMobileOpen(true)}
+          className="fixed bottom-6 right-4 z-40 flex items-center gap-2 rounded-full border px-4 py-2.5 shadow-lg transition-all"
+          style={{
+            background: anyModified ? "rgba(251,191,36,0.12)" : "rgba(6,6,6,0.95)",
+            borderColor: anyModified ? "rgba(251,191,36,0.6)" : "rgba(255,0,0,0.4)",
+            backdropFilter: "blur(12px)",
+          }}
+        >
+          <SlidersHorizontal
+            className="h-3.5 w-3.5"
+            style={{ color: anyModified ? "#fbbf24" : "var(--red)" }}
+          />
+          <span
+            className="font-mono text-[10px] font-bold uppercase tracking-wider"
+            style={{ color: anyModified ? "#fbbf24" : "var(--red)" }}
+          >
+            {anyModified ? `$${targetCpl} CPL · ${targetCtr.toFixed(1)}% CTR` : "Live Controls"}
+          </span>
+          {isPending && <Loader2 className="h-3 w-3 animate-spin text-[var(--red)]" />}
+          {anyModified && (
+            <span className="h-1.5 w-1.5 rounded-full bg-[#fbbf24]" />
+          )}
+        </button>
+
+        {/* Bottom sheet backdrop */}
+        {mobileOpen && (
+          <div
+            className="fixed inset-0 z-50"
+            style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }}
+            onClick={() => setMobileOpen(false)}
+          />
+        )}
+
+        {/* Bottom sheet drawer */}
+        <div
+          className="fixed bottom-0 left-0 right-0 z-50 rounded-t-2xl border-t border-[var(--border)] bg-[var(--sidebar)] transition-transform duration-300"
+          style={{
+            transform: mobileOpen ? "translateY(0)" : "translateY(100%)",
+            maxHeight: "85vh",
+            overflowY: "auto",
+          }}
+        >
+          {/* Drag handle */}
+          <div className="flex items-center justify-between px-6 pb-3 pt-4">
+            <div className="flex items-center gap-2">
+              <Settings2 className="h-4 w-4 text-[var(--red)]" />
+              <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-white">
+                Live Controls
+              </span>
+              {isPending && <Loader2 className="h-3.5 w-3.5 animate-spin text-[var(--red)]" />}
+            </div>
+            <div className="flex items-center gap-2">
+              {anyModified && (
+                <button
+                  onClick={() => { onReset(); setMobileOpen(false); }}
+                  className="flex items-center gap-1 border border-[#fbbf2440] px-2.5 py-1 font-mono text-[8px] uppercase tracking-wider text-[#fbbf24]"
+                >
+                  <RotateCcw className="h-2.5 w-2.5" />
+                  Reset
+                </button>
+              )}
+              <button
+                onClick={() => setMobileOpen(false)}
+                className="border border-[var(--border)] p-1.5 text-[var(--text-dim)] hover:text-white"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+          <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-[var(--border)]" />
+
+          {/* Controls content reuses same JSX as desktop */}
+          {controlsContent}
+        </div>
+      </div>
+    </>
   );
 }
