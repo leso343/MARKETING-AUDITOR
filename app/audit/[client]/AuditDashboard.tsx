@@ -19,6 +19,7 @@ import AuditRibbon from "@/components/audit/AuditRibbon";
 import BenchmarkStatus from "@/components/audit/BenchmarkStatus";
 import dynamic from "next/dynamic";
 import { Languages } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const CanvasMapPanel = dynamic(() => import("@/components/audit/CanvasMapPanel"), { ssr: false });
 
@@ -150,6 +151,7 @@ export default function AuditDashboard({
               <div className="flex flex-wrap items-center gap-2">
                 <ReportOpenButton />
                 <HeaderLangToggle />
+                <ThemeToggle />
                 <div className="flex items-center gap-2 border border-[var(--red-dim)] bg-[rgba(255,0,0,0.05)] px-2 py-1.5 font-mono text-[9px] uppercase tracking-wider text-[var(--red)] sm:gap-3 sm:px-3">
                   <div className="pulse" />
                   {isPending ? "Recomputing…" : "Engine: Live"}

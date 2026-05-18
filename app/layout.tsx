@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import ScrollbarFade from "@/components/ScrollbarFade";
 
 export const metadata: Metadata = {
   title: "SNA Forensic — Marketing Auditor",
@@ -24,7 +25,10 @@ export default function RootLayout({
         <link href={FONTS_HREF} rel="stylesheet" />
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossOrigin="" />
       </head>
-      <body>{children}</body>
+      <body>
+        <ScrollbarFade />
+        {children}
+      </body>
     </html>
   );
 }

@@ -32,6 +32,55 @@
   --font-mono: "JetBrains Mono", monospace;
 }
 
+/* ── Light mode overrides ─────────────────────────────────────── */
+html.light {
+  --bg: #f5f5f5;
+  --sidebar: #ffffff;
+  --card: #ffffff;
+  --red: #cc0000;
+  --red-dim: rgba(204, 0, 0, 0.08);
+  --border: #e2e2e2;
+  --text: #0a0a0a;
+  --text-dim: #555555;
+}
+
+html.light body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+html.light .panel {
+  background: var(--card);
+  border-color: var(--border);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+html.light .data-table th {
+  color: var(--text-dim);
+  border-bottom-color: var(--border);
+}
+
+html.light .data-table td {
+  border-bottom-color: #ececec;
+}
+
+html.light .insight-box {
+  background: #fafafa;
+  border-color: var(--border);
+}
+
+html.light .status-ok    { color: #16a34a; }
+html.light .status-warn  { color: #b45309; }
+html.light .status-critical { color: var(--red); }
+
+html.light header[class*="sticky"] {
+  background: rgba(245,245,245,0.92) !important;
+}
+
+html.light .leaflet-container {
+  background: #e8e8e8;
+}
+
 * { box-sizing: border-box; scroll-behavior: smooth; }
 
 /* ─── global custom scrollbar ─── */
@@ -75,6 +124,66 @@ html::-webkit-scrollbar-thumb:hover {
     0 0 14px rgba(255,  0, 0, 1.00),
     0 0 28px rgba(255,  0, 0, 0.45),
     inset 0 0 5px rgba(255, 140, 0, 0.55);
+}
+
+/* ─── Auto-hide vertical scrollbars; horizontal always visible ─── */
+/* webkit doesn't support opacity on scrollbar pseudo-elements — use background instead */
+*::-webkit-scrollbar-thumb:vertical {
+  background: transparent !important;
+  box-shadow: none !important;
+  transition: background 0.5s ease, box-shadow 0.5s ease;
+}
+*::-webkit-scrollbar-track:vertical {
+  background: transparent !important;
+  box-shadow: none !important;
+  transition: background 0.5s ease;
+}
+html::-webkit-scrollbar-thumb {
+  background: transparent !important;
+  box-shadow: none !important;
+  transition: background 0.5s ease, box-shadow 0.5s ease;
+}
+html::-webkit-scrollbar-track {
+  background: transparent !important;
+  box-shadow: none !important;
+  transition: background 0.5s ease;
+}
+
+/* Restore full appearance while actively scrolling */
+html.is-scrolling *::-webkit-scrollbar-thumb:vertical {
+  background: var(--red) !important;
+  box-shadow: none !important;
+}
+html.is-scrolling *::-webkit-scrollbar-track:vertical {
+  background: #080808 !important;
+}
+html.is-scrolling::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg,
+    #770000 0%,
+    #ff0000 40%,
+    #ff3300 60%,
+    #770000 100%
+  ) !important;
+  box-shadow:
+    0 0 8px  rgba(255,  0, 0, 0.70),
+    0 0 18px rgba(255,  0, 0, 0.30),
+    inset 0 0 3px rgba(255, 100, 0, 0.35) !important;
+}
+html.is-scrolling::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg,
+    #aa0000 0%,
+    #ff2222 40%,
+    #ff5500 60%,
+    #aa0000 100%
+  ) !important;
+  box-shadow:
+    0 0 14px rgba(255,  0, 0, 1.00),
+    0 0 28px rgba(255,  0, 0, 0.45),
+    inset 0 0 5px rgba(255, 140, 0, 0.55) !important;
+}
+html.is-scrolling::-webkit-scrollbar-track {
+  background: #040404 !important;
+  box-shadow: inset -1px 0 0 rgba(255, 0, 0, 0.12) !important;
 }
 
 html, body { background: var(--bg); color: var(--text); }

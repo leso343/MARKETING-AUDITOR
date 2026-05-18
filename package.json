@@ -10,7 +10,9 @@
     "lint": "next lint",
     "audit": "tsc -p tsconfig.engine.json && node ./dist/engine/index.js",
     "engine:test": "tsc -p tsconfig.engine.json && node ./dist/engine/index.js --csv-dir ./public/csvs/take-charge-roofing --client \"Take Charge Roofing\" --output ./reports/take-charge-roofing.html",
-    "clean": "rm -rf .next dist"
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf .next dist",
+    "dev:fresh": "rm -rf .next && next dev"
   },
   "dependencies": {
     "@types/leaflet": "^1.9.21",
