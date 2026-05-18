@@ -1,0 +1,2 @@
+Campaign name,Status,Objective,Bid strategy,Budget,Attribution setting,Results,Result indicator,Cost per result,Reach,Impressions,Frequency,"Cost per 1,000 People Reached",CPC (cost per link click),CTR (link click-through rate),Amount spent (USD),Ends,Quality ranking,Engagement rate ranking,Conversion rate ranking
+Flooring Quotes - Conversions,Active,Sales (Conversions),Lowest cost,$60 Daily,"7d-click, 1d-view",24,actions:offsite_conversion.fb_pixel_lead,$48.10,12480,22410,1.79,$10.20,$1.92,2.10%,$1154.40,Ongoing,Average,Average,Average

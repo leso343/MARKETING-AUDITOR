@@ -1,0 +1,90 @@
+{
+  "$schema": "https://sna-forensic.local/schemas/copy-bank.v1.json",
+  "$comment": "Pre-written recommendation copy. The engine fills slots like {{count}}, {{spend}}, {{primaryLeak}}. Lester / Claude-Design pass should expand this set.",
+  "findings": {
+    "FUNNEL_CLICK_TO_SESSION_LOSS": {
+      "severity": "critical",
+      "title": "Click-to-Session Loss",
+      "headline": "{{clickToSessionLossPct}}% of paid clicks never reached the site",
+      "fixSteps": [
+        "Audit landing-page load time on mobile — anything above 3s drops 50%+ of clicks.",
+        "Verify Meta Pixel ViewContent fires on landing — Events Manager should show it within seconds of a paid click.",
+        "Switch traffic-objective campaigns to Conversions; traffic ads buy accidental clicks.",
+        "Add a redirect-test campaign to confirm clicks resolve to your domain at all."
+      ],
+      "impactNote": "Recovering even half this loss typically halves CPL."
+    },
+    "LEAD_PIXEL_DISCONNECTED": {
+      "severity": "critical",
+      "title": "Lead Pixel Disconnected",
+      "headline": "{{count}} lead campaign(s) spent ${{spend}} and reported 0 tracked leads",
+      "fixSteps": [
+        "Open Events Manager → confirm Lead event has fired in the last 24h.",
+        "Install or fix CAPI alongside the pixel for resilience against iOS ATT loss.",
+        "Re-issue the campaign with a fresh ad set so Meta re-evaluates the conversion event.",
+        "If you're using a 3rd-party form (Jotform, etc.), enable native event-forwarding."
+      ],
+      "impactNote": "Once tracking is restored, optimisation typically recovers within 7-10 days."
+    },
+    "GEO_LEAK_OUT_OF_AREA": {
+      "severity": "critical",
+      "title": "Geographic Spend Leakage",
+      "headline": "${{wasteUSD}} burned on DMAs that produced zero leads",
+      "fixSteps": [
+        "Hard-cap delivery to your service area in the ad-set Locations field.",
+        "Exclude (not just deselect) the leaking DMAs to prevent spillover.",
+        "If targeting by ZIP, verify the radius doesn't punch into neighbouring metros."
+      ],
+      "impactNote": "Geographic waste reallocated to hot DMAs typically lifts lead volume 15-30%."
+    },
+    "CREATIVE_DEAD_WEIGHT": {
+      "severity": "warn",
+      "title": "Dead-Weight Creative",
+      "headline": "{{count}} ad(s) spent $100+ with zero conversions",
+      "fixSteps": [
+        "Pause ads with >$100 spend and 0 leads immediately.",
+        "Clone the top-CPL winner into a new ad set with the same audience.",
+        "A/B test 3 fresh hooks against the dead-weight headlines."
+      ],
+      "impactNote": "Pausing wasters is the cheapest CPL improvement available."
+    },
+    "FREQUENCY_FATIGUE": {
+      "severity": "warn",
+      "title": "Audience Fatigue",
+      "headline": "Average frequency {{frequency}} — past creative-rotation threshold",
+      "fixSteps": [
+        "Refresh creative — same audience needs new hooks at >2.5 freq.",
+        "Expand audience size by relaxing one targeting layer.",
+        "If lookalikes, regenerate from a fresher seed (last 90d converters)."
+      ],
+      "impactNote": "Frequency >4 is correlated with 1.5-2x CPL inflation in our data."
+    },
+    "ATTRIBUTION_WINDOW_UNSET": {
+      "severity": "warn",
+      "title": "Attribution Window Not Configured",
+      "headline": "{{count}} campaign(s) have no attribution setting",
+      "fixSteps": [
+        "Set every lead-objective campaign to 7-day click / 1-day view at minimum.",
+        "If you have CAPI, extend to 7-day click / 1-day view across surfaces.",
+        "Re-run reporting after 7 days for the new attribution to backfill."
+      ],
+      "impactNote": "Under-attribution makes CPL look ~15-25% worse than it is."
+    },
+    "WRONG_OPTIMIZATION_EVENT": {
+      "severity": "critical",
+      "title": "Wrong Optimization Event",
+      "headline": "Lead campaign optimising for a non-lead event",
+      "fixSteps": [
+        "Switch the campaign's conversion event to a true Lead event.",
+        "Wait 50 conversions for Meta to recalibrate the model.",
+        "If you can't hit 50 in 7 days, broaden audience or shift to a higher-volume custom event."
+      ],
+      "impactNote": "Wrong-event optimisation can double effective CPL silently."
+    }
+  },
+  "primaryActions": [
+    "Fix tracking first — every other recommendation depends on clean conversion data.",
+    "Then re-allocate spend from cold DMAs / dead-weight ads to your top 25% by CPL.",
+    "Refresh creative on any ad set above 2.5 frequency before scaling spend."
+  ]
+}

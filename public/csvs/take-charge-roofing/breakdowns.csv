@@ -1,0 +1,59 @@
+﻿"Campaign name","Ad set name","DMA region","Delivery status","Delivery level",Reach,Impressions,Frequency,"Attribution setting","Result type",Results,"Amount spent (USD)","Cost per result",Starts,Ends,"Reporting starts","Reporting ends"
+"LF Different Audience Testing","LF Broad",Atlanta,inactive,adset,2534,3894,1.53670087,"7-day click or 1-day view","Leads (form)",8,382.46228611,47.80778576,2026-04-17,Ongoing,2026-04-16,2026-05-14
+"LF ABO","LF Ad 1",Atlanta,inactive,adset,1986,2594,1.306143,"7-day click or 1-day view","Leads (form)",6,247.93252856,41.32208809,2026-04-22,Ongoing,2026-04-16,2026-05-14
+"LF ABO","LF AD V2",Atlanta,inactive,adset,1693,2188,1.29238039,"7-day click or 1-day view","Leads (form)",4,221.60427607,55.40106902,2026-04-30,Ongoing,2026-04-16,2026-05-14
+"Traffic Ad","Social Media Traffic",Atlanta,active,adset,8455,15253,1.80402129,"1-day click",,,202.03992897,,2026-04-17,Ongoing,2026-04-16,2026-05-14
+"Traffic Ad","LP Traffic",Atlanta,active,adset,18279,30615,1.6748728,"7-day click or 1-day view",,,201.02,,2026-04-17,Ongoing,2026-04-16,2026-05-14
+"LF CBO 3 Ads Detailed","LF Ad 1",Atlanta,inactive,adset,1116,1423,1.27508961,"7-day click or 1-day view","Leads (form)",5,185.24001256,37.04800251,2026-04-17,Ongoing,2026-04-16,2026-05-14
+"LF Different Audience Testing","LF Audience 1",Atlanta,inactive,adset,672,951,1.41517857,"7-day click or 1-day view",,,137.61023113,,2026-04-17,Ongoing,2026-04-16,2026-05-14
+"LP Different Audience Testing","LP Audience 2",Atlanta,inactive,adset,1603,2333,1.45539613,"7-day click, 1-day view, or 1-day engaged-view",,,113.16,,2026-04-17,Ongoing,2026-04-16,2026-05-14
+"LF ABO","LF AD V3",Atlanta,inactive,adset,980,1269,1.29489796,"7-day click or 1-day view","Leads (form)",2,105.59435131,52.79717565,2026-04-30,Ongoing,2026-04-16,2026-05-14
+"LF Different Audience Testing","LF Audience 2",Atlanta,inactive,adset,1045,1288,1.23253589,"7-day click or 1-day view","Leads (form)",1,85.0356401,85.0356401,2026-04-17,Ongoing,2026-04-16,2026-05-14
+"LP Different Audience Testing","LP Broad",Atlanta,inactive,adset,1364,1902,1.39442815,"7-day click, 1-day view, or 1-day engaged-view",,,75.7,,2026-04-17,Ongoing,2026-04-16,2026-05-14
+"LF ABO","LF Ad 3",Atlanta,inactive,adset,728,788,1.08241758,"7-day click or 1-day view","Leads (form)",1,75.44173622,75.44173622,2026-04-22,Ongoing,2026-04-16,2026-05-14
+"LP Different Audience Testing","LP Audience 1",Atlanta,inactive,adset,1226,1663,1.35644372,"7-day click, 1-day view, or 1-day engaged-view",,,71.27964206,,2026-04-17,Ongoing,2026-04-16,2026-05-14
+"LF CBO 3 Ads Detailed","LF Ad 2",Atlanta,inactive,adset,603,716,1.18739635,"7-day click or 1-day view",,,70.33012217,,2026-04-17,Ongoing,2026-04-16,2026-05-14
+"LF CBO 3 Ads Detailed","LF Ad V2",Atlanta,inactive,adset,626,690,1.10223642,"7-day click or 1-day view","Leads (form)",1,68.17,68.17,2026-04-25,Ongoing,2026-04-16,2026-05-14
+"LF ABO Detailed","LF Ad 2",Atlanta,not_delivering,adset,600,724,1.20666667,"7-day click or 1-day view",,,64.52012353,,2026-05-11,Ongoing,2026-04-16,2026-05-14
+"LF ABO Detailed","LF Ad 1",Atlanta,not_delivering,adset,627,742,1.18341308,"7-day click or 1-day view",,,64.37,,2026-05-11,Ongoing,2026-04-16,2026-05-14
+"LF Different Audience Testing","LF Audience 1 - V2",Atlanta,inactive,adset,614,741,1.20684039,"7-day click or 1-day view",,,64.02026002,,2026-04-25,Ongoing,2026-04-16,2026-05-14
+"LF CBO 3 Ads Detailed","LF Ad All 3",Atlanta,inactive,adset,370,484,1.30810811,"7-day click or 1-day view",,,61.48,,2026-04-17,Ongoing,2026-04-16,2026-05-14
+"LF ABO 3 ADS DIFFRENT AUDEINCE","LF 3 Ads Broad",Atlanta,not_delivering,adset,722,861,1.19252078,"7-day click or 1-day view",,,61.44,,2026-05-11,Ongoing,2026-04-16,2026-05-14
+"LF ABO Detailed","LF Ad 4",Atlanta,not_delivering,adset,611,690,1.12929624,"7-day click or 1-day view","Leads (form)",1,60.85,60.85,2026-05-11,Ongoing,2026-04-16,2026-05-14
+"Lead Forms","Shoot 2",Atlanta,active,adset,567,640,1.1287478,"7-day click or 1-day view",,,59.82,,2026-05-14,Ongoing,2026-04-16,2026-05-14
+"LF ABO Detailed","LF Ad 3",Atlanta,not_delivering,adset,796,923,1.15954774,"7-day click or 1-day view",,,59.38,,2026-05-11,Ongoing,2026-04-16,2026-05-14
+"LF ABO","LF Ad All 3 V2",Atlanta,inactive,adset,356,430,1.20786517,"7-day click or 1-day view",,,52.83010193,,2026-04-22,Ongoing,2026-04-16,2026-05-14
+"Lead Forms","Shoot 1",Atlanta,active,adset,695,788,1.13381295,"7-day click or 1-day view",,,48.2,,2026-05-14,Ongoing,2026-04-16,2026-05-14
+"LF ABO Detailed","LF ADs 3,4",Atlanta,not_delivering,adset,373,425,1.13941019,"7-day click or 1-day view",,,47.67,,2026-05-12,Ongoing,2026-04-16,2026-05-14
+"LF ABO","LF Ad All 3",Atlanta,inactive,adset,454,508,1.11894273,"7-day click or 1-day view",,,46.53,,2026-04-22,Ongoing,2026-04-16,2026-05-14
+"LF ABO 3 ADS DIFFRENT AUDEINCE","LF 3 Ads Detailed 2",Atlanta,not_delivering,adset,607,702,1.15650741,"7-day click or 1-day view",,,45.45,,2026-05-11,Ongoing,2026-04-16,2026-05-14
+"LF ABO","LF Ad 2",Atlanta,inactive,adset,328,394,1.20121951,"7-day click or 1-day view",,,35.03,,2026-04-22,Ongoing,2026-04-16,2026-05-14
+"LF ABO 3 ADS DIFFRENT AUDEINCE","LF 3 Ads Detailed",Atlanta,not_delivering,adset,415,443,1.06746988,"7-day click or 1-day view","Leads (form)",1,30.19,30.19,2026-05-11,Ongoing,2026-04-16,2026-05-14
+"LF CBO 3 Ads Detailed","LF Ad 3",Atlanta,inactive,adset,229,270,1.1790393,"7-day click or 1-day view",,,26.56000376,,2026-04-17,Ongoing,2026-04-16,2026-05-14
+"LF CBO 3 Ads Detailed","LF Ad 1",Greenvll-Spart-Ashevll-And,inactive,adset,14,17,1.21428571,"7-day click or 1-day view",,,4.51998744,,2026-04-17,Ongoing,2026-04-16,2026-05-14
+"LF ABO","LF Ad 1",Greenvll-Spart-Ashevll-And,inactive,adset,14,16,1.14285714,"7-day click or 1-day view",,,2.10747144,,2026-04-22,Ongoing,2026-04-16,2026-05-14
+"LF ABO 3 ADS DIFFRENT AUDEINCE","LF 3 Ads Broad",Greenvll-Spart-Ashevll-And,not_delivering,adset,8,9,1.125,"7-day click or 1-day view",,,1.63,,2026-05-11,Ongoing,2026-04-16,2026-05-14
+"LF Different Audience Testing","LF Broad",Greenvll-Spart-Ashevll-And,inactive,adset,16,23,1.4375,"7-day click or 1-day view",,,1.48771389,,2026-04-17,Ongoing,2026-04-16,2026-05-14
+"LF ABO","LF AD V3",Greenvll-Spart-Ashevll-And,inactive,adset,16,19,1.1875,"7-day click or 1-day view",,,1.45564869,,2026-04-30,Ongoing,2026-04-16,2026-05-14
+"LF CBO 3 Ads Detailed","LF Ad V2",Greenvll-Spart-Ashevll-And,inactive,adset,6,7,1.16666667,"7-day click or 1-day view",,,1.31,,2026-04-25,Ongoing,2026-04-16,2026-05-14
+"LF ABO Detailed","LF Ad 1",Greenvll-Spart-Ashevll-And,not_delivering,adset,9,9,1,"7-day click or 1-day view",,,1.02,,2026-05-11,Ongoing,2026-04-16,2026-05-14
+"LF ABO 3 ADS DIFFRENT AUDEINCE","LF 3 Ads Detailed 2",Greenvll-Spart-Ashevll-And,not_delivering,adset,6,6,1,"7-day click or 1-day view",,,0.88,,2026-05-11,Ongoing,2026-04-16,2026-05-14
+"LF Different Audience Testing","LF Audience 1",Greenvll-Spart-Ashevll-And,inactive,adset,9,14,1.55555556,"7-day click or 1-day view",,,0.79976887,,2026-04-17,Ongoing,2026-04-16,2026-05-14
+"LF ABO","LF AD V2",Greenvll-Spart-Ashevll-And,inactive,adset,15,19,1.26666667,"7-day click or 1-day view",,,0.72572393,,2026-04-30,Ongoing,2026-04-16,2026-05-14
+"Traffic Ad","Social Media Traffic",Greenvll-Spart-Ashevll-And,active,adset,42,56,1.33333333,"1-day click",,,0.72007103,,2026-04-17,Ongoing,2026-04-16,2026-05-14
+"Traffic Ad","LP Traffic",Greenvll-Spart-Ashevll-And,active,adset,148,174,1.17567568,"7-day click or 1-day view",,,0.68,,2026-04-17,Ongoing,2026-04-16,2026-05-14
+"LF Different Audience Testing","LF Audience 1 - V2",Greenvll-Spart-Ashevll-And,inactive,adset,5,5,1,"7-day click or 1-day view",,,0.55973998,,2026-04-25,Ongoing,2026-04-16,2026-05-14
+"LF ABO 3 ADS DIFFRENT AUDEINCE","LF 3 Ads Detailed",Greenvll-Spart-Ashevll-And,not_delivering,adset,6,6,1,"7-day click or 1-day view",,,0.5,,2026-05-11,Ongoing,2026-04-16,2026-05-14
+"LP Different Audience Testing","LP Audience 2",Greenvll-Spart-Ashevll-And,inactive,adset,10,10,1,"7-day click, 1-day view, or 1-day engaged-view",,,0.46,,2026-04-17,Ongoing,2026-04-16,2026-05-14
+"LF ABO Detailed","LF Ad 3",Greenvll-Spart-Ashevll-And,not_delivering,adset,8,8,1,"7-day click or 1-day view",,,0.42,,2026-05-11,Ongoing,2026-04-16,2026-05-14
+"LF ABO","LF Ad All 3",Greenvll-Spart-Ashevll-And,inactive,adset,1,1,1,"7-day click or 1-day view",,,0.41,,2026-04-22,Ongoing,2026-04-16,2026-05-14
+"LP Different Audience Testing","LP Audience 1",Greenvll-Spart-Ashevll-And,inactive,adset,4,6,1.5,"7-day click, 1-day view, or 1-day engaged-view",,,0.32035794,,2026-04-17,Ongoing,2026-04-16,2026-05-14
+"LF ABO","LF Ad 3",Greenvll-Spart-Ashevll-And,inactive,adset,4,4,1,"7-day click or 1-day view",,,0.26826378,,2026-04-22,Ongoing,2026-04-16,2026-05-14
+"LF Different Audience Testing","LF Audience 2",Greenvll-Spart-Ashevll-And,inactive,adset,3,4,1.33333333,"7-day click or 1-day view",,,0.2143599,,2026-04-17,Ongoing,2026-04-16,2026-05-14
+"LF ABO Detailed","LF Ad 2",Greenvll-Spart-Ashevll-And,not_delivering,adset,6,8,1.33333333,"7-day click or 1-day view",,,0.19987647,,2026-05-11,Ongoing,2026-04-16,2026-05-14
+"LF ABO","LF Ad 2",Greenvll-Spart-Ashevll-And,inactive,adset,4,4,1,"7-day click or 1-day view",,,0.19,,2026-04-22,Ongoing,2026-04-16,2026-05-14
+"LF ABO Detailed","LF Ad 4",Greenvll-Spart-Ashevll-And,not_delivering,adset,8,9,1.125,"7-day click or 1-day view",,,0.19,,2026-05-11,Ongoing,2026-04-16,2026-05-14
+"LP Different Audience Testing","LP Broad",Greenvll-Spart-Ashevll-And,inactive,adset,8,9,1.125,"7-day click, 1-day view, or 1-day engaged-view",,,0.16,,2026-04-17,Ongoing,2026-04-16,2026-05-14
+"LF ABO","LF Ad All 3 V2",Greenvll-Spart-Ashevll-And,inactive,adset,1,1,1,"7-day click or 1-day view",,,0.05989807,,2026-04-22,Ongoing,2026-04-16,2026-05-14
+"LF CBO 3 Ads Detailed","LF Ad 3",Greenvll-Spart-Ashevll-And,inactive,adset,2,2,1,"7-day click or 1-day view",,,0.00999624,,2026-04-17,Ongoing,2026-04-16,2026-05-14
+"LF CBO 3 Ads Detailed","LF Ad 2",Greenvll-Spart-Ashevll-And,inactive,adset,2,2,1,"7-day click or 1-day view",,,0.00987783,,2026-04-17,Ongoing,2026-04-16,2026-05-14
