@@ -29,6 +29,16 @@ export default function ReportViewer({ open, page, onClose }: Props) {
     if (open) setActivePage(page);
   }, [page, open]);
 
+  // Lock/unlock background scroll
+  useEffect(() => {
+    if (open) {
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.documentElement.style.overflow = "";
+    }
+    return () => { document.documentElement.style.overflow = ""; };
+  }, [open]);
+
   // Animate in/out
   useEffect(() => {
     if (open) {
