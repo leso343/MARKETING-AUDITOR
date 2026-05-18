@@ -82,7 +82,7 @@ export default function AuditDashboard({
   return (
     <LangProvider>
       <ReportProvider>
-        <div className="flex min-h-screen">
+        <div className="flex min-h-screen overflow-x-hidden">
           {/* Left nav rail */}
           <Sidebar
             clientName={audit.clientName}
@@ -91,7 +91,7 @@ export default function AuditDashboard({
           />
 
           {/* Center column — pt-[52px] offsets the fixed mobile nav bar */}
-          <main className="flex-1 overflow-y-auto pt-[52px] lg:pt-0">
+          <main className="flex-1 min-w-0 overflow-y-auto pt-[52px] lg:pt-0">
             {/* Sticky header */}
             <header
               className="sticky top-0 z-30 flex flex-col gap-2 border-b border-[var(--border)] px-4 py-3 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-10 sm:py-6"
