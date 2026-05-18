@@ -246,9 +246,9 @@ export default function RecommendationCards({ audit, targetCpl, targetCtr }: Pro
         })
       : [];
 
-  // Y-axis ticks at $20 intervals
+  // Y-axis ticks at $20 intervals — include tgt so the reference line is always visible
   const yMax20 = projData.length > 0
-    ? Math.ceil(Math.max(...projData.flatMap((d) => [d.withFixes, d.withoutFixes])) / 20) * 20
+    ? Math.ceil(Math.max(...projData.flatMap((d) => [d.withFixes, d.withoutFixes]), tgt) / 20) * 20
     : 160;
   const yTicks20 = Array.from({ length: Math.floor(yMax20 / 20) + 1 }, (_, i) => i * 20);
 
