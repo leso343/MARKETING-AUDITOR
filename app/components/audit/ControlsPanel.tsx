@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Settings2, Loader2, Languages } from "lucide-react";
 import { useLang } from "@/context/LangContext";
 
 interface Props {
   targetCpl: number;
   targetCtr: number;
+  onLiveCpl: (v: number) => void;
+  onLiveCtr: (v: number) => void;
   industry: string;
   industryOptions: { key: string; label: string }[];
   onChange: (key: string, value: string | null) => void;
@@ -23,18 +25,18 @@ const TIME_WINDOWS = [
 export default function ControlsPanel({
   targetCpl,
   targetCtr,
+  onLiveCpl,
+  onLiveCtr,
   industry,
   industryOptions,
   onChange,
   isPending,
 }: Props) {
   const { t, plain, toggle } = useLang();
-  const [localCpl, setLocalCpl] = useState(targetCpl);
-  const [localCtr, setLocalCtr] = useState(targetCtr);
   const [timeWindow, setTimeWindow] = useState("all");
 
-  useEffect(() => setLocalCpl(targetCpl), [targetCpl]);
-  useEffect(() => setLocalCtr(targetCtr), [targetCtr]);
+  // localCpl/localCtr are now owned by the parent (liveCpl/liveCtr in AuditDashboard)
+  // We just read targetCpl/targetCtr and forward changes up immediately
 
   return (
     <aside className="hidden w-[280px] flex-shrink-0 border-l border-[var(--border)] bg-[var(--sidebar)] xl:block">
@@ -108,7 +110,7 @@ export default function ControlsPanel({
               {t("Target CPL", "Target Cost Per Lead")}
             </label>
             <span className="font-mono text-sm font-bold text-[var(--red)]">
-              ${localCpl}
+              ${targetCpl}
             </span>
           </div>
           <input
@@ -117,10 +119,13 @@ export default function ControlsPanel({
             min={20}
             max={200}
             step={5}
-            value={localCpl}
-            onChange={(e) => setLocalCpl(Number(e.target.value))}
-            onMouseUp={(e) => onChange("cpl", String((e.target as HTMLInputElement).value))}
-            onTouchEnd={(e) => onChange("cpl", String((e.target as HTMLInputElement).value))}
+            value={targetCpl}
+            onChange={(e) => {
+              const v = Number(e.target.value);
+              onLiveCpl(v);                          // instant — charts update NOW
+            }}
+            onMouseUp={(e) => onChange("cpl", (e.target as HTMLInputElement).value)}
+            onTouchEnd={(e) => onChange("cpl", (e.target as HTMLInputElement).value)}
           />
           <div className="mt-1 flex justify-between font-mono text-[9px] text-[var(--text-dim)]">
             <span>$20</span>
@@ -135,7 +140,7 @@ export default function ControlsPanel({
               {t("Target CTR", "Target Click Rate")}
             </label>
             <span className="font-mono text-sm font-bold text-[var(--red)]">
-              {localCtr.toFixed(1)}%
+              {targetCtr.toFixed(1)}%
             </span>
           </div>
           <input
@@ -144,10 +149,13 @@ export default function ControlsPanel({
             min={0.5}
             max={5}
             step={0.1}
-            value={localCtr}
-            onChange={(e) => setLocalCtr(Number(e.target.value))}
-            onMouseUp={(e) => onChange("ctr", String((e.target as HTMLInputElement).value))}
-            onTouchEnd={(e) => onChange("ctr", String((e.target as HTMLInputElement).value))}
+            value={targetCtr}
+            onChange={(e) => {
+              const v = Number(e.target.value);
+              onLiveCtr(v);                          // instant — charts update NOW
+            }}
+            onMouseUp={(e) => onChange("ctr", (e.target as HTMLInputElement).value)}
+            onTouchEnd={(e) => onChange("ctr", (e.target as HTMLInputElement).value)}
           />
           <div className="mt-1 flex justify-between font-mono text-[9px] text-[var(--text-dim)]">
             <span>0.5%</span>
@@ -179,8 +187,8 @@ export default function ControlsPanel({
 
         <div className="mt-8 border-t border-[var(--border)] pt-4 font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)]">
           {t(
-            "Drag sliders → release to recompute. URL is shareable.",
-            "Adjust sliders to update the analysis. URL saves your settings.",
+            "Drag to update charts live. Release to persist in URL.",
+            "Charts update as you drag. Release to save to URL.",
           )}
         </div>
       </div>

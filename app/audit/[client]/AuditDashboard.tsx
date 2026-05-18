@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useTransition, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { AuditResult } from "@/engine/runAudit";
 import { LangProvider, useLang } from "@/context/LangContext";
@@ -76,6 +76,14 @@ export default function AuditDashboard({
   const router = useRouter();
   const search = useSearchParams();
   const [isPending, startTransition] = useTransition();
+
+  // Live benchmark state — updates instantly as sliders drag (no server round-trip)
+  const [liveCpl, setLiveCpl] = useState(audit.benchmarks.targetCpl);
+  const [liveCtr, setLiveCtr] = useState(audit.benchmarks.targetCtr);
+
+  // Sync when server re-renders with committed URL params
+  useEffect(() => { setLiveCpl(audit.benchmarks.targetCpl); }, [audit.benchmarks.targetCpl]);
+  useEffect(() => { setLiveCtr(audit.benchmarks.targetCtr); }, [audit.benchmarks.targetCtr]);
 
   const updateParam = (key: string, value: string | null) => {
     const next = new URLSearchParams(search.toString());
@@ -158,7 +166,7 @@ export default function AuditDashboard({
               {/* Demographics (age/gender CPL breakdown) */}
               {audit.demographics.brackets.some((b) => b.spend > 0) && (
                 <section id="demographics" className="col-span-12">
-                  <DemographicsPanel demographics={audit.demographics} targetCpl={audit.benchmarks.targetCpl} />
+                  <DemographicsPanel demographics={audit.demographics} targetCpl={liveCpl} />
                 </section>
               )}
 
@@ -169,15 +177,17 @@ export default function AuditDashboard({
 
               {/* Recommendations */}
               <section id="plan" className="col-span-12">
-                <RecommendationCards audit={audit} />
+                <RecommendationCards audit={audit} targetCpl={liveCpl} targetCtr={liveCtr} />
               </section>
             </div>
           </main>
 
           {/* Right controls rail */}
           <ControlsPanel
-            targetCpl={audit.benchmarks.targetCpl}
-            targetCtr={audit.benchmarks.targetCtr}
+            targetCpl={liveCpl}
+            targetCtr={liveCtr}
+            onLiveCpl={setLiveCpl}
+            onLiveCtr={setLiveCtr}
             industry={industry}
             industryOptions={industryOptions}
             onChange={updateParam}
