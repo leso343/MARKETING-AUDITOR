@@ -32,7 +32,7 @@ export default function FunnelLeakageChart({ funnel }: Props) {
         {t("Funnel_Integrity_Diagnostic", "Customer Drop-Off Analysis")}
       </div>
       <h2
-        className="mb-1 text-xl font-bold tracking-tight"
+        className="mb-1 text-2xl font-bold tracking-tight"
         style={{ fontFamily: "var(--font-head)" }}
       >
         {t("Tracking People vs. Clicks", "Where Customers Drop Off")}

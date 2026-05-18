@@ -78,7 +78,7 @@ export default function ExecutiveSummary({ audit }: Props) {
             {t("Executive_Summary", "Top Findings")}
           </div>
           <h2
-            className="text-2xl font-bold tracking-tight"
+            className="text-3xl font-bold tracking-tight"
             style={{ fontFamily: "var(--font-head)" }}
           >
             {t("Three highest-impact findings", "Top 3 Issues to Fix")}

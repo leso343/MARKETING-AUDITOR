@@ -19,7 +19,7 @@ export default function CreativeAnalysisGrid({ creative }: Props) {
         {t("Creative_Performance_Drill", "Best vs. Worst Ads")}
       </div>
       <h2
-        className="mb-1 text-xl font-bold tracking-tight"
+        className="mb-1 text-2xl font-bold tracking-tight"
         style={{ fontFamily: "var(--font-head)" }}
       >
         {t("Winners vs. Wasters", "Best Ads vs. Worst Ads")}

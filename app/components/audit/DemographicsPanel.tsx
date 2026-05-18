@@ -45,7 +45,7 @@ export default function DemographicsPanel({ demographics }: Props) {
         {t("Demographics_Breakdown", "Who Responds Best")}
       </div>
       <h2
-        className="mb-1 text-xl font-bold tracking-tight"
+        className="mb-1 text-2xl font-bold tracking-tight"
         style={{ fontFamily: "var(--font-head)" }}
       >
         {t("Age × CPL Analysis", "Which Age Groups Convert Best")}

@@ -37,20 +37,45 @@
 /* ─── global custom scrollbar ─── */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--red) #0a0a0a;
+  scrollbar-color: var(--red) #040404;
 }
-*::-webkit-scrollbar { width: 4px; height: 4px; }
-*::-webkit-scrollbar-track { background: #0a0a0a; }
-*::-webkit-scrollbar-thumb {
-  background: var(--red);
-  border-radius: 2px;
-  box-shadow: 0 0 6px rgba(255, 0, 0, 0.55);
+/* inner panel scrollbars: ultra-thin, unobtrusive */
+*::-webkit-scrollbar { width: 3px; height: 3px; }
+*::-webkit-scrollbar-track { background: #080808; }
+*::-webkit-scrollbar-thumb { background: var(--red); border-radius: 0; }
+*::-webkit-scrollbar-corner { background: #040404; }
+
+/* main page scrollbar: 6px laser — sharp edges, gradient flame, red glow */
+html::-webkit-scrollbar { width: 6px; }
+html::-webkit-scrollbar-track {
+  background: #040404;
+  box-shadow: inset -1px 0 0 rgba(255, 0, 0, 0.12);
 }
-*::-webkit-scrollbar-thumb:hover {
-  background: #ff3333;
-  box-shadow: 0 0 10px rgba(255, 0, 0, 0.9);
+html::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg,
+    #770000 0%,
+    #ff0000 40%,
+    #ff3300 60%,
+    #770000 100%
+  );
+  border-radius: 0;
+  box-shadow:
+    0 0 8px  rgba(255,  0, 0, 0.70),
+    0 0 18px rgba(255,  0, 0, 0.30),
+    inset 0 0 3px rgba(255, 100, 0, 0.35);
 }
-*::-webkit-scrollbar-corner { background: #0a0a0a; }
+html::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg,
+    #aa0000 0%,
+    #ff2222 40%,
+    #ff5500 60%,
+    #aa0000 100%
+  );
+  box-shadow:
+    0 0 14px rgba(255,  0, 0, 1.00),
+    0 0 28px rgba(255,  0, 0, 0.45),
+    inset 0 0 5px rgba(255, 140, 0, 0.55);
+}
 
 html, body { background: var(--bg); color: var(--text); }
 body {
@@ -70,14 +95,15 @@ body {
 
 .panel-label {
   font-family: var(--font-mono);
-  font-size: 9px;
-  color: var(--text-dim);
+  font-size: 11px;
+  color: #c0c0c0;
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: 2.5px;
   margin-bottom: 20px;
   display: flex;
   align-items: center;
   gap: 10px;
+  font-weight: 600;
 }
 .panel-label::before { content: ">"; color: var(--red); }
 

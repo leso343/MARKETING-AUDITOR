@@ -134,7 +134,7 @@ export default function RecommendationCards({ audit }: Props) {
       <div className="mb-5 flex items-end justify-between">
         <div>
           <h2
-            className="text-xl font-bold tracking-tight"
+            className="text-2xl font-bold tracking-tight"
             style={{ fontFamily: "var(--font-head)" }}
           >
             {t("Recommendations", "What to Fix")}
