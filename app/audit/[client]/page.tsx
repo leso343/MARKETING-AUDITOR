@@ -17,7 +17,7 @@ export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: Promise<{ client: string }>;
-  searchParams: Promise<{ cpl?: string; ctr?: string; industry?: string }>;
+  searchParams: Promise<{ cpl?: string; ctr?: string; industry?: string; days?: string }>;
 }
 
 function prettyClient(slug: string): string {
@@ -72,10 +72,13 @@ export default async function AuditPage({ params, searchParams }: PageProps) {
     targetCtr: search.ctr ? Number(search.ctr) : base.targetCtr,
   };
 
+  const daysFilter = search.days ? Number(search.days) : undefined;
+
   const audit = runAudit({
     csvDir,
     clientName: prettyClient(client),
     benchmarks,
+    daysFilter,
   });
 
   const industryOptions = Object.entries(benchmarksTyped.industries).map(

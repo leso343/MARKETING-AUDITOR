@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useTransition, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { AuditResult } from "@/engine/runAudit";
 import { LangProvider, useLang } from "@/context/LangContext";
@@ -16,7 +16,11 @@ import CreativeAnalysisGrid from "@/components/audit/CreativeAnalysisGrid";
 import DemographicsPanel from "@/components/audit/DemographicsPanel";
 import RecommendationCards from "@/components/audit/RecommendationCards";
 import AuditRibbon from "@/components/audit/AuditRibbon";
+import BenchmarkStatus from "@/components/audit/BenchmarkStatus";
+import dynamic from "next/dynamic";
 import { Languages } from "lucide-react";
+
+const CanvasMapPanel = dynamic(() => import("@/components/audit/CanvasMapPanel"), { ssr: false });
 
 interface Props {
   audit: AuditResult;
@@ -74,6 +78,20 @@ export default function AuditDashboard({
   const search = useSearchParams();
   const [isPending, startTransition] = useTransition();
 
+  // Live benchmark state — updates instantly as sliders drag (no server round-trip)
+  const [liveCpl, setLiveCpl] = useState(audit.benchmarks.targetCpl);
+  const [liveCtr, setLiveCtr] = useState(audit.benchmarks.targetCtr);
+
+  // Sync when server re-renders with committed URL params
+  useEffect(() => { setLiveCpl(audit.benchmarks.targetCpl); }, [audit.benchmarks.targetCpl]);
+  useEffect(() => { setLiveCtr(audit.benchmarks.targetCtr); }, [audit.benchmarks.targetCtr]);
+
+  // The benchmarks the server actually used — stays fixed until URL changes
+  const originalCpl = audit.benchmarks.targetCpl;
+  const originalCtr = audit.benchmarks.targetCtr;
+  const isPreview = liveCpl !== originalCpl || liveCtr !== originalCtr;
+
+  // Single URL update — supports batching multiple params in one replace
   const updateParam = (key: string, value: string | null) => {
     const next = new URLSearchParams(search.toString());
     if (value === null || value === "") next.delete(key);
@@ -83,12 +101,29 @@ export default function AuditDashboard({
     });
   };
 
+  // Batch update — fixes industry selector race where individual updateParam calls clobber each other
+  const updateParams = (updates: Record<string, string | null>) => {
+    const next = new URLSearchParams(search.toString());
+    for (const [k, v] of Object.entries(updates)) {
+      if (v === null || v === "") next.delete(k);
+      else next.set(k, v);
+    }
+    startTransition(() => {
+      router.replace(`/audit/${clientSlug}?${next.toString()}`, { scroll: false });
+    });
+  };
+
+  const resetToOriginal = () => {
+    setLiveCpl(originalCpl);
+    setLiveCtr(originalCtr);
+  };
+
   const pdfPath = "/SNA_Marketing_TakeCharge_Audit.pdf";
 
   return (
     <LangProvider>
       <ReportProvider>
-        <div className="flex min-h-screen overflow-x-hidden">
+        <div className="flex h-screen overflow-hidden">
           {/* Left nav rail */}
           <Sidebar
             clientName={audit.clientName}
@@ -99,8 +134,8 @@ export default function AuditDashboard({
             clientLogo={clientLogo}
           />
 
-          {/* Center column — pt-[52px] offsets the fixed mobile nav bar */}
-          <main className="flex-1 min-w-0 overflow-y-auto pt-[52px] lg:pt-0">
+          {/* Center column scrolls independently — controls panel stays fixed alongside */}
+          <main className="flex-1 min-w-0 overflow-y-auto pt-[52px] lg:pt-0" id="audit-main">
             {/* Sticky header */}
             <header
               className="sticky top-0 z-30 flex flex-col gap-2 border-b border-[var(--border)] px-4 py-3 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-10 sm:py-6"
@@ -122,6 +157,28 @@ export default function AuditDashboard({
               </div>
             </header>
 
+            {/* Preview mode banner — shown when sliders differ from server-rendered benchmarks */}
+            {isPreview && (
+              <div
+                className="flex flex-wrap items-center justify-between gap-3 border-b border-[#fbbf2440] px-4 py-2.5 sm:px-10"
+                style={{ background: "rgba(251,191,36,0.06)" }}
+              >
+                <div className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-wider text-[#fbbf24]">
+                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#fbbf24]" />
+                  WHAT-IF PREVIEW — CPL target ${liveCpl} · CTR target {liveCtr.toFixed(1)}%
+                  <span className="text-[#fbbf2480]">
+                    (original analysis: CPL ${originalCpl} · CTR {originalCtr.toFixed(1)}%)
+                  </span>
+                </div>
+                <button
+                  onClick={resetToOriginal}
+                  className="border border-[#fbbf2440] px-3 py-1 font-mono text-[9px] uppercase tracking-wider text-[#fbbf24] transition-colors hover:border-[#fbbf24] hover:bg-[rgba(251,191,36,0.1)]"
+                >
+                  ← Reset to original
+                </button>
+              </div>
+            )}
+
             {/* Fact ribbon (below sticky header, not sticky itself) */}
             <AuditRibbon audit={audit} />
 
@@ -133,7 +190,27 @@ export default function AuditDashboard({
 
               {/* KPI snapshot */}
               <section className="col-span-12">
-                <KPISnapshot kpis={audit.spend.kpis} />
+                <KPISnapshot
+                  kpis={audit.spend.kpis}
+                  liveCpl={liveCpl}
+                  liveCtr={liveCtr}
+                  blendedCpl={audit.spend.blendedCpl}
+                  weightedCtr={audit.spend.weightedCtr}
+                  isPreview={isPreview}
+                />
+              </section>
+
+              {/* Benchmark status strip — makes slider effects immediately visible */}
+              <section className="col-span-12">
+                <BenchmarkStatus
+                  blendedCpl={audit.spend.blendedCpl}
+                  weightedCtr={audit.spend.weightedCtr}
+                  liveCpl={liveCpl}
+                  liveCtr={liveCtr}
+                  industry={industry}
+                  reportingPeriod={audit.reportingPeriod}
+                  isPreview={isPreview}
+                />
               </section>
 
               {/* Funnel + Tracking */}
@@ -146,34 +223,46 @@ export default function AuditDashboard({
 
               {/* Geo + Creative */}
               <section id="geo" className="col-span-12 lg:col-span-6">
-                <GeographicHeatmap geo={audit.geo} />
+                <GeographicHeatmap geo={audit.geo} liveCpl={liveCpl} />
               </section>
               <section id="creative" className="col-span-12 lg:col-span-6">
-                <CreativeAnalysisGrid creative={audit.creative} />
+                <CreativeAnalysisGrid creative={audit.creative} liveCpl={liveCpl} />
               </section>
 
               {/* Demographics (age/gender CPL breakdown) */}
               {audit.demographics.brackets.some((b) => b.spend > 0) && (
                 <section id="demographics" className="col-span-12">
-                  <DemographicsPanel demographics={audit.demographics} targetCpl={audit.benchmarks.targetCpl} />
+                  <DemographicsPanel demographics={audit.demographics} targetCpl={liveCpl} />
                 </section>
               )}
 
+              {/* Canvas priority map */}
+              <section id="canvas-map" className="col-span-12">
+                <CanvasMapPanel />
+              </section>
+
               {/* Recommendations */}
               <section id="plan" className="col-span-12">
-                <RecommendationCards audit={audit} />
+                <RecommendationCards audit={audit} targetCpl={liveCpl} targetCtr={liveCtr} />
               </section>
             </div>
           </main>
 
           {/* Right controls rail */}
           <ControlsPanel
-            targetCpl={audit.benchmarks.targetCpl}
-            targetCtr={audit.benchmarks.targetCtr}
+            targetCpl={liveCpl}
+            targetCtr={liveCtr}
+            originalCpl={originalCpl}
+            originalCtr={originalCtr}
+            onLiveCpl={setLiveCpl}
+            onLiveCtr={setLiveCtr}
             industry={industry}
             industryOptions={industryOptions}
             onChange={updateParam}
+            onBatchChange={updateParams}
             isPending={isPending}
+            onReset={resetToOriginal}
+            reportingPeriod={audit.reportingPeriod}
           />
         </div>
       </ReportProvider>

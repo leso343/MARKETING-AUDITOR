@@ -29,12 +29,14 @@ function LogoDropzone({
   target,
   clientSlug,
   currentUrl,
+  previewHeight,
 }: {
   label: string;
   hint: string;
   target: "agency" | "client";
   clientSlug?: string;
   currentUrl?: string | null;
+  previewHeight: string;
 }) {
   const [state, setState] = useState<UploadState>("idle");
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentUrl ?? null);
@@ -94,26 +96,34 @@ function LogoDropzone({
       <div className="text-[11px] text-[var(--text-dim)]">{hint}</div>
 
       {previewUrl && state !== "error" ? (
-        /* ── preview ── */
-        <div className="flex items-center gap-4 rounded border border-[var(--border)] bg-black p-4">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={previewUrl}
-            alt="Logo preview"
-            className="h-16 max-w-[160px] object-contain"
-          />
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-1.5 font-mono text-[10px] text-[#4ade80] uppercase tracking-wider">
-              <CheckCircle2 className="h-3 w-3" />
-              Logo set
+        /* ── preview at actual sidebar size ── */
+        <div className="space-y-2">
+          <div className="font-mono text-[9px] uppercase tracking-widest text-[var(--text-dim)] opacity-60">
+            Preview — actual dashboard size
+          </div>
+          <div
+            className="flex items-center gap-5 rounded border border-[var(--border)] p-5"
+            style={{ background: "#060606" }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={previewUrl}
+              alt="Logo preview"
+              className={`${previewHeight} w-auto max-w-[210px] object-contain`}
+            />
+            <div className="flex flex-col gap-2 border-l border-[var(--border)] pl-5">
+              <div className="flex items-center gap-1.5 font-mono text-[10px] text-[#4ade80] uppercase tracking-wider">
+                <CheckCircle2 className="h-3 w-3" />
+                Logo set
+              </div>
+              <button
+                type="button"
+                onClick={() => { setPreviewUrl(null); setState("idle"); }}
+                className="font-mono text-[10px] uppercase tracking-wider text-[var(--text-dim)] hover:text-[var(--red)] transition-colors"
+              >
+                × Replace
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() => { setPreviewUrl(null); setState("idle"); }}
-              className="font-mono text-[10px] uppercase tracking-wider text-[var(--text-dim)] hover:text-[var(--red)] transition-colors"
-            >
-              × Replace
-            </button>
           </div>
         </div>
       ) : (
@@ -434,6 +444,7 @@ export default function SetupPage() {
                 label="Agency Logo"
                 hint="Displayed in report headers and the auditor dashboard."
                 target="agency"
+                previewHeight="h-28"
               />
 
               <div className="border-t border-[var(--border)]" />
@@ -443,6 +454,7 @@ export default function SetupPage() {
                 hint="Per-client logo saved alongside their CSV data. Enter the client slug below."
                 target="client"
                 clientSlug="take-charge-roofing"
+                previewHeight="h-32"
               />
 
               <div className="border-t border-[var(--border)] pt-4">

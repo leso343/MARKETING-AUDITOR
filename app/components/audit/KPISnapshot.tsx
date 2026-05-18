@@ -5,6 +5,11 @@ import { useLang } from "@/context/LangContext";
 
 interface Props {
   kpis: KpiCard[];
+  liveCpl?: number;
+  liveCtr?: number;
+  blendedCpl?: number;
+  weightedCtr?: number;
+  isPreview?: boolean;
 }
 
 const STATUS_DOT: Record<string, string> = {
@@ -59,8 +64,31 @@ function translateBenchmark(raw: string): string {
   return raw;
 }
 
-export default function KPISnapshot({ kpis }: Props) {
+export default function KPISnapshot({ kpis, liveCpl, liveCtr, blendedCpl, weightedCtr, isPreview }: Props) {
   const { t, plain } = useLang();
+
+  // Re-evaluate CPL and CTR status client-side so sliders update them live
+  function liveStatus(k: KpiCard): string {
+    if (k.label === "Control_CPL" && liveCpl != null && blendedCpl != null) {
+      if (blendedCpl <= liveCpl) return "ok";
+      return blendedCpl > liveCpl * 1.5 ? "critical" : "warn";
+    }
+    if (k.label === "Campaign_Efficiency" && liveCtr != null && weightedCtr != null) {
+      if (weightedCtr >= liveCtr) return "ok";
+      return weightedCtr < liveCtr * 0.5 ? "critical" : "warn";
+    }
+    return k.status;
+  }
+
+  function liveBenchmark(k: KpiCard): string {
+    if (k.label === "Control_CPL" && liveCpl != null) {
+      return `Target: $${liveCpl.toFixed(2)}`;
+    }
+    if (k.label === "Campaign_Efficiency" && liveCtr != null) {
+      return `Target Benchmark: ${liveCtr.toFixed(1)}%`;
+    }
+    return k.benchmark;
+  }
 
   return (
     <div className="overflow-x-auto pb-2">
@@ -70,13 +98,20 @@ export default function KPISnapshot({ kpis }: Props) {
             ? (PLAIN_DISPLAY[k.label] ?? k.label.replace(/_/g, " "))
             : (PRO_DISPLAY[k.label] ?? k.label);
           const displayUnit = plain ? (PLAIN_UNIT[k.unit] ?? k.unit) : k.unit;
-          const displayBenchmark = plain ? translateBenchmark(k.benchmark) : k.benchmark;
+          const status = liveStatus(k);
+          const benchmark = liveBenchmark(k);
+          const displayBenchmark = plain ? translateBenchmark(benchmark) : benchmark;
 
+          const isLiveCard = isPreview && (k.label === "Control_CPL" || k.label === "Campaign_Efficiency");
           return (
             <div
               key={k.label}
-              className="relative border border-[var(--border)] bg-[var(--card)] p-5 flex-shrink-0"
-              style={{ width: "clamp(148px, 13vw, 200px)" }}
+              className="relative border p-5 flex-shrink-0 transition-all duration-200"
+              style={{
+                width: "clamp(148px, 13vw, 200px)",
+                background: isLiveCard ? "rgba(251,191,36,0.06)" : "var(--card)",
+                borderColor: isLiveCard ? "rgba(251,191,36,0.4)" : "var(--border)",
+              }}
               title={k.label}
             >
               <div className="mb-3 flex items-center justify-between gap-2">
@@ -84,8 +119,8 @@ export default function KPISnapshot({ kpis }: Props) {
                   {displayLabel}
                 </div>
                 <div
-                  className="h-2 w-2 flex-shrink-0 rounded-full"
-                  style={{ background: STATUS_DOT[k.status] ?? "#666" }}
+                  className="h-2 w-2 flex-shrink-0 rounded-full transition-colors duration-200"
+                  style={{ background: STATUS_DOT[status] ?? "#666" }}
                 />
               </div>
               <div className="stat-val">{k.value}</div>

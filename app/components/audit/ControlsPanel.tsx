@@ -1,16 +1,25 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Settings2, Loader2, Languages } from "lucide-react";
 import { useLang } from "@/context/LangContext";
+
+import type { ReportingPeriod } from "@/engine/runAudit";
 
 interface Props {
   targetCpl: number;
   targetCtr: number;
+  originalCpl: number;
+  originalCtr: number;
+  onLiveCpl: (v: number) => void;
+  onLiveCtr: (v: number) => void;
   industry: string;
   industryOptions: { key: string; label: string }[];
   onChange: (key: string, value: string | null) => void;
+  onBatchChange: (updates: Record<string, string | null>) => void;
   isPending: boolean;
+  onReset: () => void;
+  reportingPeriod: ReportingPeriod;
 }
 
 const TIME_WINDOWS = [
@@ -23,22 +32,27 @@ const TIME_WINDOWS = [
 export default function ControlsPanel({
   targetCpl,
   targetCtr,
+  originalCpl,
+  originalCtr,
+  onLiveCpl,
+  onLiveCtr,
   industry,
   industryOptions,
   onChange,
+  onBatchChange,
   isPending,
+  onReset,
+  reportingPeriod,
 }: Props) {
   const { t, plain, toggle } = useLang();
-  const [localCpl, setLocalCpl] = useState(targetCpl);
-  const [localCtr, setLocalCtr] = useState(targetCtr);
   const [timeWindow, setTimeWindow] = useState("all");
 
-  useEffect(() => setLocalCpl(targetCpl), [targetCpl]);
-  useEffect(() => setLocalCtr(targetCtr), [targetCtr]);
+  const cplModified = targetCpl !== originalCpl;
+  const ctrModified = targetCtr !== originalCtr;
 
   return (
-    <aside className="hidden w-[280px] flex-shrink-0 border-l border-[var(--border)] bg-[var(--sidebar)] xl:block">
-      <div className="sticky top-0 px-6 py-9" style={{ maxHeight: "100vh", overflowY: "auto" }}>
+    <aside className="hidden w-[280px] flex-shrink-0 border-l border-[var(--border)] bg-[var(--sidebar)] xl:flex xl:flex-col" style={{ height: "100vh", overflowY: "auto" }}>
+      <div className="px-6 py-9">
         <div className="mb-6 flex items-center gap-2">
           <Settings2 className="h-4 w-4 text-[var(--red)]" />
           <div
@@ -88,9 +102,8 @@ export default function ControlsPanel({
             className="dark-select"
             value={industry}
             onChange={(e) => {
-              onChange("industry", e.target.value);
-              onChange("cpl", null);
-              onChange("ctr", null);
+              // Single batched replace — prevents the three individual calls from clobbering each other
+              onBatchChange({ industry: e.target.value, cpl: null, ctr: null });
             }}
           >
             {industryOptions.map((opt) => (
@@ -107,9 +120,16 @@ export default function ControlsPanel({
             <label className="font-mono text-[9px] uppercase tracking-[2px] text-[var(--text-dim)]">
               {t("Target CPL", "Target Cost Per Lead")}
             </label>
-            <span className="font-mono text-sm font-bold text-[var(--red)]">
-              ${localCpl}
-            </span>
+            <div className="flex items-baseline gap-1.5">
+              {cplModified && (
+                <span className="font-mono text-[9px] text-[var(--text-dim)] line-through opacity-50">
+                  ${originalCpl}
+                </span>
+              )}
+              <span className="font-mono text-sm font-bold" style={{ color: cplModified ? "#fbbf24" : "var(--red)" }}>
+                ${targetCpl}
+              </span>
+            </div>
           </div>
           <input
             type="range"
@@ -117,15 +137,18 @@ export default function ControlsPanel({
             min={20}
             max={200}
             step={5}
-            value={localCpl}
-            onChange={(e) => setLocalCpl(Number(e.target.value))}
-            onMouseUp={(e) => onChange("cpl", String((e.target as HTMLInputElement).value))}
-            onTouchEnd={(e) => onChange("cpl", String((e.target as HTMLInputElement).value))}
+            value={targetCpl}
+            onChange={(e) => onLiveCpl(Number(e.target.value))}
           />
           <div className="mt-1 flex justify-between font-mono text-[9px] text-[var(--text-dim)]">
             <span>$20</span>
             <span>$200</span>
           </div>
+          {cplModified && (
+            <div className="mt-1 font-mono text-[8px] text-[#fbbf24] opacity-70">
+              WHAT-IF — original: ${originalCpl}
+            </div>
+          )}
         </div>
 
         {/* Target CTR */}
@@ -134,9 +157,16 @@ export default function ControlsPanel({
             <label className="font-mono text-[9px] uppercase tracking-[2px] text-[var(--text-dim)]">
               {t("Target CTR", "Target Click Rate")}
             </label>
-            <span className="font-mono text-sm font-bold text-[var(--red)]">
-              {localCtr.toFixed(1)}%
-            </span>
+            <div className="flex items-baseline gap-1.5">
+              {ctrModified && (
+                <span className="font-mono text-[9px] text-[var(--text-dim)] line-through opacity-50">
+                  {originalCtr.toFixed(1)}%
+                </span>
+              )}
+              <span className="font-mono text-sm font-bold" style={{ color: ctrModified ? "#fbbf24" : "var(--red)" }}>
+                {targetCtr.toFixed(1)}%
+              </span>
+            </div>
           </div>
           <input
             type="range"
@@ -144,16 +174,30 @@ export default function ControlsPanel({
             min={0.5}
             max={5}
             step={0.1}
-            value={localCtr}
-            onChange={(e) => setLocalCtr(Number(e.target.value))}
-            onMouseUp={(e) => onChange("ctr", String((e.target as HTMLInputElement).value))}
-            onTouchEnd={(e) => onChange("ctr", String((e.target as HTMLInputElement).value))}
+            value={targetCtr}
+            onChange={(e) => onLiveCtr(Number(e.target.value))}
           />
           <div className="mt-1 flex justify-between font-mono text-[9px] text-[var(--text-dim)]">
             <span>0.5%</span>
             <span>5.0%</span>
           </div>
+          {ctrModified && (
+            <div className="mt-1 font-mono text-[8px] text-[#fbbf24] opacity-70">
+              WHAT-IF — original: {originalCtr.toFixed(1)}%
+            </div>
+          )}
         </div>
+
+        {/* Reset button — shown when in what-if mode */}
+        {(cplModified || ctrModified) && (
+          <button
+            type="button"
+            onClick={onReset}
+            className="mb-6 w-full border border-[#fbbf2440] py-2 font-mono text-[9px] uppercase tracking-wider text-[#fbbf24] transition-colors hover:border-[#fbbf24] hover:bg-[rgba(251,191,36,0.08)]"
+          >
+            ← Reset to original analysis
+          </button>
+        )}
 
         {/* Time window */}
         <div className="mb-6">
@@ -163,24 +207,41 @@ export default function ControlsPanel({
           <select
             className="dark-select"
             value={timeWindow}
-            onChange={(e) => setTimeWindow(e.target.value)}
+            onChange={(e) => {
+              setTimeWindow(e.target.value);
+              onChange("days", e.target.value === "all" ? null : e.target.value);
+            }}
           >
             {TIME_WINDOWS.map((w) => (
               <option key={w.key} value={w.key}>{w.label}</option>
             ))}
           </select>
-          <div className="mt-2 font-mono text-[8px] uppercase tracking-wider text-[var(--text-dim)]">
-            {t(
-              "Applies once date-stamped CSVs are imported.",
-              "Works once you import dated exports.",
-            )}
-          </div>
+
+          {/* Reporting period context */}
+          {reportingPeriod.totalDays > 0 && (
+            <div className="mt-2 space-y-1">
+              <div className="font-mono text-[8px] text-[var(--text-dim)]">
+                Export: {reportingPeriod.startDate} → {reportingPeriod.endDate}
+                <span className="ml-1 opacity-60">({reportingPeriod.totalDays}d)</span>
+              </div>
+              {reportingPeriod.isScaled ? (
+                <div className="font-mono text-[8px]" style={{ color: "#fbbf24" }}>
+                  ⚡ Scaled to est. {reportingPeriod.filterDays}d
+                  <span className="opacity-60"> ({(reportingPeriod.scaleFactor * 100).toFixed(0)}% of export)</span>
+                </div>
+              ) : (
+                <div className="font-mono text-[8px] text-[var(--text-dim)] opacity-60">
+                  Showing full {reportingPeriod.totalDays}-day export
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
-        <div className="mt-8 border-t border-[var(--border)] pt-4 font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)]">
+        <div className="mt-8 border-t border-[var(--border)] pt-4 font-mono text-[8px] uppercase tracking-wider text-[var(--text-dim)]">
           {t(
-            "Drag sliders → release to recompute. URL is shareable.",
-            "Adjust sliders to update the analysis. URL saves your settings.",
+            "CPL/CTR sliders are what-if tools — drag to explore, reset to return to original data.",
+            "Slide to explore scenarios. Original data is always preserved — hit Reset to go back.",
           )}
         </div>
       </div>

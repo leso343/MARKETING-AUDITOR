@@ -81,7 +81,11 @@ export default function ExecutiveSummary({ audit }: Props) {
             className="text-3xl font-bold tracking-tight"
             style={{ fontFamily: "var(--font-head)" }}
           >
-            {t("Three highest-impact findings", "Top 3 Issues to Fix")}
+            {findings.length === 0
+              ? t("Account Health Check", "No Issues Found")
+              : findings.length === 1
+              ? t("Highest-impact finding", "Top Issue to Fix")
+              : t(`${findings.length} highest-impact findings`, `Top ${findings.length} Issues to Fix`)}
           </h2>
           <p className="mt-1 text-xs text-[var(--text-dim)]">
             {t(

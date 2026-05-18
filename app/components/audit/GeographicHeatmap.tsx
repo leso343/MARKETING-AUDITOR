@@ -6,6 +6,7 @@ import { useReport } from "@/context/ReportContext";
 
 interface Props {
   geo: GeographicWasteResult;
+  liveCpl?: number;
 }
 
 const STATUS_BG: Record<string, string> = {
@@ -28,7 +29,7 @@ const PLAIN_STATUS: Record<string, string> = {
   leak:  "WASTED",
 };
 
-export default function GeographicHeatmap({ geo }: Props) {
+export default function GeographicHeatmap({ geo, liveCpl }: Props) {
   const { t, plain } = useLang();
   const { openReport } = useReport();
   const maxSpend = Math.max(...geo.regions.map((r) => r.spend), 1);
@@ -113,6 +114,14 @@ export default function GeographicHeatmap({ geo }: Props) {
                 <td className="text-right font-mono" style={{ fontSize: 11, padding: "10px 8px" }}>{r.conversions}</td>
                 <td className="text-right font-mono" style={{ fontSize: 11, padding: "10px 8px" }}>
                   {r.cpl > 0 ? `$${r.cpl.toFixed(2)}` : "—"}
+                  {liveCpl && r.cpl > 0 && (
+                    <div
+                      className="mt-0.5 font-mono text-[8px] font-bold"
+                      style={{ color: r.cpl <= liveCpl ? "#4ade80" : "#ff0000" }}
+                    >
+                      {r.cpl <= liveCpl ? `✓ below $${liveCpl} target` : `✗ above $${liveCpl} target`}
+                    </div>
+                  )}
                 </td>
                 <td style={{ verticalAlign: "middle", padding: "10px 8px" }}>
                   <span
