@@ -16,7 +16,10 @@ import CreativeAnalysisGrid from "@/components/audit/CreativeAnalysisGrid";
 import DemographicsPanel from "@/components/audit/DemographicsPanel";
 import RecommendationCards from "@/components/audit/RecommendationCards";
 import AuditRibbon from "@/components/audit/AuditRibbon";
+import dynamic from "next/dynamic";
 import { Languages } from "lucide-react";
+
+const CanvasMapPanel = dynamic(() => import("@/components/audit/CanvasMapPanel"), { ssr: false });
 
 interface Props {
   audit: AuditResult;
@@ -158,6 +161,11 @@ export default function AuditDashboard({
                   <DemographicsPanel demographics={audit.demographics} targetCpl={audit.benchmarks.targetCpl} />
                 </section>
               )}
+
+              {/* Canvas priority map */}
+              <section id="canvas-map" className="col-span-12">
+                <CanvasMapPanel />
+              </section>
 
               {/* Recommendations */}
               <section id="plan" className="col-span-12">
