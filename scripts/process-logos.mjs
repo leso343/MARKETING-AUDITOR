@@ -1,9 +1,13 @@
 /**
- * Removes white/near-white backgrounds from logos and copies them
- * into the correct public/ locations for the dashboard.
+ * Logo background removal + copy to public/
+ *
+ * S&A  — flood-fill from edges removes ONLY the outer white ring;
+ *         the grey "S&A" watermark letters inside are preserved.
+ * TCR  — flood-fill removes the solid white rectangle background
+ *         from the flat version (clean crisp result).
  */
 import { createRequire } from 'module';
-import { copyFileSync, mkdirSync } from 'fs';
+import { mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -15,70 +19,69 @@ const root = join(__dirname, '..');
 mkdirSync(join(root, 'public/logos'), { recursive: true });
 mkdirSync(join(root, 'public/csvs/take-charge-roofing'), { recursive: true });
 
-// ── S&A Marketing logo: remove white background ──────────────────────────────
-const snaIn  = 'C:/Users/Lester/blank-pages/sa-marketing-logo.png';
-const snaOut = join(root, 'public/logos/agency.png');
+/** BFS flood-fill from all 4 image edges, making near-white pixels transparent. */
+function floodFillEdges(data, width, height, channels, threshold = 240) {
+  const visited = new Uint8Array(width * height);
 
-await sharp(snaIn)
-  .ensureAlpha()
-  .raw()
-  .toBuffer({ resolveWithObject: true })
-  .then(({ data, info }) => {
-    const { width, height, channels } = info;
-    const visited = new Uint8Array(width * height);
+  const isLight = (idx) => {
+    const r = data[idx * channels], g = data[idx * channels + 1], b = data[idx * channels + 2];
+    return r >= threshold && g >= threshold && b >= threshold;
+  };
 
-    // BFS flood-fill from all 4 edges — removes connected background
-    const isBackground = (idx) => {
-      const r = data[idx * channels];
-      const g = data[idx * channels + 1];
-      const b = data[idx * channels + 2];
-      return r > 180 && g > 180 && b > 180; // catches white + light grey
-    };
+  const queue = [];
+  const seed = (x, y) => {
+    const idx = y * width + x;
+    if (!visited[idx] && isLight(idx)) { visited[idx] = 1; queue.push(idx); }
+  };
 
-    const queue = [];
-    const seed = (x, y) => {
-      const idx = y * width + x;
-      if (!visited[idx] && isBackground(idx)) { visited[idx] = 1; queue.push(idx); }
-    };
-    for (let x = 0; x < width; x++) { seed(x, 0); seed(x, height - 1); }
-    for (let y = 0; y < height; y++) { seed(0, y); seed(width - 1, y); }
+  for (let x = 0; x < width; x++) { seed(x, 0); seed(x, height - 1); }
+  for (let y = 0; y < height; y++) { seed(0, y); seed(width - 1, y); }
 
-    while (queue.length) {
-      const idx = queue.pop();
-      data[idx * channels + 3] = 0;
-      const x = idx % width, y = Math.floor(idx / width);
-      for (const [nx, ny] of [[x-1,y],[x+1,y],[x,y-1],[x,y+1]]) {
-        if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
-          const nidx = ny * width + nx;
-          if (!visited[nidx] && isBackground(nidx)) { visited[nidx] = 1; queue.push(nidx); }
-        }
+  while (queue.length) {
+    const idx = queue.pop();
+    // Soft-fade at the anti-aliased edge for smooth blending
+    const r = data[idx * channels], g = data[idx * channels + 1], b = data[idx * channels + 2];
+    const brightness = Math.min(r, g, b);
+    const fade = Math.max(0, (brightness - (threshold - 20)) / 20);
+    data[idx * channels + 3] = Math.round(data[idx * channels + 3] * (1 - fade));
+
+    const x = idx % width, y = Math.floor(idx / width);
+    for (const [nx, ny] of [[x-1,y],[x+1,y],[x,y-1],[x,y+1]]) {
+      if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+        const nidx = ny * width + nx;
+        if (!visited[nidx] && isLight(nidx)) { visited[nidx] = 1; queue.push(nidx); }
       }
     }
+  }
+}
 
-    // Second pass: remove any remaining grey/white pixels (the interior "S&A" watermark)
-    // Targets pixels with high brightness AND low colour saturation (grey tones)
-    for (let i = 0; i < width * height; i++) {
-      const r = data[i * channels], g = data[i * channels + 1], b = data[i * channels + 2];
-      const brightness = Math.max(r, g, b);
-      const saturation = brightness - Math.min(r, g, b);
-      if (brightness > 160 && saturation < 60) {
-        // Smooth fade at the threshold to avoid hard edges
-        const fade = Math.min(1, (brightness - 160) / 60);
-        data[i * channels + 3] = Math.round(data[i * channels + 3] * (1 - fade));
-      }
-    }
+async function removeBg(inputPath, outputPath, threshold = 240) {
+  const { data, info } = await sharp(inputPath)
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
 
-    return sharp(data, { raw: { width, height, channels } }).png().toFile(snaOut);
-  });
+  floodFillEdges(data, info.width, info.height, info.channels, threshold);
 
-console.log('✓ S&A Marketing logo  →', snaOut.replace(root, ''));
+  await sharp(data, { raw: { width: info.width, height: info.height, channels: info.channels } })
+    .png({ compressionLevel: 8 })
+    .toFile(outputPath);
+}
 
-// ── Take Charge Roofing logo: already transparent, just copy ────────────────
-const tcrIn  = 'C:/Users/Lester/Downloads/report_assets/take_charge_logo.png';
-const tcrOut = join(root, 'public/csvs/take-charge-roofing/logo.png');
+// ── S&A Marketing: edge-flood only (threshold 245 = near-pure-white)
+// Grey "S&A" watermark letters (~160-200 brightness) are NOT removed.
+await removeBg(
+  'C:/Users/Lester/blank-pages/sa-marketing-logo.png',
+  join(root, 'public/logos/agency.png'),
+  245
+);
+console.log('✓ S&A Marketing logo saved');
 
-// Re-export via sharp to normalise the file (strip metadata, optimise)
-await sharp(tcrIn).png({ compressionLevel: 8 }).toFile(tcrOut);
-console.log('✓ Take Charge Roofing →', tcrOut.replace(root, ''));
-
-console.log('\nDone. Both logos are ready.');
+// ── Take Charge Roofing: flat version, solid white bg → flood-fill
+await removeBg(
+  'C:/Users/Lester/.gemini/antigravity/scratch/report_assets/take_charge_logo_clean.png',
+  join(root, 'public/csvs/take-charge-roofing/logo.png'),
+  238
+);
+console.log('✓ Take Charge Roofing logo saved');
+console.log('\nDone.');

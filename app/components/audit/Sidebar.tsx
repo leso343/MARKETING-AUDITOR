@@ -115,7 +115,7 @@ export default function Sidebar({ clientName, clientSubtitle, primaryLeak, pdfPa
       {/* Agency logo */}
       <div className="mb-10">
         {agencyLogo ? (
-          <img src={agencyLogo} alt="Agency" className="h-8 w-auto object-contain" />
+          <img src={agencyLogo} alt="Agency" className="h-14 w-auto max-w-[200px] object-contain" />
         ) : (
           <AgencyLogoSVG />
         )}
@@ -147,7 +147,7 @@ export default function Sidebar({ clientName, clientSubtitle, primaryLeak, pdfPa
         {/* Client logo block */}
         <div className="mb-4">
           {clientLogo ? (
-            <img src={clientLogo} alt={clientName} className="h-9 w-auto max-w-full object-contain" />
+            <img src={clientLogo} alt={clientName} className="h-16 w-auto max-w-[210px] object-contain" />
           ) : (
             <ClientLogoSVG name={clientName} subtitle={clientSubtitle} />
           )}
@@ -193,7 +193,7 @@ export default function Sidebar({ clientName, clientSubtitle, primaryLeak, pdfPa
       >
         <div className="flex items-center">
           {agencyLogo ? (
-            <img src={agencyLogo} alt="Agency" className="h-6 w-auto object-contain" />
+            <img src={agencyLogo} alt="Agency" className="h-8 w-auto object-contain" />
           ) : (
             <AgencyLogoSVG compact />
           )}
