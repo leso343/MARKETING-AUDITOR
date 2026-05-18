@@ -20,11 +20,59 @@ import { useLang } from "@/context/LangContext";
 
 interface Props {
   clientName: string;
+  clientSubtitle?: string;
   primaryLeak: string;
   pdfPath?: string;
+  agencyLogo?: string;
+  clientLogo?: string;
 }
 
-export default function Sidebar({ clientName, primaryLeak, pdfPath }: Props) {
+function AgencyLogoSVG({ compact }: { compact?: boolean }) {
+  if (compact) {
+    return (
+      <div className="flex items-center gap-1.5">
+        <span className="text-lg font-black text-white leading-none" style={{ fontFamily: "var(--font-head)", letterSpacing: -1 }}>SNA</span>
+        <span className="inline-block w-[4px] h-[4px] bg-[var(--red)] flex-shrink-0" />
+        <span className="font-black text-[var(--red)] uppercase" style={{ fontFamily: "var(--font-head)", fontSize: 9, letterSpacing: 1.5 }}>Forensic</span>
+      </div>
+    );
+  }
+  return (
+    <div className="flex items-end gap-2">
+      <span className="text-2xl font-black text-white leading-none" style={{ fontFamily: "var(--font-head)", letterSpacing: -1.5 }}>SNA</span>
+      <span className="inline-block w-[5px] h-[5px] bg-[var(--red)] mb-[3px] flex-shrink-0" />
+      <div className="flex flex-col leading-tight">
+        <span className="font-black text-white uppercase" style={{ fontFamily: "var(--font-head)", fontSize: 8, letterSpacing: 2 }}>FORENSIC</span>
+        <span className="text-[#9CA3AF] uppercase" style={{ fontFamily: "var(--font-mono)", fontSize: 6, letterSpacing: 1.5 }}>MARKETING ENGINE</span>
+      </div>
+    </div>
+  );
+}
+
+function ClientLogoSVG({ name, subtitle }: { name: string; subtitle?: string }) {
+  return (
+    <div>
+      <div className="mb-0.5">
+        <span
+          className="inline-block border px-2 py-0.5 font-mono text-[7px] uppercase tracking-[2px] text-[var(--red)]"
+          style={{ borderColor: "rgba(220,38,38,0.4)", background: "rgba(220,38,38,0.08)" }}
+        >
+          CLIENT
+        </span>
+      </div>
+      <div className="font-black text-white leading-tight" style={{ fontFamily: "var(--font-head)", fontSize: 14, letterSpacing: 0.2 }}>
+        {name.toUpperCase()}
+      </div>
+      {subtitle && (
+        <div className="mt-0.5 text-[#9CA3AF] uppercase" style={{ fontFamily: "var(--font-mono)", fontSize: 7, letterSpacing: 2 }}>
+          {subtitle}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function Sidebar({ clientName, clientSubtitle, primaryLeak, pdfPath, agencyLogo, clientLogo }: Props) {
   const { t } = useLang();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -64,11 +112,13 @@ export default function Sidebar({ clientName, primaryLeak, pdfPath }: Props) {
         {t("All clients", "All clients")}
       </Link>
 
-      <div
-        className="mb-10 text-base font-extrabold uppercase tracking-tight text-[var(--red)]"
-        style={{ fontFamily: "var(--font-head)" }}
-      >
-        {t("SNA_FORENSIC", "SNA Forensic")}
+      {/* Agency logo */}
+      <div className="mb-10">
+        {agencyLogo ? (
+          <img src={agencyLogo} alt="Agency" className="h-8 w-auto object-contain" />
+        ) : (
+          <AgencyLogoSVG />
+        )}
       </div>
 
       {navGroups.map((g) => (
@@ -94,10 +144,14 @@ export default function Sidebar({ clientName, primaryLeak, pdfPath }: Props) {
       ))}
 
       <div className="mt-auto border-t border-[var(--border)] pt-5">
-        <div className="mb-1 font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)]">
-          {t("Client", "Client")}
+        {/* Client logo block */}
+        <div className="mb-4">
+          {clientLogo ? (
+            <img src={clientLogo} alt={clientName} className="h-9 w-auto max-w-full object-contain" />
+          ) : (
+            <ClientLogoSVG name={clientName} subtitle={clientSubtitle} />
+          )}
         </div>
-        <div className="text-sm font-bold text-white">{clientName}</div>
         <div className="mt-3 font-mono text-[9px] uppercase tracking-wider text-[var(--red)]">
           {t("Primary leak", "Biggest issue")}
         </div>
@@ -137,11 +191,12 @@ export default function Sidebar({ clientName, primaryLeak, pdfPath }: Props) {
         className="fixed left-0 right-0 top-0 z-40 flex items-center justify-between border-b border-[var(--border)] px-4 py-3 lg:hidden"
         style={{ background: "rgba(6,6,6,0.97)", backdropFilter: "blur(8px)" }}
       >
-        <div
-          className="text-sm font-extrabold uppercase tracking-tight text-[var(--red)]"
-          style={{ fontFamily: "var(--font-head)" }}
-        >
-          {t("SNA_FORENSIC", "SNA Forensic")}
+        <div className="flex items-center">
+          {agencyLogo ? (
+            <img src={agencyLogo} alt="Agency" className="h-6 w-auto object-contain" />
+          ) : (
+            <AgencyLogoSVG compact />
+          )}
         </div>
         <button
           onClick={() => setMobileOpen((v) => !v)}

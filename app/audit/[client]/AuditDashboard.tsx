@@ -21,6 +21,9 @@ import { Languages } from "lucide-react";
 interface Props {
   audit: AuditResult;
   clientSlug: string;
+  clientSubtitle?: string;
+  agencyLogo?: string;
+  clientLogo?: string;
   industry: string;
   industryOptions: { key: string; label: string }[];
 }
@@ -61,6 +64,9 @@ function ReportOpenButton() {
 export default function AuditDashboard({
   audit,
   clientSlug,
+  clientSubtitle,
+  agencyLogo,
+  clientLogo,
   industry,
   industryOptions,
 }: Props) {
@@ -86,8 +92,11 @@ export default function AuditDashboard({
           {/* Left nav rail */}
           <Sidebar
             clientName={audit.clientName}
+            clientSubtitle={clientSubtitle}
             primaryLeak={audit.funnel.primaryLeak}
             pdfPath={pdfPath}
+            agencyLogo={agencyLogo}
+            clientLogo={clientLogo}
           />
 
           {/* Center column — pt-[52px] offsets the fixed mobile nav bar */}
