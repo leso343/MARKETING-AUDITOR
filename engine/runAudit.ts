@@ -27,6 +27,7 @@ export interface RunAuditOpts {
     targetCpl: number;
     targetCtr: number;
   };
+  daysFilter?: number;
 }
 
 export interface AuditResult {

@@ -85,6 +85,11 @@ export default function AuditDashboard({
   useEffect(() => { setLiveCpl(audit.benchmarks.targetCpl); }, [audit.benchmarks.targetCpl]);
   useEffect(() => { setLiveCtr(audit.benchmarks.targetCtr); }, [audit.benchmarks.targetCtr]);
 
+  // The benchmarks the server actually used — stays fixed until URL changes
+  const originalCpl = audit.benchmarks.targetCpl;
+  const originalCtr = audit.benchmarks.targetCtr;
+  const isPreview = liveCpl !== originalCpl || liveCtr !== originalCtr;
+
   const updateParam = (key: string, value: string | null) => {
     const next = new URLSearchParams(search.toString());
     if (value === null || value === "") next.delete(key);
@@ -92,6 +97,11 @@ export default function AuditDashboard({
     startTransition(() => {
       router.replace(`/audit/${clientSlug}?${next.toString()}`, { scroll: false });
     });
+  };
+
+  const resetToOriginal = () => {
+    setLiveCpl(originalCpl);
+    setLiveCtr(originalCtr);
   };
 
   const pdfPath = "/SNA_Marketing_TakeCharge_Audit.pdf";
@@ -133,6 +143,28 @@ export default function AuditDashboard({
               </div>
             </header>
 
+            {/* Preview mode banner — shown when sliders differ from server-rendered benchmarks */}
+            {isPreview && (
+              <div
+                className="flex flex-wrap items-center justify-between gap-3 border-b border-[#fbbf2440] px-4 py-2.5 sm:px-10"
+                style={{ background: "rgba(251,191,36,0.06)" }}
+              >
+                <div className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-wider text-[#fbbf24]">
+                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#fbbf24]" />
+                  WHAT-IF PREVIEW — CPL target ${liveCpl} · CTR target {liveCtr.toFixed(1)}%
+                  <span className="text-[#fbbf2480]">
+                    (original analysis: CPL ${originalCpl} · CTR {originalCtr.toFixed(1)}%)
+                  </span>
+                </div>
+                <button
+                  onClick={resetToOriginal}
+                  className="border border-[#fbbf2440] px-3 py-1 font-mono text-[9px] uppercase tracking-wider text-[#fbbf24] transition-colors hover:border-[#fbbf24] hover:bg-[rgba(251,191,36,0.1)]"
+                >
+                  ← Reset to original
+                </button>
+              </div>
+            )}
+
             {/* Fact ribbon (below sticky header, not sticky itself) */}
             <AuditRibbon audit={audit} />
 
@@ -144,7 +176,13 @@ export default function AuditDashboard({
 
               {/* KPI snapshot */}
               <section className="col-span-12">
-                <KPISnapshot kpis={audit.spend.kpis} />
+                <KPISnapshot
+                  kpis={audit.spend.kpis}
+                  liveCpl={liveCpl}
+                  liveCtr={liveCtr}
+                  blendedCpl={audit.spend.blendedCpl}
+                  weightedCtr={audit.spend.weightedCtr}
+                />
               </section>
 
               {/* Funnel + Tracking */}
@@ -186,12 +224,15 @@ export default function AuditDashboard({
           <ControlsPanel
             targetCpl={liveCpl}
             targetCtr={liveCtr}
+            originalCpl={originalCpl}
+            originalCtr={originalCtr}
             onLiveCpl={setLiveCpl}
             onLiveCtr={setLiveCtr}
             industry={industry}
             industryOptions={industryOptions}
             onChange={updateParam}
             isPending={isPending}
+            onReset={resetToOriginal}
           />
         </div>
       </ReportProvider>

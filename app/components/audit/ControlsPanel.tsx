@@ -7,12 +7,15 @@ import { useLang } from "@/context/LangContext";
 interface Props {
   targetCpl: number;
   targetCtr: number;
+  originalCpl: number;
+  originalCtr: number;
   onLiveCpl: (v: number) => void;
   onLiveCtr: (v: number) => void;
   industry: string;
   industryOptions: { key: string; label: string }[];
   onChange: (key: string, value: string | null) => void;
   isPending: boolean;
+  onReset: () => void;
 }
 
 const TIME_WINDOWS = [
@@ -25,18 +28,21 @@ const TIME_WINDOWS = [
 export default function ControlsPanel({
   targetCpl,
   targetCtr,
+  originalCpl,
+  originalCtr,
   onLiveCpl,
   onLiveCtr,
   industry,
   industryOptions,
   onChange,
   isPending,
+  onReset,
 }: Props) {
   const { t, plain, toggle } = useLang();
   const [timeWindow, setTimeWindow] = useState("all");
 
-  // localCpl/localCtr are now owned by the parent (liveCpl/liveCtr in AuditDashboard)
-  // We just read targetCpl/targetCtr and forward changes up immediately
+  const cplModified = targetCpl !== originalCpl;
+  const ctrModified = targetCtr !== originalCtr;
 
   return (
     <aside className="hidden w-[280px] flex-shrink-0 border-l border-[var(--border)] bg-[var(--sidebar)] xl:block">
@@ -109,9 +115,16 @@ export default function ControlsPanel({
             <label className="font-mono text-[9px] uppercase tracking-[2px] text-[var(--text-dim)]">
               {t("Target CPL", "Target Cost Per Lead")}
             </label>
-            <span className="font-mono text-sm font-bold text-[var(--red)]">
-              ${targetCpl}
-            </span>
+            <div className="flex items-baseline gap-1.5">
+              {cplModified && (
+                <span className="font-mono text-[9px] text-[var(--text-dim)] line-through opacity-50">
+                  ${originalCpl}
+                </span>
+              )}
+              <span className="font-mono text-sm font-bold" style={{ color: cplModified ? "#fbbf24" : "var(--red)" }}>
+                ${targetCpl}
+              </span>
+            </div>
           </div>
           <input
             type="range"
@@ -120,10 +133,7 @@ export default function ControlsPanel({
             max={200}
             step={5}
             value={targetCpl}
-            onChange={(e) => {
-              const v = Number(e.target.value);
-              onLiveCpl(v);                          // instant — charts update NOW
-            }}
+            onChange={(e) => onLiveCpl(Number(e.target.value))}
             onMouseUp={(e) => onChange("cpl", (e.target as HTMLInputElement).value)}
             onTouchEnd={(e) => onChange("cpl", (e.target as HTMLInputElement).value)}
           />
@@ -131,6 +141,11 @@ export default function ControlsPanel({
             <span>$20</span>
             <span>$200</span>
           </div>
+          {cplModified && (
+            <div className="mt-1 font-mono text-[8px] text-[#fbbf24] opacity-70">
+              WHAT-IF — original: ${originalCpl}
+            </div>
+          )}
         </div>
 
         {/* Target CTR */}
@@ -139,9 +154,16 @@ export default function ControlsPanel({
             <label className="font-mono text-[9px] uppercase tracking-[2px] text-[var(--text-dim)]">
               {t("Target CTR", "Target Click Rate")}
             </label>
-            <span className="font-mono text-sm font-bold text-[var(--red)]">
-              {targetCtr.toFixed(1)}%
-            </span>
+            <div className="flex items-baseline gap-1.5">
+              {ctrModified && (
+                <span className="font-mono text-[9px] text-[var(--text-dim)] line-through opacity-50">
+                  {originalCtr.toFixed(1)}%
+                </span>
+              )}
+              <span className="font-mono text-sm font-bold" style={{ color: ctrModified ? "#fbbf24" : "var(--red)" }}>
+                {targetCtr.toFixed(1)}%
+              </span>
+            </div>
           </div>
           <input
             type="range"
@@ -150,10 +172,7 @@ export default function ControlsPanel({
             max={5}
             step={0.1}
             value={targetCtr}
-            onChange={(e) => {
-              const v = Number(e.target.value);
-              onLiveCtr(v);                          // instant — charts update NOW
-            }}
+            onChange={(e) => onLiveCtr(Number(e.target.value))}
             onMouseUp={(e) => onChange("ctr", (e.target as HTMLInputElement).value)}
             onTouchEnd={(e) => onChange("ctr", (e.target as HTMLInputElement).value)}
           />
@@ -161,7 +180,23 @@ export default function ControlsPanel({
             <span>0.5%</span>
             <span>5.0%</span>
           </div>
+          {ctrModified && (
+            <div className="mt-1 font-mono text-[8px] text-[#fbbf24] opacity-70">
+              WHAT-IF — original: {originalCtr.toFixed(1)}%
+            </div>
+          )}
         </div>
+
+        {/* Reset button — shown when in what-if mode */}
+        {(cplModified || ctrModified) && (
+          <button
+            type="button"
+            onClick={onReset}
+            className="mb-6 w-full border border-[#fbbf2440] py-2 font-mono text-[9px] uppercase tracking-wider text-[#fbbf24] transition-colors hover:border-[#fbbf24] hover:bg-[rgba(251,191,36,0.08)]"
+          >
+            ← Reset to original analysis
+          </button>
+        )}
 
         {/* Time window */}
         <div className="mb-6">
@@ -171,7 +206,10 @@ export default function ControlsPanel({
           <select
             className="dark-select"
             value={timeWindow}
-            onChange={(e) => setTimeWindow(e.target.value)}
+            onChange={(e) => {
+              setTimeWindow(e.target.value);
+              onChange("days", e.target.value === "all" ? null : e.target.value);
+            }}
           >
             {TIME_WINDOWS.map((w) => (
               <option key={w.key} value={w.key}>{w.label}</option>
@@ -179,8 +217,8 @@ export default function ControlsPanel({
           </select>
           <div className="mt-2 font-mono text-[8px] uppercase tracking-wider text-[var(--text-dim)]">
             {t(
-              "Applies once date-stamped CSVs are imported.",
-              "Works once you import dated exports.",
+              "Filters rows by date column in your CSV exports.",
+              "Filters data to the selected date window.",
             )}
           </div>
         </div>
