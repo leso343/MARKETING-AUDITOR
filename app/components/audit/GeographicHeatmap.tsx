@@ -55,22 +55,21 @@ export default function GeographicHeatmap({ geo }: Props) {
         />
       </div>
 
-      <div className="overflow-x-auto">
-      <table className="data-table w-full" style={{ tableLayout: "fixed", minWidth: "420px" }}>
+      <table className="data-table w-full" style={{ tableLayout: "fixed" }}>
         <colgroup>
-          <col style={{ width: "30%" }} />
+          <col style={{ width: "28%" }} />
           <col style={{ width: "22%" }} />
           <col style={{ width: "10%" }} />
           <col style={{ width: "18%" }} />
-          <col style={{ width: "20%" }} />
+          <col style={{ width: "22%" }} />
         </colgroup>
         <thead>
           <tr>
-            <th>{t("Region", "Location")}</th>
-            <th className="text-right">{t("Spend", "Spent")}</th>
-            <th className="text-right">{t("Leads", "Leads")}</th>
-            <th className="text-right">{t("CPL", "Cost/Lead")}</th>
-            <th>{t("Status", "Result")}</th>
+            <th style={{ padding: "10px 8px" }}>{t("Region", "Location")}</th>
+            <th className="text-right" style={{ padding: "10px 8px" }}>{t("Spend", "Spent")}</th>
+            <th className="text-right" style={{ padding: "10px 8px" }}>{t("Leads", "Leads")}</th>
+            <th className="text-right" style={{ padding: "10px 8px" }}>{t("CPL", "Cost/Lead")}</th>
+            <th style={{ padding: "10px 8px" }}>{t("Status", "Result")}</th>
           </tr>
         </thead>
         <tbody>
@@ -96,13 +95,13 @@ export default function GeographicHeatmap({ geo }: Props) {
                 style={{ background: STATUS_BG[r.status] }}
               >
                 <td
-                  className="font-mono text-xs font-bold"
-                  style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                  className="font-mono font-bold"
+                  style={{ fontSize: 11, padding: "10px 8px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
                   title={r.name}
                 >
                   {r.name}
                 </td>
-                <td className="text-right font-mono">
+                <td className="text-right font-mono" style={{ fontSize: 11, padding: "10px 8px" }}>
                   ${r.spend.toLocaleString()}
                   <div className="mt-1 h-[2px] w-full bg-[#111]">
                     <div
@@ -111,11 +110,11 @@ export default function GeographicHeatmap({ geo }: Props) {
                     />
                   </div>
                 </td>
-                <td className="text-right font-mono">{r.conversions}</td>
-                <td className="text-right font-mono">
+                <td className="text-right font-mono" style={{ fontSize: 11, padding: "10px 8px" }}>{r.conversions}</td>
+                <td className="text-right font-mono" style={{ fontSize: 11, padding: "10px 8px" }}>
                   {r.cpl > 0 ? `$${r.cpl.toFixed(2)}` : "—"}
                 </td>
-                <td style={{ verticalAlign: "middle" }}>
+                <td style={{ verticalAlign: "middle", padding: "10px 8px" }}>
                   <span
                     className="status-pill"
                     style={{
@@ -124,6 +123,7 @@ export default function GeographicHeatmap({ geo }: Props) {
                       whiteSpace: "normal",
                       lineHeight: 1.2,
                       wordBreak: "break-word",
+                      fontSize: 9,
                     }}
                   >
                     {statusLabel}
@@ -134,7 +134,6 @@ export default function GeographicHeatmap({ geo }: Props) {
           })}
         </tbody>
       </table>
-      </div>
 
       <div className="insight-box">
         <b>{t("RECOMMENDATION:", "SUGGESTED ACTION:")}</b> {geo.recommendation}
