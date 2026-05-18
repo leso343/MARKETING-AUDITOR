@@ -32,5 +32,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts.bak
 
+# API credentials (never commit)
+config/
+
 # generated reports
 reports/*.html

@@ -6,7 +6,7 @@
  * button is stubbed for the multi-tenant future.
  */
 import Link from "next/link";
-import { Activity, Building2, Plus } from "lucide-react";
+import { Activity, Building2, Plus, Settings2 } from "lucide-react";
 
 export default function Home() {
   return (
@@ -29,11 +29,20 @@ export default function Home() {
             then quantifies the dollar impact.
           </p>
         </div>
-        <div className="hidden items-center gap-2 lg:flex">
-          <div className="pulse" />
-          <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--red)]">
-            Engine: Online
-          </span>
+        <div className="flex items-center gap-4">
+          <div className="hidden items-center gap-2 lg:flex">
+            <div className="pulse" />
+            <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--red)]">
+              Engine: Online
+            </span>
+          </div>
+          <Link
+            href="/setup"
+            className="flex items-center gap-1.5 rounded border border-[var(--border)] px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)] transition-all hover:border-[var(--red)] hover:text-[var(--red)]"
+          >
+            <Settings2 className="h-3 w-3" />
+            Setup
+          </Link>
         </div>
       </div>
 
