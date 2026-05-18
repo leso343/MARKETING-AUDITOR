@@ -516,17 +516,12 @@ export default function RecommendationCards({ audit, targetCpl, targetCtr }: Pro
                   paddingAngle={2}
                   dataKey="value"
                   startAngle={90} endAngle={-270}
+                  isAnimationActive={false}
                 >
                   {budgetSegments.map((seg, i) => (
                     <Cell key={i} fill={seg.color} opacity={0.85} />
                   ))}
                 </Pie>
-                <Tooltip
-                  formatter={(v: number) => [`$${v.toLocaleString()}`, ""]}
-                  contentStyle={{ background: "#111", border: "1px solid #333", fontFamily: "monospace", fontSize: 10 }}
-                  itemStyle={{ color: "#fff" }}
-                  labelStyle={{ color: "#888" }}
-                />
               </PieChart>
               <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
                 <div className="font-mono text-[7px] uppercase tracking-wider text-[var(--text-dim)]">actual</div>
@@ -566,17 +561,12 @@ export default function RecommendationCards({ audit, targetCpl, targetCtr }: Pro
                   paddingAngle={2}
                   dataKey="value"
                   startAngle={90} endAngle={-270}
+                  isAnimationActive={false}
                 >
                   <Cell fill="var(--red)" opacity={0.9} />
                   <Cell fill="#374151" opacity={0.9} />
                   <Cell fill="#1f2937" opacity={0.9} />
                 </Pie>
-                <Tooltip
-                  formatter={(v: number) => [`${v}%`, ""]}
-                  contentStyle={{ background: "#111", border: "1px solid #333", fontFamily: "monospace", fontSize: 10 }}
-                  itemStyle={{ color: "#fff" }}
-                  labelStyle={{ color: "#888" }}
-                />
               </PieChart>
               <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
                 <div className="font-mono text-[7px] uppercase tracking-wider text-[var(--text-dim)]">target</div>
@@ -599,15 +589,16 @@ export default function RecommendationCards({ audit, targetCpl, targetCtr }: Pro
 
           {/* Projected CPL callout beside donuts */}
           {projCplAfterCuts > 0 && totalWaste > 1 && (
-            <div className="flex flex-col gap-1 border-l border-[var(--border)] pl-6 ml-2">
-              <div className="font-mono text-[8px] uppercase tracking-widest" style={{ color: "#4ade80" }}>After cuts</div>
+            <div className="flex flex-col gap-1.5 border-l border-[var(--border)] pl-6 ml-2">
+              <div className="font-mono text-[8px] uppercase tracking-widest" style={{ color: "#4ade80" }}>Projected CPL after cuts</div>
               <div className="font-mono text-3xl font-extrabold" style={{ color: "#4ade80" }}>${projCplAfterCuts.toFixed(2)}</div>
-              <div className="font-mono text-[9px] text-[var(--text-dim)]">projected CPL</div>
-              <div className="mt-1 font-mono text-[9px]" style={{ color: "#4ade8099" }}>
-                vs ${cur.toFixed(2)} now
+              <div className="flex items-center gap-1.5">
+                <span className="font-mono text-[9px] line-through opacity-40 text-white">${cur.toFixed(2)}</span>
+                <span className="font-mono text-[9px] font-bold" style={{ color: "#4ade80" }}>↓ {((1 - projCplAfterCuts / cur) * 100).toFixed(1)}% cheaper</span>
               </div>
-              <div className="font-mono text-[9px] font-bold" style={{ color: "#4ade80" }}>
-                −{((1 - projCplAfterCuts / cur) * 100).toFixed(1)}% lower
+              <div className="mt-1 border border-[#1a2a1a] bg-[rgba(74,222,128,0.05)] px-2 py-1">
+                <div className="font-mono text-[8px] text-[#4ade80] opacity-80">LOWER CPL = BETTER</div>
+                <div className="font-mono text-[8px] text-[var(--text-dim)] mt-0.5">Cut ${Math.round(totalWaste).toLocaleString()} waste → same {audit.spend.totalLeads} leads, less spend</div>
               </div>
             </div>
           )}
@@ -648,18 +639,7 @@ export default function RecommendationCards({ audit, targetCpl, targetCtr }: Pro
           ))}
         </div>
 
-        {/* Projected CPL after waste removal */}
-        {projCplAfterCuts > 0 && totalWaste > 1 && (
-          <div className="mt-4 flex flex-wrap items-center gap-4 border border-[#1a2a1a] bg-[rgba(74,222,128,0.04)] p-4">
-            <div className="shrink-0">
-              <div className="font-mono text-[9px] uppercase tracking-widest" style={{ color: "#4ade80" }}>PROJECTED CPL AFTER CUTS</div>
-              <div className="font-mono text-2xl font-extrabold" style={{ color: "#4ade80" }}>${projCplAfterCuts.toFixed(2)}</div>
-            </div>
-            <div className="text-[11px] text-[var(--text-dim)]">
-              Removing ${Math.round(totalWaste).toLocaleString()} confirmed waste from ${totalBudget.toLocaleString(undefined, { maximumFractionDigits: 0 })} total spend → same {audit.spend.totalLeads} leads at {((1 - projCplAfterCuts / cur) * 100).toFixed(1)}% lower cost.
-            </div>
-          </div>
-        )}
+        {/* (CPL projection shown in the donut row above) */}
       </div>
 
       {/* Priority Fix Queue — dynamic from engine findings */}

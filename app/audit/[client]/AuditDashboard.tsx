@@ -223,10 +223,10 @@ export default function AuditDashboard({
 
               {/* Geo + Creative */}
               <section id="geo" className="col-span-12 lg:col-span-6">
-                <GeographicHeatmap geo={audit.geo} />
+                <GeographicHeatmap geo={audit.geo} liveCpl={liveCpl} />
               </section>
               <section id="creative" className="col-span-12 lg:col-span-6">
-                <CreativeAnalysisGrid creative={audit.creative} />
+                <CreativeAnalysisGrid creative={audit.creative} liveCpl={liveCpl} />
               </section>
 
               {/* Demographics (age/gender CPL breakdown) */}
