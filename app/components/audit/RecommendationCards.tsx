@@ -184,17 +184,28 @@ export default function RecommendationCards({ audit }: Props) {
 
   const cur = audit.spend.blendedCpl;
   const tgt = audit.benchmarks.targetCpl;
+  const curAboveTgt = cur > tgt;
 
   const projData =
     cur > 0
       ? [0, 2, 7, 14, 21, 30].map((day) => {
           const p = day / 30;
           const ease = 1 - Math.pow(1 - p, 2);
-          return {
-            day: `Day ${day}`,
-            withFixes: parseFloat((cur - (cur - tgt) * ease).toFixed(2)),
-            withoutFixes: parseFloat((cur * (1 + p * 0.12)).toFixed(2)),
-          };
+          if (curAboveTgt) {
+            // CPL too high: fixes pull it down toward target; inaction lets it climb
+            return {
+              day: `Day ${day}`,
+              withFixes: parseFloat((cur - (cur - tgt) * ease).toFixed(2)),
+              withoutFixes: parseFloat((cur * (1 + p * 0.12)).toFixed(2)),
+            };
+          } else {
+            // CPL already below benchmark: fixes improve further; inaction drifts up toward ceiling
+            return {
+              day: `Day ${day}`,
+              withFixes: parseFloat((cur * (1 - p * 0.10)).toFixed(2)),
+              withoutFixes: parseFloat((cur * (1 + p * 0.35)).toFixed(2)),
+            };
+          }
         })
       : [];
 
@@ -314,7 +325,7 @@ export default function RecommendationCards({ audit }: Props) {
                 stroke="#fbbf24"
                 strokeDasharray="4 4"
                 label={{
-                  value: `$${tgt} TARGET`,
+                  value: curAboveTgt ? `$${tgt} GOAL` : `$${tgt} BENCHMARK CEILING`,
                   position: "insideRight",
                   fill: "#fbbf24",
                   fontSize: 9,
@@ -343,14 +354,16 @@ export default function RecommendationCards({ audit }: Props) {
           {/* Custom legend */}
           <div className="mt-2 flex gap-5">
             <span className="font-mono text-[10px]" style={{ color: "#4ade80" }}>
-              ▬ With fixes
+              ▬ {curAboveTgt ? "With fixes (CPL drops)" : "With fixes (CPL improves)"}
             </span>
             <span className="font-mono text-[10px]" style={{ color: "#ff0000" }}>
-              ╌ Without fixes
+              ╌ {curAboveTgt ? "Without fixes (CPL rises)" : "Without fixes (CPL drifts up)"}
             </span>
           </div>
           <p className="mt-2 text-xs italic text-[var(--text-dim)]">
-            Executing the fix queue should pull CPL from ${cur.toFixed(2)} to ${tgt.toFixed(2)} by Day 30.
+            {curAboveTgt
+              ? `Executing the fix queue should pull CPL from $${cur.toFixed(2)} → $${tgt.toFixed(2)} by Day 30.`
+              : `You're beating the $${tgt.toFixed(2)} benchmark at $${cur.toFixed(2)} CPL. These fixes protect and extend that edge.`}
           </p>
         </div>
       )}
