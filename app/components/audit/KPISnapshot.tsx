@@ -9,6 +9,7 @@ interface Props {
   liveCtr?: number;
   blendedCpl?: number;
   weightedCtr?: number;
+  isPreview?: boolean;
 }
 
 const STATUS_DOT: Record<string, string> = {
@@ -63,7 +64,7 @@ function translateBenchmark(raw: string): string {
   return raw;
 }
 
-export default function KPISnapshot({ kpis, liveCpl, liveCtr, blendedCpl, weightedCtr }: Props) {
+export default function KPISnapshot({ kpis, liveCpl, liveCtr, blendedCpl, weightedCtr, isPreview }: Props) {
   const { t, plain } = useLang();
 
   // Re-evaluate CPL and CTR status client-side so sliders update them live
@@ -101,11 +102,16 @@ export default function KPISnapshot({ kpis, liveCpl, liveCtr, blendedCpl, weight
           const benchmark = liveBenchmark(k);
           const displayBenchmark = plain ? translateBenchmark(benchmark) : benchmark;
 
+          const isLiveCard = isPreview && (k.label === "Control_CPL" || k.label === "Campaign_Efficiency");
           return (
             <div
               key={k.label}
-              className="relative border border-[var(--border)] bg-[var(--card)] p-5 flex-shrink-0"
-              style={{ width: "clamp(148px, 13vw, 200px)" }}
+              className="relative border p-5 flex-shrink-0 transition-all duration-200"
+              style={{
+                width: "clamp(148px, 13vw, 200px)",
+                background: isLiveCard ? "rgba(251,191,36,0.06)" : "var(--card)",
+                borderColor: isLiveCard ? "rgba(251,191,36,0.4)" : "var(--border)",
+              }}
               title={k.label}
             >
               <div className="mb-3 flex items-center justify-between gap-2">

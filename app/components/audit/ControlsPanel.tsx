@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Settings2, Loader2, Languages } from "lucide-react";
 import { useLang } from "@/context/LangContext";
 
+import type { ReportingPeriod } from "@/engine/runAudit";
+
 interface Props {
   targetCpl: number;
   targetCtr: number;
@@ -14,8 +16,10 @@ interface Props {
   industry: string;
   industryOptions: { key: string; label: string }[];
   onChange: (key: string, value: string | null) => void;
+  onBatchChange: (updates: Record<string, string | null>) => void;
   isPending: boolean;
   onReset: () => void;
+  reportingPeriod: ReportingPeriod;
 }
 
 const TIME_WINDOWS = [
@@ -35,8 +39,10 @@ export default function ControlsPanel({
   industry,
   industryOptions,
   onChange,
+  onBatchChange,
   isPending,
   onReset,
+  reportingPeriod,
 }: Props) {
   const { t, plain, toggle } = useLang();
   const [timeWindow, setTimeWindow] = useState("all");
@@ -45,8 +51,8 @@ export default function ControlsPanel({
   const ctrModified = targetCtr !== originalCtr;
 
   return (
-    <aside className="hidden w-[280px] flex-shrink-0 border-l border-[var(--border)] bg-[var(--sidebar)] xl:block">
-      <div className="sticky top-0 px-6 py-9" style={{ maxHeight: "100vh", overflowY: "auto" }}>
+    <aside className="hidden w-[280px] flex-shrink-0 border-l border-[var(--border)] bg-[var(--sidebar)] xl:flex xl:flex-col" style={{ height: "100vh", overflowY: "auto" }}>
+      <div className="px-6 py-9">
         <div className="mb-6 flex items-center gap-2">
           <Settings2 className="h-4 w-4 text-[var(--red)]" />
           <div
@@ -96,9 +102,8 @@ export default function ControlsPanel({
             className="dark-select"
             value={industry}
             onChange={(e) => {
-              onChange("industry", e.target.value);
-              onChange("cpl", null);
-              onChange("ctr", null);
+              // Single batched replace — prevents the three individual calls from clobbering each other
+              onBatchChange({ industry: e.target.value, cpl: null, ctr: null });
             }}
           >
             {industryOptions.map((opt) => (
@@ -134,8 +139,6 @@ export default function ControlsPanel({
             step={5}
             value={targetCpl}
             onChange={(e) => onLiveCpl(Number(e.target.value))}
-            onMouseUp={(e) => onChange("cpl", (e.target as HTMLInputElement).value)}
-            onTouchEnd={(e) => onChange("cpl", (e.target as HTMLInputElement).value)}
           />
           <div className="mt-1 flex justify-between font-mono text-[9px] text-[var(--text-dim)]">
             <span>$20</span>
@@ -173,8 +176,6 @@ export default function ControlsPanel({
             step={0.1}
             value={targetCtr}
             onChange={(e) => onLiveCtr(Number(e.target.value))}
-            onMouseUp={(e) => onChange("ctr", (e.target as HTMLInputElement).value)}
-            onTouchEnd={(e) => onChange("ctr", (e.target as HTMLInputElement).value)}
           />
           <div className="mt-1 flex justify-between font-mono text-[9px] text-[var(--text-dim)]">
             <span>0.5%</span>
@@ -215,18 +216,32 @@ export default function ControlsPanel({
               <option key={w.key} value={w.key}>{w.label}</option>
             ))}
           </select>
-          <div className="mt-2 font-mono text-[8px] uppercase tracking-wider text-[var(--text-dim)]">
-            {t(
-              "Filters rows by date column in your CSV exports.",
-              "Filters data to the selected date window.",
-            )}
-          </div>
+
+          {/* Reporting period context */}
+          {reportingPeriod.totalDays > 0 && (
+            <div className="mt-2 space-y-1">
+              <div className="font-mono text-[8px] text-[var(--text-dim)]">
+                Export: {reportingPeriod.startDate} → {reportingPeriod.endDate}
+                <span className="ml-1 opacity-60">({reportingPeriod.totalDays}d)</span>
+              </div>
+              {reportingPeriod.isScaled ? (
+                <div className="font-mono text-[8px]" style={{ color: "#fbbf24" }}>
+                  ⚡ Scaled to est. {reportingPeriod.filterDays}d
+                  <span className="opacity-60"> ({(reportingPeriod.scaleFactor * 100).toFixed(0)}% of export)</span>
+                </div>
+              ) : (
+                <div className="font-mono text-[8px] text-[var(--text-dim)] opacity-60">
+                  Showing full {reportingPeriod.totalDays}-day export
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
-        <div className="mt-8 border-t border-[var(--border)] pt-4 font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)]">
+        <div className="mt-8 border-t border-[var(--border)] pt-4 font-mono text-[8px] uppercase tracking-wider text-[var(--text-dim)]">
           {t(
-            "Drag to update charts live. Release to persist in URL.",
-            "Charts update as you drag. Release to save to URL.",
+            "CPL/CTR sliders are what-if tools — drag to explore, reset to return to original data.",
+            "Slide to explore scenarios. Original data is always preserved — hit Reset to go back.",
           )}
         </div>
       </div>

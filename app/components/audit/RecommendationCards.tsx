@@ -2,7 +2,7 @@
 
 import type { AuditResult } from "@/engine/runAudit";
 import copyBank from "@/data/copy-bank.json";
-import { CheckCircle2, AlertOctagon, AlertTriangle } from "lucide-react";
+import { CheckCircle2, AlertOctagon, AlertTriangle, TrendingUp, Activity, Trash2, ArrowDown } from "lucide-react";
 import { useLang } from "@/context/LangContext";
 import { useReport } from "@/context/ReportContext";
 import {
@@ -14,6 +14,9 @@ import {
   Tooltip,
   ReferenceLine,
   ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
 
 interface Props {
@@ -416,27 +419,198 @@ export default function RecommendationCards({ audit, targetCpl, targetCtr }: Pro
           BUDGET EFFICIENCY ANALYSIS
         </div>
 
-        {/* Stat tiles */}
-        <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-          {budgetSegments.map((seg, i) => (
-            <div key={i} className="border border-[var(--border)] bg-black p-4" style={{ borderTop: `2px solid ${seg.color}` }}>
-              <div className="mb-1 font-mono text-[9px] uppercase tracking-widest" style={{ color: seg.color }}>{seg.label}</div>
-              <div className="font-mono text-xl font-extrabold text-white">
-                ${seg.value.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+        <style>{`
+          @keyframes rca-tile-in {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+          }
+          @keyframes rca-bar-in {
+            from { width: 0%; }
+          }
+          @keyframes rca-num-in {
+            from { opacity: 0; transform: scale(0.88); }
+            to   { opacity: 1; transform: scale(1); }
+          }
+        `}</style>
+
+        {/* Stat tiles — premium redesign with icons + stagger animation */}
+        <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {budgetSegments.map((seg, i) => {
+            const pct = totalBudget > 0 ? Math.round((seg.value / totalBudget) * 100) : 0;
+            const Icon = i === 0 ? TrendingUp : i === 1 ? Activity : Trash2;
+            const action = i === 0 ? "▲ SCALE THIS" : i === 1 ? "→ OPTIMISE" : "✕ ELIMINATE";
+            return (
+              <div
+                key={i}
+                className="relative overflow-hidden border border-[var(--border)] bg-black p-5"
+                style={{
+                  borderTop: `2px solid ${seg.color}`,
+                  animation: `rca-tile-in 0.45s cubic-bezier(0.16,1,0.3,1) ${i * 0.1}s both`,
+                }}
+              >
+                {/* Icon watermark */}
+                <Icon
+                  className="absolute right-4 top-4 opacity-[0.07]"
+                  style={{ width: 52, height: 52, color: seg.color }}
+                  strokeWidth={1.5}
+                />
+
+                {/* Label + action */}
+                <div className="mb-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Icon className="h-3.5 w-3.5" style={{ color: seg.color }} />
+                    <span className="font-mono text-[9px] uppercase tracking-widest" style={{ color: seg.color }}>
+                      {seg.label}
+                    </span>
+                  </div>
+                  <span className="font-mono text-[8px] uppercase tracking-wider opacity-40" style={{ color: seg.color }}>
+                    {action}
+                  </span>
+                </div>
+
+                {/* Dollar amount */}
+                <div
+                  className="font-mono text-2xl font-extrabold text-white"
+                  style={{ animation: `rca-num-in 0.5s ease ${i * 0.1 + 0.2}s both` }}
+                >
+                  ${seg.value.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                </div>
+
+                {/* Progress bar */}
+                <div className="my-3 h-px w-full bg-[var(--border)]">
+                  <div
+                    style={{
+                      height: 2,
+                      width: `${pct}%`,
+                      background: seg.color,
+                      opacity: 0.7,
+                      marginTop: -1,
+                      animation: `rca-bar-in 0.8s cubic-bezier(0.16,1,0.3,1) ${i * 0.1 + 0.3}s both`,
+                    }}
+                  />
+                </div>
+
+                {/* Percentage + description */}
+                <div className="flex items-baseline justify-between">
+                  <span className="font-mono text-[11px] font-bold" style={{ color: seg.color }}>{pct}%</span>
+                  <span className="font-mono text-[9px] text-[var(--text-dim)]">of total spend</span>
+                </div>
+                <div className="mt-0.5 text-[10px] text-[var(--text-dim)]">{seg.sub}</div>
               </div>
-              <div className="mt-0.5 font-mono text-[10px] text-[var(--text-dim)]">
-                {totalBudget > 0 ? `${Math.round((seg.value / totalBudget) * 100)}% of spend` : "—"}
-              </div>
-              <div className="mt-0.5 text-[10px] text-[var(--text-dim)]">{seg.sub}</div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
-        {/* Stacked bar */}
-        <div className="mb-6 flex h-1.5 w-full overflow-hidden rounded-sm">
-          {budgetSegments.map((seg, i) => (
-            <div key={i} style={{ width: `${totalBudget > 0 ? (seg.value / totalBudget) * 100 : 0}%`, background: seg.color, opacity: 0.85 }} />
-          ))}
+        {/* Dual donut — Current vs Recommended */}
+        <div className="mb-6 flex flex-col gap-6 sm:flex-row sm:items-center sm:gap-8">
+
+          {/* Left: Current allocation from real engine data */}
+          <div className="flex flex-col items-center gap-3">
+            <div className="font-mono text-[8px] uppercase tracking-[2px] text-[var(--text-dim)]">Current</div>
+            <div className="relative" style={{ width: 140, height: 140 }}>
+              <PieChart width={140} height={140}>
+                <Pie
+                  data={budgetSegments.map(s => ({ name: s.label, value: s.value }))}
+                  cx={65} cy={65}
+                  innerRadius={42} outerRadius={62}
+                  paddingAngle={2}
+                  dataKey="value"
+                  startAngle={90} endAngle={-270}
+                >
+                  {budgetSegments.map((seg, i) => (
+                    <Cell key={i} fill={seg.color} opacity={0.85} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  formatter={(v: number) => [`$${v.toLocaleString()}`, ""]}
+                  contentStyle={{ background: "#111", border: "1px solid #333", fontFamily: "monospace", fontSize: 10 }}
+                  itemStyle={{ color: "#fff" }}
+                  labelStyle={{ color: "#888" }}
+                />
+              </PieChart>
+              <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
+                <div className="font-mono text-[7px] uppercase tracking-wider text-[var(--text-dim)]">actual</div>
+                <div className="font-mono text-[11px] font-extrabold text-white">${totalBudget.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
+              </div>
+            </div>
+            <div className="flex flex-col gap-1">
+              {budgetSegments.map((seg, i) => (
+                <div key={i} className="flex items-center gap-1.5">
+                  <div style={{ width: 7, height: 7, background: seg.color, borderRadius: 1, opacity: 0.85, flexShrink: 0 }} />
+                  <span className="font-mono text-[9px] text-[var(--text-dim)]">{seg.label} — {totalBudget > 0 ? Math.round((seg.value / totalBudget) * 100) : 0}%</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Arrow */}
+          <div className="hidden sm:flex flex-col items-center gap-1 text-[var(--text-dim)]">
+            <div className="font-mono text-[8px] uppercase tracking-wider opacity-40">fix &</div>
+            <div className="text-lg opacity-40">→</div>
+            <div className="font-mono text-[8px] uppercase tracking-wider opacity-40">reallocate</div>
+          </div>
+
+          {/* Right: Recommended 70/20/10 */}
+          <div className="flex flex-col items-center gap-3">
+            <div className="font-mono text-[8px] uppercase tracking-[2px]" style={{ color: "#4ade80" }}>Recommended</div>
+            <div className="relative" style={{ width: 140, height: 140 }}>
+              <PieChart width={140} height={140}>
+                <Pie
+                  data={[
+                    { name: "Scale Winners",   value: 70 },
+                    { name: "New Placements",  value: 20 },
+                    { name: "Experiments",     value: 10 },
+                  ]}
+                  cx={65} cy={65}
+                  innerRadius={42} outerRadius={62}
+                  paddingAngle={2}
+                  dataKey="value"
+                  startAngle={90} endAngle={-270}
+                >
+                  <Cell fill="var(--red)" opacity={0.9} />
+                  <Cell fill="#374151" opacity={0.9} />
+                  <Cell fill="#1f2937" opacity={0.9} />
+                </Pie>
+                <Tooltip
+                  formatter={(v: number) => [`${v}%`, ""]}
+                  contentStyle={{ background: "#111", border: "1px solid #333", fontFamily: "monospace", fontSize: 10 }}
+                  itemStyle={{ color: "#fff" }}
+                  labelStyle={{ color: "#888" }}
+                />
+              </PieChart>
+              <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
+                <div className="font-mono text-[7px] uppercase tracking-wider text-[var(--text-dim)]">target</div>
+                <div className="font-mono text-[8px] font-extrabold" style={{ color: "#4ade80" }}>70/20/10</div>
+              </div>
+            </div>
+            <div className="flex flex-col gap-1">
+              {[
+                { label: "Scale Winners", color: "var(--red)", pct: "70%" },
+                { label: "New Placements", color: "#374151", pct: "20%" },
+                { label: "Experiments", color: "#4b5563", pct: "10%" },
+              ].map((seg, i) => (
+                <div key={i} className="flex items-center gap-1.5">
+                  <div style={{ width: 7, height: 7, background: seg.color, borderRadius: 1, flexShrink: 0 }} />
+                  <span className="font-mono text-[9px] text-[var(--text-dim)]">{seg.label} — {seg.pct}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Projected CPL callout beside donuts */}
+          {projCplAfterCuts > 0 && totalWaste > 1 && (
+            <div className="flex flex-col gap-1 border-l border-[var(--border)] pl-6 ml-2">
+              <div className="font-mono text-[8px] uppercase tracking-widest" style={{ color: "#4ade80" }}>After cuts</div>
+              <div className="font-mono text-3xl font-extrabold" style={{ color: "#4ade80" }}>${projCplAfterCuts.toFixed(2)}</div>
+              <div className="font-mono text-[9px] text-[var(--text-dim)]">projected CPL</div>
+              <div className="mt-1 font-mono text-[9px]" style={{ color: "#4ade8099" }}>
+                vs ${cur.toFixed(2)} now
+              </div>
+              <div className="font-mono text-[9px] font-bold" style={{ color: "#4ade80" }}>
+                −{((1 - projCplAfterCuts / cur) * 100).toFixed(1)}% lower
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Recommended reallocation */}

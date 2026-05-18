@@ -16,6 +16,7 @@ import CreativeAnalysisGrid from "@/components/audit/CreativeAnalysisGrid";
 import DemographicsPanel from "@/components/audit/DemographicsPanel";
 import RecommendationCards from "@/components/audit/RecommendationCards";
 import AuditRibbon from "@/components/audit/AuditRibbon";
+import BenchmarkStatus from "@/components/audit/BenchmarkStatus";
 import dynamic from "next/dynamic";
 import { Languages } from "lucide-react";
 
@@ -90,10 +91,23 @@ export default function AuditDashboard({
   const originalCtr = audit.benchmarks.targetCtr;
   const isPreview = liveCpl !== originalCpl || liveCtr !== originalCtr;
 
+  // Single URL update — supports batching multiple params in one replace
   const updateParam = (key: string, value: string | null) => {
     const next = new URLSearchParams(search.toString());
     if (value === null || value === "") next.delete(key);
     else next.set(key, value);
+    startTransition(() => {
+      router.replace(`/audit/${clientSlug}?${next.toString()}`, { scroll: false });
+    });
+  };
+
+  // Batch update — fixes industry selector race where individual updateParam calls clobber each other
+  const updateParams = (updates: Record<string, string | null>) => {
+    const next = new URLSearchParams(search.toString());
+    for (const [k, v] of Object.entries(updates)) {
+      if (v === null || v === "") next.delete(k);
+      else next.set(k, v);
+    }
     startTransition(() => {
       router.replace(`/audit/${clientSlug}?${next.toString()}`, { scroll: false });
     });
@@ -109,7 +123,7 @@ export default function AuditDashboard({
   return (
     <LangProvider>
       <ReportProvider>
-        <div className="flex min-h-screen overflow-x-hidden">
+        <div className="flex h-screen overflow-hidden">
           {/* Left nav rail */}
           <Sidebar
             clientName={audit.clientName}
@@ -120,8 +134,8 @@ export default function AuditDashboard({
             clientLogo={clientLogo}
           />
 
-          {/* Center column — pt-[52px] offsets the fixed mobile nav bar */}
-          <main className="flex-1 min-w-0 overflow-y-auto pt-[52px] lg:pt-0">
+          {/* Center column scrolls independently — controls panel stays fixed alongside */}
+          <main className="flex-1 min-w-0 overflow-y-auto pt-[52px] lg:pt-0" id="audit-main">
             {/* Sticky header */}
             <header
               className="sticky top-0 z-30 flex flex-col gap-2 border-b border-[var(--border)] px-4 py-3 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-10 sm:py-6"
@@ -182,6 +196,20 @@ export default function AuditDashboard({
                   liveCtr={liveCtr}
                   blendedCpl={audit.spend.blendedCpl}
                   weightedCtr={audit.spend.weightedCtr}
+                  isPreview={isPreview}
+                />
+              </section>
+
+              {/* Benchmark status strip — makes slider effects immediately visible */}
+              <section className="col-span-12">
+                <BenchmarkStatus
+                  blendedCpl={audit.spend.blendedCpl}
+                  weightedCtr={audit.spend.weightedCtr}
+                  liveCpl={liveCpl}
+                  liveCtr={liveCtr}
+                  industry={industry}
+                  reportingPeriod={audit.reportingPeriod}
+                  isPreview={isPreview}
                 />
               </section>
 
@@ -231,8 +259,10 @@ export default function AuditDashboard({
             industry={industry}
             industryOptions={industryOptions}
             onChange={updateParam}
+            onBatchChange={updateParams}
             isPending={isPending}
             onReset={resetToOriginal}
+            reportingPeriod={audit.reportingPeriod}
           />
         </div>
       </ReportProvider>
