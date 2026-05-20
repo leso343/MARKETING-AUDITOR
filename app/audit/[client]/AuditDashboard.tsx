@@ -119,7 +119,10 @@ export default function AuditDashboard({
     setLiveCtr(originalCtr);
   };
 
-  const pdfPath = "/SNA_Marketing_TakeCharge_Audit.pdf";
+  // Live-generated PDF: puppeteer renders the dashboard server-side and
+  // returns a fresh PDF on demand. Query string (`cpl`, `ctr`, `industry`,
+  // `days`) is preserved so the export matches the on-screen what-if state.
+  const pdfPath = `/audit/${clientSlug}/pdf${search.toString() ? `?${search.toString()}` : ""}`;
 
   return (
     <LangProvider>

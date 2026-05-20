@@ -11,7 +11,9 @@ export interface SpendEfficiencyResult {
   kpis: KpiCard[];
   totalSpend: number;
   totalLeads: number;
+  totalClicks: number;
   blendedCpl: number;
+  blendedCpc: number;
   weightedCtr: number;
   weightedCpm: number;
   averageFrequency: number;
@@ -45,14 +47,19 @@ export function analyzeSpendEfficiency(
   const totalImpressions = sum(campaigns.map((c) => c.impressions));
   let weightedCtrAcc = 0;
   let weightedCpmAcc = 0;
+  let totalClicks = 0;
   for (const c of campaigns) {
     if (c.impressions) {
-      if (c.ctr !== null) weightedCtrAcc += c.impressions * c.ctr;
+      if (c.ctr !== null) {
+        weightedCtrAcc += c.impressions * c.ctr;
+        totalClicks += (c.impressions * c.ctr) / 100;
+      }
       if (c.cpm !== null) weightedCpmAcc += c.impressions * c.cpm;
     }
   }
   const weightedCtr = totalImpressions > 0 ? weightedCtrAcc / totalImpressions : 0;
   const weightedCpm = totalImpressions > 0 ? weightedCpmAcc / totalImpressions : 0;
+  const blendedCpc = totalClicks > 0 ? totalSpend / totalClicks : 0;
 
   // Avg frequency (weighted by reach).
   const totalReach = sum(campaigns.map((c) => c.reach));
@@ -153,7 +160,9 @@ export function analyzeSpendEfficiency(
     kpis,
     totalSpend: round(totalSpend, 2),
     totalLeads,
+    totalClicks: Math.round(totalClicks),
     blendedCpl: round(blendedCpl, 2),
+    blendedCpc: round(blendedCpc, 2),
     weightedCtr: round(weightedCtr, 2),
     weightedCpm: round(weightedCpm, 2),
     averageFrequency: round(averageFrequency, 2),

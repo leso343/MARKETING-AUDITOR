@@ -145,6 +145,12 @@ export default function AuditRibbon({ audit }: Props) {
       />
 
       <Chip
+        label={t("CPC", "COST/CLICK")}
+        value={spend.blendedCpc > 0 ? `$${spend.blendedCpc.toFixed(2)}` : "—"}
+        anchor="leakage"
+      />
+
+      <Chip
         label={t("CPL", "COST/LEAD")}
         value={spend.blendedCpl > 0 ? `$${spend.blendedCpl.toFixed(2)}` : "—"}
         status={cplStatus}
