@@ -81,19 +81,19 @@ export default function Sidebar({ clientName, clientSubtitle, primaryLeak, pdfPa
 
   const navGroups = [
     {
-      label: t("Diagnostic", "Analysis"),
+      label: t("Diagnostic", "What we found"),
       items: [
         { href: "#overview", label: t("Executive Summary", "Top Findings"), icon: FileBarChart },
         { href: "#leakage", label: t("Funnel Integrity", "Customer Drop-Off"), icon: Activity },
-        { href: "#tracking", label: t("Sentinel Audit", "Tracking Check"), icon: AlertTriangle },
+        { href: "#tracking", label: t("Sentinel Audit", "Is tracking broken?"), icon: AlertTriangle },
       ],
     },
     {
-      label: t("Market Segments", "Audience & Creative"),
+      label: t("Market Segments", "Who saw the ads"),
       items: [
-        { href: "#geo", label: t("Geographic Sieve", "Location Data"), icon: MapPinned },
-        { href: "#creative", label: t("Creative Drill", "Ad Performance"), icon: Users },
-        { href: "#demographics", label: t("Demographics", "Age Breakdown"), icon: PieChart },
+        { href: "#geo", label: t("Geographic Sieve", "Cities & areas"), icon: MapPinned },
+        { href: "#creative", label: t("Creative Drill", "How each ad did"), icon: Users },
+        { href: "#demographics", label: t("Demographics", "Age & gender"), icon: PieChart },
       ],
     },
     {
@@ -105,9 +105,9 @@ export default function Sidebar({ clientName, clientSubtitle, primaryLeak, pdfPa
       ],
     },
     {
-      label: t("Protocol", "Action Plan"),
+      label: t("Protocol", "What to do next"),
       items: [
-        { href: "#plan", label: t("30-Day Fix Queue", "Action Items"), icon: Crosshair },
+        { href: "#plan", label: t("30-Day Fix Queue", "Fix list (30 days)"), icon: Crosshair },
       ],
     },
   ];
@@ -164,7 +164,7 @@ export default function Sidebar({ clientName, clientSubtitle, primaryLeak, pdfPa
           )}
         </div>
         <div className="mt-3 font-mono text-[9px] uppercase tracking-wider text-[var(--red)]">
-          {t("Primary leak", "Biggest issue")}
+          {t("Primary leak", "Biggest problem")}
         </div>
         <div className="mt-1 line-clamp-3 text-[11px] leading-snug text-[var(--text-dim)]">
           {primaryLeak}

@@ -182,9 +182,9 @@ export default function CanvasMapPanel() {
         .leaflet-tooltip-left::before, .leaflet-tooltip-right::before { border-right-color:#333!important; border-left-color:#333!important; }
       `}</style>
 
-      <div className="panel-label">{t("Canvas_Priority_Map", "Best Areas to Canvas")}</div>
+      <div className="panel-label">{t("Canvas_Priority_Map", "Best neighborhoods to knock")}</div>
       <h2 className="mb-1 text-2xl font-bold tracking-tight" style={{ fontFamily: "var(--font-head)" }}>
-        {t("Best Areas to Canvas This Week", "Where to Send Door Knockers This Week")}
+        {t("Best Areas to Canvas This Week", "Where to knock doors this week")}
       </h2>
       <p className="mb-4 text-xs text-[var(--text-dim)]">
         {t(
@@ -224,7 +224,7 @@ export default function CanvasMapPanel() {
       <div className="mt-4 border-l-2 border-[var(--red)] pl-4">
         <div className="mb-2 flex items-center justify-between">
           <div className="font-mono text-[9px] uppercase tracking-[2px] text-[var(--red)]">
-            ★ {t("Top Neighborhoods to Canvas This Week", "Top Door-Knock Zones This Week")}
+            ★ {t("Top Neighborhoods to Canvas This Week", "Top neighborhoods to knock this week")}
           </div>
           <div className="font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)] opacity-50">
             BAKED SNAPSHOT · NCEI SCHEMA

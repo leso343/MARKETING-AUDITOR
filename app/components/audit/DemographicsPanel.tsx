@@ -83,13 +83,13 @@ export default function DemographicsPanel({ demographics, targetCpl }: Props) {
   return (
     <div className="panel h-full">
       <div className="panel-label">
-        {t("Demographics_Breakdown", "Who Responds Best")}
+        {t("Demographics_Breakdown", "Who responds best")}
       </div>
       <h2
         className="mb-1 text-2xl font-bold tracking-tight"
         style={{ fontFamily: "var(--font-head)" }}
       >
-        {t("Age × CPL Analysis", "Which Age Groups Convert Best")}
+        {t("Age × CPL Analysis", "Which age groups become leads cheapest")}
       </h2>
       <p className="mb-5 text-xs text-[var(--text-dim)]">
         {t(
@@ -172,7 +172,7 @@ export default function DemographicsPanel({ demographics, targetCpl }: Props) {
               <th className="text-right">{t("Spend", "Spent")}</th>
               <th className="text-right">{t("Leads", "Leads")}</th>
               <th className="text-right">{t("CPL", "Cost/Lead")}</th>
-              <th>{t("Signal", "Action")}</th>
+              <th>{t("Signal", "What to do")}</th>
             </tr>
           </thead>
           <tbody>
@@ -219,7 +219,7 @@ export default function DemographicsPanel({ demographics, targetCpl }: Props) {
 
       {best.cpl > 0 && (
         <div className="insight-box mt-4">
-          <b>{t("BEST BRACKET:", "MOST EFFICIENT AGE GROUP:")}</b>{" "}
+          <b>{t("BEST BRACKET:", "CHEAPEST AGE GROUP TO REACH:")}</b>{" "}
           {t(
             `${best.bracket} — $${best.cpl.toFixed(2)} CPL. Prioritise this segment in ad set targeting.`,
             `Ages ${best.bracket} — costs $${best.cpl.toFixed(2)} per lead. Focus more of your budget here.`,

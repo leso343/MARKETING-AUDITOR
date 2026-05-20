@@ -254,14 +254,14 @@ export default function RecommendationCards({ audit, targetCpl, targetCtr }: Pro
 
   return (
     <div className="panel">
-      <div className="panel-label">{t("30_Day_Fix_Queue", "Action Plan")}</div>
+      <div className="panel-label">{t("30_Day_Fix_Queue", "What to fix in the next 30 days")}</div>
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h2
             className="text-2xl font-bold tracking-tight"
             style={{ fontFamily: "var(--font-head)" }}
           >
-            {t("Recommendations", "What to Fix")}
+            {t("Recommendations", "Things to fix")}
           </h2>
           <p className="mt-1 text-xs text-[var(--text-dim)]">
             {t(
@@ -272,7 +272,7 @@ export default function RecommendationCards({ audit, targetCpl, targetCtr }: Pro
         </div>
         <div className="text-right">
           <div className="font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)]">
-            {t("Total Issues", "Issues Found")}
+            {t("Total Issues", "Problems found")}
           </div>
           <div className="font-mono text-2xl font-extrabold text-white">{recos.length}</div>
         </div>
@@ -646,7 +646,7 @@ export default function RecommendationCards({ audit, targetCpl, targetCtr }: Pro
       {recos.length > 0 && (
         <div className="mt-8 border-t border-[var(--border)] pt-8">
           <div className="mb-4 font-mono text-[9px] uppercase tracking-[2px] text-[var(--red)]">
-            {t("Priority Fix Queue — Execute in Order", "Fix These in Order")}
+            {t("Priority Fix Queue — Execute in Order", "Fix these in order")}
           </div>
           <div className="space-y-3">
             {recos.map((r, i) => {

@@ -65,13 +65,75 @@ function HeaderLangToggle() {
 /** Button that opens the report viewer via ReportContext */
 function ReportOpenButton() {
   const { openReport } = useReport();
+  const { t } = useLang();
   return (
     <button
       onClick={() => openReport(1)}
       className="flex items-center gap-2 border border-[var(--red-dim)] bg-[rgba(255,0,0,0.05)] px-3 py-1.5 font-mono text-[9px] uppercase tracking-wider text-[var(--red)] transition-colors hover:bg-[rgba(255,0,0,0.1)]"
     >
-      📊 Interactive Report
+      📊 {t("Interactive Report", "Full Report")}
     </button>
+  );
+}
+
+/** Tiny child components so plain/pro toggle reaches strings inside the dashboard chrome. */
+function EngineStatusLabel({ isPending }: { isPending: boolean }) {
+  const { t } = useLang();
+  return <>{isPending ? t("Recomputing…", "Updating…") : t("Engine: Live", "Connected")}</>;
+}
+
+function WhatIfPreviewBanner({
+  liveCpl,
+  liveCtr,
+  originalCpl,
+  originalCtr,
+  onReset,
+}: {
+  liveCpl: number;
+  liveCtr: number;
+  originalCpl: number;
+  originalCtr: number;
+  onReset: () => void;
+}) {
+  const { t } = useLang();
+  return (
+    <div
+      className="flex flex-wrap items-center justify-between gap-3 border-b border-[#fbbf2440] px-4 py-2.5 sm:px-10"
+      style={{ background: "rgba(251,191,36,0.06)" }}
+    >
+      <div className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-wider text-[#fbbf24]">
+        <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#fbbf24]" />
+        {t("WHAT-IF PREVIEW", "TRYING SOMETHING NEW")} —{" "}
+        {t("CPL target", "lead cost goal")} ${liveCpl} ·{" "}
+        {t("CTR target", "click rate goal")} {liveCtr.toFixed(1)}%
+        <span className="text-[#fbbf2480]">
+          ({t("original analysis:", "your real numbers:")}{" "}
+          {t("CPL", "lead cost")} ${originalCpl} ·{" "}
+          {t("CTR", "click rate")} {originalCtr.toFixed(1)}%)
+        </span>
+      </div>
+      <button
+        onClick={onReset}
+        className="border border-[#fbbf2440] px-3 py-1 font-mono text-[9px] uppercase tracking-wider text-[#fbbf24] transition-colors hover:border-[#fbbf24] hover:bg-[rgba(251,191,36,0.1)]"
+      >
+        {t("← Reset to original", "← Go back to real numbers")}
+      </button>
+    </div>
+  );
+}
+
+function MethodologyNote() {
+  const { t } = useLang();
+  return (
+    <p className="mt-2 text-[10px] leading-snug text-[var(--text-dim)]" style={{ maxWidth: 880 }}>
+      <span className="font-mono uppercase tracking-wider">
+        {t("Methodology:", "How we calculated this:")}
+      </span>{" "}
+      {t(
+        "CPL is computed as total ad spend divided by lead-form submissions (Meta's \"Results\" column for Leads-objective campaigns). For Traffic-objective campaigns, CPC (cost per click) is shown instead. Mixed-objective accounts use a weighted blend, documented per row.",
+        "Cost per lead is just total money spent divided by how many lead forms got filled out. For ads that only buy clicks (not leads), we show cost per click instead. If you have a mix, we blend them — see each row's note for which is being used.",
+      )}
+    </p>
   );
 }
 
@@ -88,6 +150,9 @@ export default function AuditDashboard({
   const router = useRouter();
   const search = useSearchParams();
   const [isPending, startTransition] = useTransition();
+
+  // useLang inside the LangProvider tree — see <LangProvider> in JSX below.
+  // Strings rendered before <LangProvider> mount get the default (plain).
 
   // Live benchmark state — updates instantly as sliders drag (no server round-trip)
   const [liveCpl, setLiveCpl] = useState(audit.benchmarks.targetCpl);
@@ -174,7 +239,7 @@ export default function AuditDashboard({
                   <ThemeToggle />
                   <div className="flex items-center gap-2 border border-[var(--red-dim)] bg-[rgba(255,0,0,0.05)] px-2 py-1.5 font-mono text-[9px] uppercase tracking-wider text-[var(--red)] sm:gap-3 sm:px-3">
                     <div className="pulse" />
-                    {isPending ? "Recomputing…" : "Engine: Live"}
+                    <EngineStatusLabel isPending={isPending} />
                   </div>
                 </div>
               )}
@@ -182,24 +247,13 @@ export default function AuditDashboard({
 
             {/* Preview mode banner — shown when sliders differ from server-rendered benchmarks */}
             {!printMode && isPreview && (
-              <div
-                className="flex flex-wrap items-center justify-between gap-3 border-b border-[#fbbf2440] px-4 py-2.5 sm:px-10"
-                style={{ background: "rgba(251,191,36,0.06)" }}
-              >
-                <div className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-wider text-[#fbbf24]">
-                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#fbbf24]" />
-                  WHAT-IF PREVIEW — CPL target ${liveCpl} · CTR target {liveCtr.toFixed(1)}%
-                  <span className="text-[#fbbf2480]">
-                    (original analysis: CPL ${originalCpl} · CTR {originalCtr.toFixed(1)}%)
-                  </span>
-                </div>
-                <button
-                  onClick={resetToOriginal}
-                  className="border border-[#fbbf2440] px-3 py-1 font-mono text-[9px] uppercase tracking-wider text-[#fbbf24] transition-colors hover:border-[#fbbf24] hover:bg-[rgba(251,191,36,0.1)]"
-                >
-                  ← Reset to original
-                </button>
-              </div>
+              <WhatIfPreviewBanner
+                liveCpl={liveCpl}
+                liveCtr={liveCtr}
+                originalCpl={originalCpl}
+                originalCtr={originalCtr}
+                onReset={resetToOriginal}
+              />
             )}
 
             {/* Fact ribbon (below sticky header, not sticky itself) */}
@@ -221,14 +275,7 @@ export default function AuditDashboard({
                   weightedCtr={audit.spend.weightedCtr}
                   isPreview={isPreview}
                 />
-                <p className="mt-2 text-[10px] leading-snug text-[var(--text-dim)]" style={{ maxWidth: 880 }}>
-                  <span className="font-mono uppercase tracking-wider">Methodology:</span>{" "}
-                  CPL is computed as total ad spend divided by lead-form
-                  submissions (Meta&apos;s &ldquo;Results&rdquo; column for
-                  Leads-objective campaigns). For Traffic-objective campaigns,
-                  CPC (cost per click) is shown instead. Mixed-objective
-                  accounts use a weighted blend, documented per row.
-                </p>
+                <MethodologyNote />
               </section>
 
               {/* Benchmark status strip — makes slider effects immediately visible */}

@@ -75,16 +75,16 @@ export default function ExecutiveSummary({ audit }: Props) {
       <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="panel-label" style={{ marginBottom: 8 }}>
-            {t("Executive_Summary", "Top Findings")}
+            {t("Executive_Summary", "The big picture")}
           </div>
           <h2
             className="text-3xl font-bold tracking-tight"
             style={{ fontFamily: "var(--font-head)" }}
           >
             {findings.length === 0
-              ? t("Account Health Check", "No Issues Found")
+              ? t("Account Health Check", "Nothing major broken")
               : findings.length === 1
-              ? t("Highest-impact finding", "Top Issue to Fix")
+              ? t("Highest-impact finding", "The thing costing you the most")
               : t(`${findings.length} highest-impact findings`, `Top ${findings.length} Issues to Fix`)}
           </h2>
           <p className="mt-1 text-xs text-[var(--text-dim)]">
@@ -96,7 +96,7 @@ export default function ExecutiveSummary({ audit }: Props) {
         </div>
         <div className="sm:text-right">
           <div className="font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)]">
-            {t("Total Recoverable", "Money at Risk")}
+            {t("Total Recoverable", "Money you could win back")}
           </div>
           <div className="font-mono text-3xl font-extrabold text-[var(--red)]">
             ${totalRecoverable.toLocaleString()}
@@ -138,7 +138,7 @@ export default function ExecutiveSummary({ audit }: Props) {
               </p>
               <div className="border-t border-[var(--border)] pt-3">
                 <div className="font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)]">
-                  {t("Impact", "Money at Risk")}
+                  {t("Impact", "What it costs you")}
                 </div>
                 <div className="font-mono text-lg font-extrabold text-white">
                   ${f.impactUSD.toLocaleString()}

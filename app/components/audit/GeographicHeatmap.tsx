@@ -44,7 +44,7 @@ export default function GeographicHeatmap({ geo, liveCpl, costMetricLabel = "CPL
   return (
     <div className="panel">
       <div className="panel-label">
-        {t("Geographic_Leakage_Audit", "Spending by Location")}
+        {t("Geographic_Leakage_Audit", "Money spent by city")}
       </div>
 
       <div className="mb-5 grid grid-cols-3 gap-2 sm:gap-3">
@@ -53,11 +53,11 @@ export default function GeographicHeatmap({ geo, liveCpl, costMetricLabel = "CPL
           value={String(geo.zonesMapped)}
         />
         <Mini
-          label={t("Core_Hot", "Best Area Spend")}
+          label={t("Core_Hot", "Best cities spend")}
           value={`$${Math.round(geo.coreHotSpend).toLocaleString()}`}
         />
         <Mini
-          label={t("Leakage_Out", "Wasted Budget")}
+          label={t("Leakage_Out", "Money wasted")}
           value={`$${Math.round(geo.wasteUSD).toLocaleString()}`}
           tone="leak"
         />
@@ -152,14 +152,14 @@ export default function GeographicHeatmap({ geo, liveCpl, costMetricLabel = "CPL
       </table>
 
       <div className="insight-box">
-        <b>{t("RECOMMENDATION:", "SUGGESTED ACTION:")}</b> {geo.recommendation}
+        <b>{t("RECOMMENDATION:", "WHAT TO DO:")}</b> {geo.recommendation}
       </div>
 
       <button
         onClick={() => openReport(4)}
         className="mt-4 flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-wider text-[var(--red)] opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
       >
-        → {t("View full analysis →", "See detailed breakdown →")}
+        → {t("View full analysis →", "See the full breakdown →")}
       </button>
     </div>
   );

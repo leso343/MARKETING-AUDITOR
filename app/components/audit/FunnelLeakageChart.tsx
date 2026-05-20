@@ -29,13 +29,13 @@ export default function FunnelLeakageChart({ funnel }: Props) {
   return (
     <div className="panel">
       <div className="panel-label">
-        {t("Funnel_Integrity_Diagnostic", "Customer Drop-Off Analysis")}
+        {t("Funnel_Integrity_Diagnostic", "Where people drop off")}
       </div>
       <h2
         className="mb-1 text-2xl font-bold tracking-tight"
         style={{ fontFamily: "var(--font-head)" }}
       >
-        {t("Tracking People vs. Clicks", "Where Customers Drop Off")}
+        {t("Tracking People vs. Clicks", "Where People Drop Off")}
       </h2>
       <p className="mb-6 text-xs text-[var(--text-dim)]">
         {t(
@@ -76,7 +76,7 @@ export default function FunnelLeakageChart({ funnel }: Props) {
                 <div className="stage-val">{stage.count.toLocaleString()}</div>
                 {idx === 0 ? (
                   <div className="font-mono text-[10px] text-[var(--text-dim)]">
-                    {t("— baseline", "— starting point")}
+                    {t("— baseline", "— starts here")}
                   </div>
                 ) : (
                   <div
@@ -97,7 +97,7 @@ export default function FunnelLeakageChart({ funnel }: Props) {
         <b>{t("FORENSIC FINDING:", "WHAT WE FOUND:")}</b> {funnel.primaryLeak}
         <br />
         <br />
-        <b>{t("LEAKAGE SCORE:", "DROP-OFF SCORE:")}</b>{" "}
+        <b>{t("LEAKAGE SCORE:", "HOW BAD IT IS:")}</b>{" "}
         <span style={{ color: funnel.leakageScore > 50 ? "var(--red)" : "#fbbf24" }}>
           {funnel.leakageScore}/100
         </span>
@@ -113,7 +113,7 @@ export default function FunnelLeakageChart({ funnel }: Props) {
         onClick={() => openReport(1)}
         className="mt-4 flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-wider text-[var(--red)] opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
       >
-        → {t("View full analysis →", "See detailed breakdown →")}
+        → {t("View full analysis →", "See the full breakdown →")}
       </button>
     </div>
   );
