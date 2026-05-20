@@ -17,6 +17,9 @@ import DemographicsPanel from "@/components/audit/DemographicsPanel";
 import RecommendationCards from "@/components/audit/RecommendationCards";
 import AuditRibbon from "@/components/audit/AuditRibbon";
 import BenchmarkStatus from "@/components/audit/BenchmarkStatus";
+import InteractiveFunnelExplorer from "@/components/visualizers/InteractiveFunnelExplorer";
+import TimeSeriesScrubber from "@/components/visualizers/TimeSeriesScrubber";
+import GeoBudgetReallocator from "@/components/visualizers/GeoBudgetReallocator";
 import dynamic from "next/dynamic";
 import { Languages } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -263,6 +266,26 @@ export default function AuditDashboard({
               <section id="creative" className="col-span-12 lg:col-span-6">
                 <CreativeAnalysisGrid creative={audit.creative} liveCpl={liveCpl} />
               </section>
+
+              {/* Interactive visualisers (Tier 2) — slot in between Geo/Creative and Demographics */}
+              {!printMode && (
+                <>
+                  <section id="funnel-explorer" className="col-span-12 lg:col-span-6">
+                    <InteractiveFunnelExplorer
+                      funnel={audit.funnel}
+                      blendedCpl={audit.spend.blendedCpl}
+                    />
+                  </section>
+                  <section id="weekly-scrubber" className="col-span-12 lg:col-span-6">
+                    <TimeSeriesScrubber weeks={audit.weeklySeries} />
+                  </section>
+                  {audit.geo.regions.length > 0 && (
+                    <section id="geo-reallocator" className="col-span-12">
+                      <GeoBudgetReallocator geo={audit.geo} />
+                    </section>
+                  )}
+                </>
+              )}
 
               {/* Demographics (age/gender CPL breakdown) */}
               {audit.demographics.brackets.some((b) => b.spend > 0) && (

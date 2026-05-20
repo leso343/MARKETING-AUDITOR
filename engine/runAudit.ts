@@ -16,6 +16,7 @@ import { analyzeGeographicWaste, GeographicWasteResult } from "./analyses/geogra
 import { analyzeCreatives, CreativeAnalysisResult } from "./analyses/creativeAnalysis";
 import { analyzeSpendEfficiency, SpendEfficiencyResult } from "./analyses/spendEfficiency";
 import { analyzeDemographics, DemographicsResult } from "./analyses/demographics";
+import { buildWeeklySeries, WeeklySeriesPoint } from "./analyses/weeklySeries";
 
 export interface RunAuditOpts {
   csvDir: string;
@@ -50,6 +51,7 @@ export interface AuditResult {
   creative: CreativeAnalysisResult;
   spend: SpendEfficiencyResult;
   demographics: DemographicsResult;
+  weeklySeries: WeeklySeriesPoint[];
 }
 
 function flatRows<T extends ParsedRow>(files: ParsedFile[], kind: T["kind"]): T[] {
@@ -151,5 +153,6 @@ export function runAudit(opts: RunAuditOpts): AuditResult {
     creative:     analyzeCreatives(ads),
     spend:        analyzeSpendEfficiency(campaigns, ads, breakdowns, benchmarks),
     demographics: analyzeDemographics(breakdowns),
+    weeklySeries: buildWeeklySeries(campaigns, ads),
   };
 }

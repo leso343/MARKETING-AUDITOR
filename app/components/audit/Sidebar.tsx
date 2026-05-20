@@ -15,6 +15,9 @@ import {
   PieChart,
   Users,
   X,
+  Sliders,
+  Calendar,
+  Layers,
 } from "lucide-react";
 import { useLang } from "@/context/LangContext";
 
@@ -91,6 +94,14 @@ export default function Sidebar({ clientName, clientSubtitle, primaryLeak, pdfPa
         { href: "#geo", label: t("Geographic Sieve", "Location Data"), icon: MapPinned },
         { href: "#creative", label: t("Creative Drill", "Ad Performance"), icon: Users },
         { href: "#demographics", label: t("Demographics", "Age Breakdown"), icon: PieChart },
+      ],
+    },
+    {
+      label: t("What-If Explorers", "Try It Yourself"),
+      items: [
+        { href: "#funnel-explorer", label: t("Funnel Explorer", "Drop-Off Explorer"), icon: Sliders },
+        { href: "#weekly-scrubber", label: t("Weekly CPL Scrubber", "Cost Over Time"), icon: Calendar },
+        { href: "#geo-reallocator", label: t("Budget Reallocator", "Move Money Around"), icon: Layers },
       ],
     },
     {
