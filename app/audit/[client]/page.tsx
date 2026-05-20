@@ -17,7 +17,7 @@ export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: Promise<{ client: string }>;
-  searchParams: Promise<{ cpl?: string; ctr?: string; industry?: string; days?: string }>;
+  searchParams: Promise<{ cpl?: string; ctr?: string; industry?: string; days?: string; print?: string }>;
 }
 
 function prettyClient(slug: string): string {
@@ -107,6 +107,8 @@ export default async function AuditPage({ params, searchParams }: PageProps) {
     );
   }
 
+  const printMode = search.print === "true" || search.print === "1";
+
   return (
     <AuditDashboard
       audit={audit}
@@ -116,6 +118,7 @@ export default async function AuditPage({ params, searchParams }: PageProps) {
       clientLogo={clientLogo ?? undefined}
       industry={clientConfig.industry ?? industry}
       industryOptions={industryOptions}
+      printMode={printMode}
     />
   );
 }
