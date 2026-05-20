@@ -42,16 +42,92 @@ export interface CreativeAnalysisResult {
 }
 
 export function analyzeCreatives(ads: AdRow[]): CreativeAnalysisResult {
-  const scored: AdScore[] = ads.map((a) => {
-    const spend = a.amountSpent ?? 0;
-    const results = a.results ?? 0;
-    const cpl = results > 0 ? round(spend / results, 2) : 0;
-    // Prefer parser-provided CPC; fall back to derived clicks if missing.
-    let cpc = a.cpc ?? 0;
-    if (!cpc && a.impressions != null && a.ctr != null && a.ctr > 0) {
-      const derivedClicks = (a.impressions * a.ctr) / 100;
-      cpc = derivedClicks > 0 ? round(spend / derivedClicks, 2) : 0;
+  // ── Bug fix: collapse duplicate Ad-name rows before scoring. ─────────────
+  // Meta exports occasionally split the same ad across multiple rows
+  // (delivery breakdowns, status changes, attribution windows, or daily-
+  // rollup re-exports). Sorting + top-N before aggregation lets the same
+  // ad surface in the winners list more than once. We group by
+  // (campaignName, adName), sum additive metrics, and re-derive rate
+  // metrics (CTR, CPC, CPL) from the totals so the scoring step
+  // downstream sees one canonical row per ad.
+  type Agg = {
+    adName: string;
+    adsetName: string;
+    campaignName: string;
+    headline: string;
+    body: string;
+    status: string;
+    qualityRanking: string;
+    engagementRateRanking: string;
+    conversionRateRanking: string;
+    spend: number;
+    results: number;
+    impressions: number;
+    clicks: number; // derived from per-row impressions * CTR / 100
+    parsedCpcSpend: number; // weighted parser-CPC fallback when CTR missing
+    parsedCpcClicks: number;
+    freqWeighted: number;
+    freqWeight: number;
+  };
+  const aggMap = new Map<string, Agg>();
+  for (const a of ads) {
+    const key = `${a.campaignName} :: ${a.adName}`;
+    let cur = aggMap.get(key);
+    if (!cur) {
+      cur = {
+        adName: a.adName,
+        adsetName: a.adsetName,
+        campaignName: a.campaignName,
+        headline: a.headline,
+        body: a.body,
+        status: a.status,
+        qualityRanking: a.qualityRanking,
+        engagementRateRanking: a.engagementRateRanking,
+        conversionRateRanking: a.conversionRateRanking,
+        spend: 0,
+        results: 0,
+        impressions: 0,
+        clicks: 0,
+        parsedCpcSpend: 0,
+        parsedCpcClicks: 0,
+        freqWeighted: 0,
+        freqWeight: 0,
+      };
+      aggMap.set(key, cur);
     }
+    cur.spend += a.amountSpent ?? 0;
+    cur.results += a.results ?? 0;
+    const imps = a.impressions ?? 0;
+    cur.impressions += imps;
+    if (imps > 0 && a.ctr != null) {
+      cur.clicks += (imps * a.ctr) / 100;
+    }
+    // Parser-provided CPC -> clicks, used as fallback when CTR is missing.
+    if (a.cpc != null && a.cpc > 0 && (a.amountSpent ?? 0) > 0) {
+      const rowClicks = (a.amountSpent ?? 0) / a.cpc;
+      cur.parsedCpcSpend += a.amountSpent ?? 0;
+      cur.parsedCpcClicks += rowClicks;
+    }
+    if (a.reach != null && a.reach > 0 && a.frequency != null) {
+      cur.freqWeighted += a.reach * a.frequency;
+      cur.freqWeight += a.reach;
+    }
+  }
+
+  const scored: AdScore[] = Array.from(aggMap.values()).map((a) => {
+    const spend = a.spend;
+    const results = a.results;
+    const cpl = results > 0 ? round(spend / results, 2) : 0;
+    // CTR / CPC re-derived from aggregated totals so the scoring step
+    // sees the true blended rate, not whichever single row came last.
+    const ctr = a.impressions > 0 ? round((a.clicks / a.impressions) * 100, 4) : 0;
+    let cpc = 0;
+    if (a.clicks > 0) {
+      cpc = round(spend / a.clicks, 2);
+    } else if (a.parsedCpcClicks > 0) {
+      cpc = round(a.parsedCpcSpend / a.parsedCpcClicks, 2);
+    }
+    const frequency = a.freqWeight > 0 ? round(a.freqWeighted / a.freqWeight, 2) : 0;
     return {
       adName: a.adName,
       campaignName: a.campaignName,
@@ -60,9 +136,9 @@ export function analyzeCreatives(ads: AdRow[]): CreativeAnalysisResult {
       spend: round(spend, 2),
       results,
       cpl,
-      cpc: round(cpc, 2),
-      ctr: a.ctr ?? 0,
-      frequency: a.frequency ?? 0,
+      cpc,
+      ctr,
+      frequency,
       status: 'ok',
       reason: '',
     };
@@ -109,7 +185,8 @@ export function analyzeCreatives(ads: AdRow[]): CreativeAnalysisResult {
   const blendedCpl = anyConverters && totalResults > 0 ? round(totalSpend / totalResults, 2) : 0;
 
   // Blended CPC: prefer derived clicks (impressions * CTR) so it's defined
-  // for every ad regardless of how the Results column was populated.
+  // for every ad regardless of how the Results column was populated. Computed
+  // from raw rows, not the aggregated `scored` set, to avoid double-rounding.
   let totalDerivedClicks = 0;
   for (const a of ads) {
     if (a.impressions != null && a.ctr != null) {
@@ -121,7 +198,7 @@ export function analyzeCreatives(ads: AdRow[]): CreativeAnalysisResult {
   return {
     winners,
     wasters,
-    totalAds: ads.length,
+    totalAds: scored.length, // unique ads after aggregation
     totalSpend: round(totalSpend, 2),
     blendedCpl,
     blendedCpc,
