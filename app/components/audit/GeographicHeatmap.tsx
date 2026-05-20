@@ -7,6 +7,13 @@ import { useReport } from "@/context/ReportContext";
 interface Props {
   geo: GeographicWasteResult;
   liveCpl?: number;
+  /**
+   * Label for the per-result cost column. When the account ran lead-objective
+   * campaigns this should be "CPL"; for Traffic-objective accounts the
+   * Results column is link clicks, so the same math is really CPC.
+   * See spendEfficiency.ts for the canonical methodology.
+   */
+  costMetricLabel?: "CPL" | "CPC";
 }
 
 const STATUS_BG: Record<string, string> = {
@@ -29,7 +36,7 @@ const PLAIN_STATUS: Record<string, string> = {
   leak:  "WASTED",
 };
 
-export default function GeographicHeatmap({ geo, liveCpl }: Props) {
+export default function GeographicHeatmap({ geo, liveCpl, costMetricLabel = "CPL" }: Props) {
   const { t, plain } = useLang();
   const { openReport } = useReport();
   const maxSpend = Math.max(...geo.regions.map((r) => r.spend), 1);
@@ -69,7 +76,7 @@ export default function GeographicHeatmap({ geo, liveCpl }: Props) {
             <th style={{ padding: "10px 8px" }}>{t("Region", "Location")}</th>
             <th className="text-right" style={{ padding: "10px 8px" }}>{t("Spend", "Spent")}</th>
             <th className="text-right" style={{ padding: "10px 8px" }}>{t("Leads", "Leads")}</th>
-            <th className="text-right" style={{ padding: "10px 8px" }}>{t("CPL", "Cost/Lead")}</th>
+            <th className="text-right" style={{ padding: "10px 8px" }}>{costMetricLabel === "CPC" ? t("CPC", "Cost/Click") : t("CPL", "Cost/Lead")}</th>
             <th style={{ padding: "10px 8px" }}>{t("Status", "Result")}</th>
           </tr>
         </thead>

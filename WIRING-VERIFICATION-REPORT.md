@@ -237,3 +237,100 @@ Best CPL: **45–54** at $58.53. Most spend: **65+** at $1,428.50 (13 leads).
 3. **Short date range** — All data is from Apr 15–May 15 2026 (the last month). The CSV filename says "Apr 15 2023" but the actual data rows only go back to Apr 15 2026 based on the `Reporting starts` column values.
 
 4. **campaigns-last-month.csv in reference/** — The last-month breakdown is preserved for reference but not auto-ingested. To compare month-over-month, it would need to be ingested separately (e.g., via a dedicated route or CLI flag).
+
+---
+
+## 9. CPL / CPC SPLIT FIX (2026-05-20)
+
+**Branch:** `claude/cpl-fix-and-real-pdf`
+
+The engine previously produced two competing numbers labelled "CPL":
+- **~$3.18** when `spendEfficiency.analyzeSpendEfficiency` fell back to
+  `sum(ads.results)` — which for a Traffic-objective account is *link
+  clicks*, not lead-form submissions. This was a click-based CPL
+  masquerading as CPL.
+- **~$101.07** when leads were filtered through `isLeadObjective(...)` (the
+  honest, Meta-Ads-Manager-equivalent number).
+
+### What changed
+
+`engine/analyses/spendEfficiency.ts`
+- Renamed the click-based fallback away — it is now the **`weightedCpc`**
+  field, computed strictly as `totalSpend / totalLinkClicks`, where clicks
+  are derived from `impressions × CTR / 100`.
+- `blendedCpl` is now strictly `leadObjectiveSpend / totalLeads` —
+  there is no fallback. If no lead-objective campaign exists the CPL
+  is reported as `—`.
+- Added new KPI card `Control_CPC` so CPC has a first-class place in the
+  KPI snapshot alongside the CPL card.
+- New result fields: `totalClicks`, `leadObjectiveSpend`, `weightedCpc`.
+
+`engine/analyses/creativeAnalysis.ts`
+- Added `cpc` per ad (parser column, or derived from `impressions × CTR`).
+- Added `blendedCpc` to `CreativeAnalysisResult`.
+- `blendedCpl` is now only emitted when ≥1 converter ad exists, so we
+  never publish a "CPL" that is really a per-click average.
+
+`engine/analyses/geographicWaste.ts`
+- Header comment now states that `cpl` per region is literally
+  `spend / Results` — true cost-per-lead only when the campaign was a
+  Leads-objective campaign. Dashboard relabels the column to `CPC`
+  for click-based accounts.
+
+`engine/index.ts` (CLI summary)
+- Prints both Blended CPL and Blended CPC with their methodology notes.
+
+`app/components/audit/KPISnapshot.tsx`
+- Added `Control_CPC` to display-label maps.
+
+`app/components/audit/AuditRibbon.tsx`
+- CPL chip hidden when no lead-objective campaigns ran; CPC chip is
+  added and always shown when clicks exist.
+
+`app/components/audit/CreativeAnalysisGrid.tsx`
+- Per-ad card shows CPL when leads exist; otherwise shows CPC.
+
+`app/components/audit/GeographicHeatmap.tsx`
+- New `costMetricLabel?: "CPL" | "CPC"` prop. Column header switches to
+  `CPC` for click-only accounts.
+
+`app/audit/[client]/AuditDashboard.tsx`
+- Passes `costMetricLabel` to GeographicHeatmap based on
+  `audit.spend.blendedCpl > 0`.
+- New methodology footnote under the KPI snapshot:
+  *"CPL is computed as total ad spend divided by lead-form submissions
+  (Meta's 'Results' column for Leads-objective campaigns). For
+  Traffic-objective campaigns, CPC (cost per click) is shown instead.
+  Mixed-objective accounts use a weighted blend, documented per row."*
+
+### Result for Take Charge audit
+
+The headline CPL number reverts to the honest figure
+(~$101.07 lead-form CPL across the lead campaigns). CPC of ~$3.18
+remains exposed for transparency and decision-making on the Traffic
+campaigns. The two are never displayed under the same label again.
+
+---
+
+## 10. REAL PDF EXPORT (2026-05-20)
+
+Replaced the static `SNA_Marketing_TakeCharge_Audit.pdf` link with a
+real, on-demand Puppeteer-driven export.
+
+### What changed
+
+- **New API route:** `app/api/audit/[client]/pdf/route.ts` — server-side
+  Puppeteer that fetches `/audit/[client]?print=true`, waits for network
+  idle plus a 2 s render buffer, then `page.pdf()` with Letter format
+  and 20 px margins. Returns `application/pdf` with a
+  `Content-Disposition: attachment` header.
+- **Environment-aware Chromium:** local dev uses bundled Puppeteer;
+  production / Vercel uses `@sparticuz/chromium-min` (~50 MB slim
+  build) via `puppeteer-core`.
+- **Print mode:** `/audit/[client]?print=true` hides the sidebar,
+  controls panel, header buttons, ribbon, and what-if banner. Adds
+  `print-mode` body class with section page-break hints, slightly
+  taller card padding, and animations disabled.
+- **Button wiring:** the sidebar "Download PDF Report" link now points
+  at `/api/audit/[client]/pdf`; the frozen static PDF in `public/` was
+  deleted (3.7 MB freed).

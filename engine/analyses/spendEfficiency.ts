@@ -1,9 +1,25 @@
 /**
  * Spend efficiency / overall KPIs.
  *
- * Produces 5-7 KPI cards: total spend, blended CPL, weighted CTR, average
- * frequency, lead-objective campaigns with tracking issues, budget pacing,
- * and account-wide CPM.
+ * Produces 5-8 KPI cards: total spend, blended CPL, blended CPC, weighted CTR,
+ * average frequency, lead-objective campaigns with tracking issues, budget
+ * pacing, and account-wide CPM.
+ *
+ * Methodology — CPL vs CPC:
+ *   - "Blended CPL"  = (sum of spend on lead-objective campaigns) /
+ *                      (sum of lead-form submissions from those campaigns).
+ *                      This is what Meta Ads Manager reports in its
+ *                      "Cost per result" column when Objective = Leads.
+ *   - "Blended CPC"  = total spend / total link clicks (across all
+ *                      objectives). Click counts are derived from
+ *                      `impressions * CTR / 100` so they match Meta's CTR
+ *                      definition (link CTR).
+ *   - Older revisions of this engine fell back to summing all ad-level
+ *     `Results` when no lead-objective campaigns were detected. That sum
+ *     conflates clicks (Traffic objective) with leads (Leads objective),
+ *     producing a "CPL" that was actually CPC. We no longer fall back —
+ *     CPL is "—" when there are no lead-objective lead submissions, and
+ *     CPC is reported as a separate KPI.
  */
 import { CampaignRow, AdRow, BreakdownRow, KpiCard, StatusLevel } from '../types';
 
@@ -11,7 +27,10 @@ export interface SpendEfficiencyResult {
   kpis: KpiCard[];
   totalSpend: number;
   totalLeads: number;
+  totalClicks: number;
+  leadObjectiveSpend: number;
   blendedCpl: number;
+  weightedCpc: number;
   weightedCtr: number;
   weightedCpm: number;
   averageFrequency: number;
@@ -37,9 +56,14 @@ export function analyzeSpendEfficiency(
   benchmarks: { targetCpl: number; targetCtr: number } = { targetCpl: 55, targetCtr: 1.5 },
 ): SpendEfficiencyResult {
   const totalSpend = sum(campaigns.map((c) => c.amountSpent));
-  const totalLeads = sum(campaigns.filter((c) => isLeadObjective(c.objective, c.resultIndicator)).map((c) => c.results)) ||
-                     sum(ads.map((a) => a.results));
-  const blendedCpl = totalLeads > 0 ? totalSpend / totalLeads : 0;
+
+  // ── CPL: STRICTLY lead-objective. No fallback to clicks-as-leads. ─────────
+  const leadCampaigns = campaigns.filter((c) => isLeadObjective(c.objective, c.resultIndicator));
+  const totalLeads = sum(leadCampaigns.map((c) => c.results));
+  const leadObjectiveSpend = sum(leadCampaigns.map((c) => c.amountSpent));
+  // Use lead-objective spend / lead-objective leads so mixed accounts aren't
+  // penalised by Traffic campaign budgets that never targeted leads.
+  const blendedCpl = totalLeads > 0 ? leadObjectiveSpend / totalLeads : 0;
 
   // Weighted CTR & CPM over impressions.
   const totalImpressions = sum(campaigns.map((c) => c.impressions));
@@ -54,6 +78,23 @@ export function analyzeSpendEfficiency(
   const weightedCtr = totalImpressions > 0 ? weightedCtrAcc / totalImpressions : 0;
   const weightedCpm = totalImpressions > 0 ? weightedCpmAcc / totalImpressions : 0;
 
+  // ── CPC: blended across all campaigns. Clicks ≈ impressions * CTR / 100. ──
+  let totalClicks = 0;
+  for (const c of campaigns) {
+    if (c.impressions != null && c.ctr != null) {
+      totalClicks += (c.impressions * c.ctr) / 100;
+    }
+  }
+  // Fall back to ads-level CTR*impressions if campaign-level missing.
+  if (totalClicks === 0) {
+    for (const a of ads) {
+      if (a.impressions != null && a.ctr != null) {
+        totalClicks += (a.impressions * a.ctr) / 100;
+      }
+    }
+  }
+  const weightedCpc = totalClicks > 0 ? totalSpend / totalClicks : 0;
+
   // Avg frequency (weighted by reach).
   const totalReach = sum(campaigns.map((c) => c.reach));
   let freqAcc = 0;
@@ -62,12 +103,12 @@ export function analyzeSpendEfficiency(
   }
   const averageFrequency = totalReach > 0 ? freqAcc / totalReach : 0;
 
-  const leadCampaignCount = campaigns.filter((c) => isLeadObjective(c.objective, c.resultIndicator)).length;
+  const leadCampaignCount = leadCampaigns.length;
   const campaignsWithAttribIssues = campaigns.filter((c) => !c.attributionSetting).length;
 
   const cplStatus: StatusLevel =
     blendedCpl === 0
-      ? 'critical'
+      ? 'warn' // unknown rather than critical — no lead-objective data
       : blendedCpl > benchmarks.targetCpl * 1.5
       ? 'critical'
       : blendedCpl > benchmarks.targetCpl
@@ -115,7 +156,16 @@ export function analyzeSpendEfficiency(
       value: blendedCpl > 0 ? '$' + blendedCpl.toFixed(2) : '—',
       unit: 'Blended CPL',
       status: cplStatus,
-      benchmark: `Target Benchmark: $${benchmarks.targetCpl.toFixed(2)}`,
+      benchmark: leadCampaignCount > 0
+        ? `Target Benchmark: $${benchmarks.targetCpl.toFixed(2)}`
+        : 'No lead-objective campaigns',
+    },
+    {
+      label: 'Control_CPC',
+      value: weightedCpc > 0 ? '$' + weightedCpc.toFixed(2) : '—',
+      unit: 'Blended CPC',
+      status: 'ok',
+      benchmark: 'Total spend / link clicks',
     },
     {
       label: 'Lead_Volume',
@@ -153,7 +203,10 @@ export function analyzeSpendEfficiency(
     kpis,
     totalSpend: round(totalSpend, 2),
     totalLeads,
+    totalClicks: Math.round(totalClicks),
+    leadObjectiveSpend: round(leadObjectiveSpend, 2),
     blendedCpl: round(blendedCpl, 2),
+    weightedCpc: round(weightedCpc, 2),
     weightedCtr: round(weightedCtr, 2),
     weightedCpm: round(weightedCpm, 2),
     averageFrequency: round(averageFrequency, 2),

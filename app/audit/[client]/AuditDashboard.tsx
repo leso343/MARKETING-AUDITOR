@@ -200,6 +200,14 @@ export default function AuditDashboard({
                   weightedCtr={audit.spend.weightedCtr}
                   isPreview={isPreview}
                 />
+                <p className="mt-2 text-[10px] leading-snug text-[var(--text-dim)]" style={{ maxWidth: 880 }}>
+                  <span className="font-mono uppercase tracking-wider">Methodology:</span>{" "}
+                  CPL is computed as total ad spend divided by lead-form
+                  submissions (Meta&apos;s &ldquo;Results&rdquo; column for
+                  Leads-objective campaigns). For Traffic-objective campaigns,
+                  CPC (cost per click) is shown instead. Mixed-objective
+                  accounts use a weighted blend, documented per row.
+                </p>
               </section>
 
               {/* Benchmark status strip — makes slider effects immediately visible */}
@@ -225,7 +233,14 @@ export default function AuditDashboard({
 
               {/* Geo + Creative */}
               <section id="geo" className="col-span-12 lg:col-span-6">
-                <GeographicHeatmap geo={audit.geo} liveCpl={liveCpl} />
+                {/* Lead-objective campaigns → "CPL"; otherwise the
+                    Results column is link clicks, so the per-region cost
+                    is really CPC. Choose label honestly. */}
+                <GeographicHeatmap
+                  geo={audit.geo}
+                  liveCpl={liveCpl}
+                  costMetricLabel={audit.spend.blendedCpl > 0 ? "CPL" : "CPC"}
+                />
               </section>
               <section id="creative" className="col-span-12 lg:col-span-6">
                 <CreativeAnalysisGrid creative={audit.creative} liveCpl={liveCpl} />

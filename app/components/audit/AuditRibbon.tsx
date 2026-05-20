@@ -144,12 +144,26 @@ export default function AuditRibbon({ audit }: Props) {
         anchor="leakage"
       />
 
-      <Chip
-        label={t("CPL", "COST/LEAD")}
-        value={spend.blendedCpl > 0 ? `$${spend.blendedCpl.toFixed(2)}` : "—"}
-        status={cplStatus}
-        anchor="leakage"
-      />
+      {/* CPL — only shown when lead-objective campaigns ran (Meta's
+          "Results" = lead form submissions). For Traffic-objective accounts
+          this is hidden in favour of CPC (next chip). */}
+      {spend.blendedCpl > 0 && (
+        <Chip
+          label={t("CPL", "COST/LEAD")}
+          value={`$${spend.blendedCpl.toFixed(2)}`}
+          status={cplStatus}
+          anchor="leakage"
+        />
+      )}
+
+      {/* CPC — total spend / link clicks, always shown when clicks exist. */}
+      {spend.weightedCpc > 0 && (
+        <Chip
+          label={t("CPC", "COST/CLICK")}
+          value={`$${spend.weightedCpc.toFixed(2)}`}
+          anchor="leakage"
+        />
+      )}
 
       <Chip
         label={t("LEADS", "LEADS")}

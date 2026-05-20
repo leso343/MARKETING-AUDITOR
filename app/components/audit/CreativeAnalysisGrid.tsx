@@ -111,10 +111,15 @@ function AdCard({ ad, tone, liveCpl }: { ad: AdScore; tone: "ok" | "critical"; l
         </div>
         <div className="mt-2 grid grid-cols-3 gap-2 font-mono text-[10px]">
           <Metric label={t("Spend", "Spent")} value={`$${ad.spend.toLocaleString()}`} />
-          <Metric
-            label={t("CPL", "Cost/Lead")}
-            value={ad.cpl > 0 ? `$${ad.cpl.toFixed(2)}` : "—"}
-          />
+          {/* CPL when leads exist; otherwise CPC (cost per click). Never conflate the two. */}
+          {ad.cpl > 0 ? (
+            <Metric label={t("CPL", "Cost/Lead")} value={`$${ad.cpl.toFixed(2)}`} />
+          ) : (
+            <Metric
+              label={t("CPC", "Cost/Click")}
+              value={ad.cpc > 0 ? `$${ad.cpc.toFixed(2)}` : "—"}
+            />
+          )}
           <Metric label={t("CTR", "Click Rate")} value={`${ad.ctr.toFixed(2)}%`} />
         </div>
         <div className="mt-2 text-[10px] italic" style={{ color: border }}>
