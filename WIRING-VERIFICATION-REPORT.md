@@ -258,9 +258,13 @@ The engine previously produced two competing numbers labelled "CPL":
 - Renamed the click-based fallback away — it is now the **`weightedCpc`**
   field, computed strictly as `totalSpend / totalLinkClicks`, where clicks
   are derived from `impressions × CTR / 100`.
-- `blendedCpl` is now strictly `leadObjectiveSpend / totalLeads` —
-  there is no fallback. If no lead-objective campaign exists the CPL
-  is reported as `—`.
+- `blendedCpl` is now strictly `totalSpend / totalLeads`, where
+  `totalLeads` comes only from lead-objective campaigns (Meta's
+  Results column when Objective = Leads). There is no fallback to
+  ad-level Results (which conflates clicks with leads). If no
+  lead-objective campaign exists, CPL is reported as `—` and the cost
+  story is carried entirely by CPC. `leadObjectiveSpend` (the per-
+  objective slice) is still exposed as a separate result field.
 - Added new KPI card `Control_CPC` so CPC has a first-class place in the
   KPI snapshot alongside the CPL card.
 - New result fields: `totalClicks`, `leadObjectiveSpend`, `weightedCpc`.
@@ -305,10 +309,21 @@ The engine previously produced two competing numbers labelled "CPL":
 
 ### Result for Take Charge audit
 
-The headline CPL number reverts to the honest figure
-(~$101.07 lead-form CPL across the lead campaigns). CPC of ~$3.18
-remains exposed for transparency and decision-making on the Traffic
-campaigns. The two are never displayed under the same label again.
+Engine output verified on `public/csvs/take-charge-roofing`:
+
+```
+  Total Spend:       $3137.11
+  Tracked Leads:     31
+  Blended CPL:       $101.20  (total spend / lead form submissions)
+  Blended CPC:       $1.94    (total spend / link clicks)
+  Weighted CTR:      2.05%
+```
+
+The headline CPL is the honest $101.20 figure (matches Meta's
+"cost per lead" mental model). CPC of $1.94 is exposed separately
+for transparency and decision-making on the Traffic campaigns. The
+$3.18 conflated number is gone — the two metrics are never displayed
+under the same label again.
 
 ---
 

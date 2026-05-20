@@ -6,10 +6,13 @@
  * pacing, and account-wide CPM.
  *
  * Methodology — CPL vs CPC:
- *   - "Blended CPL"  = (sum of spend on lead-objective campaigns) /
- *                      (sum of lead-form submissions from those campaigns).
- *                      This is what Meta Ads Manager reports in its
- *                      "Cost per result" column when Objective = Leads.
+ *   - "Blended CPL"  = total account spend / total lead-form submissions
+ *                      (the latter comes strictly from lead-objective
+ *                      campaigns — Meta's "Results" column when
+ *                      Objective = Leads). Matches "I paid $X and got Y
+ *                      leads → X/Y per lead", which is the client mental
+ *                      model. The per-objective slice (lead-objective
+ *                      spend only) is exposed as `leadObjectiveSpend`.
  *   - "Blended CPC"  = total spend / total link clicks (across all
  *                      objectives). Click counts are derived from
  *                      `impressions * CTR / 100` so they match Meta's CTR
@@ -57,13 +60,25 @@ export function analyzeSpendEfficiency(
 ): SpendEfficiencyResult {
   const totalSpend = sum(campaigns.map((c) => c.amountSpent));
 
-  // ── CPL: STRICTLY lead-objective. No fallback to clicks-as-leads. ─────────
+  // ── CPL: total spend / lead form submissions. ────────────────────────────
+  // Matches Meta Ads Manager's "Cost per lead" view: the denominator is
+  // strictly lead-form submissions (Results column on lead-objective
+  // campaigns). The numerator is total account spend — clients think in
+  // "I paid $X and got Y leads", not in per-objective slices.
+  //
+  // The old engine fell back to summing ad-level Results when no
+  // lead-objective campaign was detected. That sum mixes clicks (Traffic
+  // objective) with leads (Leads objective) and produced a "CPL" that was
+  // actually CPC. That fallback is removed — when there are no
+  // lead-form submissions, CPL is "—" and CPC carries the cost story.
+  //
+  // The lead-objective-only spend is exposed separately as
+  // `leadObjectiveSpend` for downstream uses that want the purer
+  // per-objective slice.
   const leadCampaigns = campaigns.filter((c) => isLeadObjective(c.objective, c.resultIndicator));
   const totalLeads = sum(leadCampaigns.map((c) => c.results));
   const leadObjectiveSpend = sum(leadCampaigns.map((c) => c.amountSpent));
-  // Use lead-objective spend / lead-objective leads so mixed accounts aren't
-  // penalised by Traffic campaign budgets that never targeted leads.
-  const blendedCpl = totalLeads > 0 ? leadObjectiveSpend / totalLeads : 0;
+  const blendedCpl = totalLeads > 0 ? totalSpend / totalLeads : 0;
 
   // Weighted CTR & CPM over impressions.
   const totalImpressions = sum(campaigns.map((c) => c.impressions));

@@ -121,7 +121,7 @@ function main(): void {
   console.log('═══════════════════════════════════════════');
   console.log(`  Total Spend:       $${spend.totalSpend.toFixed(2)}`);
   console.log(`  Tracked Leads:     ${spend.totalLeads}`);
-  console.log(`  Blended CPL:       ${spend.blendedCpl > 0 ? '$' + spend.blendedCpl.toFixed(2) : '—'}  (lead-objective spend / lead form submissions)`);
+  console.log(`  Blended CPL:       ${spend.blendedCpl > 0 ? '$' + spend.blendedCpl.toFixed(2) : '—'}  (total spend / lead form submissions)`);
   console.log(`  Blended CPC:       ${spend.weightedCpc > 0 ? '$' + spend.weightedCpc.toFixed(2) : '—'}  (total spend / link clicks)`);
   console.log(`  Weighted CTR:      ${spend.weightedCtr.toFixed(2)}%`);
   console.log(`  Funnel Leakage:    ${funnel.leakageScore.toFixed(1)}%`);
