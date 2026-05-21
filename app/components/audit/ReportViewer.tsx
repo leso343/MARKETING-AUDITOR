@@ -8,6 +8,9 @@ interface Props {
   open: boolean;
   page: number;
   onClose: () => void;
+  /** Per-client PDF URL, e.g. /api/audit/<slug>/pdf. When omitted, the
+   *  Download PDF link is hidden (no PDF available for this client). */
+  pdfPath?: string;
 }
 
 const PAGE_TABS = [
@@ -17,7 +20,7 @@ const PAGE_TABS = [
   { label: "Geo Audit", page: 4 },
 ];
 
-export default function ReportViewer({ open, page, onClose }: Props) {
+export default function ReportViewer({ open, page, onClose, pdfPath }: Props) {
   const { t } = useLang();
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [loaded, setLoaded] = useState(false);
@@ -153,16 +156,18 @@ export default function ReportViewer({ open, page, onClose }: Props) {
             <span className="hidden sm:inline">{t("Print", "Print")}</span>
           </button>
 
-          {/* PDF download */}
-          <a
-            href="/SNA_Marketing_TakeCharge_Audit.pdf"
-            download
-            className="flex items-center gap-1.5 border border-[var(--border)] px-2 py-1.5 font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)] transition-colors hover:border-[var(--red)] hover:text-white sm:px-3"
-            title="Download PDF"
-          >
-            <Download className="h-3 w-3" />
-            <span className="hidden sm:inline">{t("PDF", "PDF")}</span>
-          </a>
+          {/* PDF download — hidden when no per-client PDF is available */}
+          {pdfPath && (
+            <a
+              href={pdfPath}
+              download
+              className="flex items-center gap-1.5 border border-[var(--border)] px-2 py-1.5 font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)] transition-colors hover:border-[var(--red)] hover:text-white sm:px-3"
+              title="Download PDF"
+            >
+              <Download className="h-3 w-3" />
+              <span className="hidden sm:inline">{t("PDF", "PDF")}</span>
+            </a>
+          )}
 
           {/* Close */}
           <button
