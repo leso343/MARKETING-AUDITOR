@@ -31,6 +31,12 @@ interface Props {
   clientLogo?: string;
   industry: string;
   industryOptions: { key: string; label: string }[];
+  /**
+   * When true the dashboard renders in PDF-export layout: sidebar,
+   * controls panel, header buttons, ribbon, and what-if banner are all
+   * hidden. Used by the /api/audit/[client]/pdf route via ?print=true.
+   */
+  printMode?: boolean;
 }
 
 /** Small client component that can call useLang inside the LangProvider tree. */
@@ -74,6 +80,7 @@ export default function AuditDashboard({
   clientLogo,
   industry,
   industryOptions,
+  printMode = false,
 }: Props) {
   const router = useRouter();
   const search = useSearchParams();
@@ -119,28 +126,37 @@ export default function AuditDashboard({
     setLiveCtr(originalCtr);
   };
 
-  const pdfPath = "/SNA_Marketing_TakeCharge_Audit.pdf";
+  // Real PDF export — server-rendered on demand via Puppeteer.
+  const pdfPath = `/api/audit/${clientSlug}/pdf`;
 
   return (
     <LangProvider>
       <ReportProvider>
-        <div className="flex h-screen overflow-hidden">
-          {/* Left nav rail */}
-          <Sidebar
-            clientName={audit.clientName}
-            clientSubtitle={clientSubtitle}
-            primaryLeak={audit.funnel.primaryLeak}
-            pdfPath={pdfPath}
-            agencyLogo={agencyLogo}
-            clientLogo={clientLogo}
-          />
+        <div
+          className={printMode ? "min-h-screen print-mode" : "flex h-screen overflow-hidden"}
+        >
+          {/* Left nav rail — hidden in PDF export mode */}
+          {!printMode && (
+            <Sidebar
+              clientName={audit.clientName}
+              clientSubtitle={clientSubtitle}
+              primaryLeak={audit.funnel.primaryLeak}
+              pdfPath={pdfPath}
+              agencyLogo={agencyLogo}
+              clientLogo={clientLogo}
+            />
+          )}
 
           {/* Center column scrolls independently — controls panel stays fixed alongside */}
-          <main className="flex-1 min-w-0 overflow-y-auto pt-[52px] lg:pt-0" id="audit-main">
-            {/* Sticky header */}
+          <main className={printMode ? "min-w-0" : "flex-1 min-w-0 overflow-y-auto pt-[52px] lg:pt-0"} id="audit-main">
+            {/* Sticky header — non-sticky / no controls in print mode */}
             <header
-              className="sticky top-0 z-30 flex flex-col gap-2 border-b border-[var(--border)] px-4 py-3 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-10 sm:py-6"
-              style={{ background: "rgba(3,3,3,0.9)" }}
+              className={
+                printMode
+                  ? "flex flex-col gap-2 border-b border-[var(--border)] px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-10 sm:py-6"
+                  : "sticky top-0 z-30 flex flex-col gap-2 border-b border-[var(--border)] px-4 py-3 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-10 sm:py-6"
+              }
+              style={printMode ? undefined : { background: "rgba(3,3,3,0.9)" }}
             >
               <h1
                 className="truncate text-sm font-bold tracking-tight sm:text-lg"
@@ -148,19 +164,21 @@ export default function AuditDashboard({
               >
                 FORENSIC AUDIT: {audit.clientName.toUpperCase()}
               </h1>
-              <div className="flex flex-wrap items-center gap-2">
-                <ReportOpenButton />
-                <HeaderLangToggle />
-                <ThemeToggle />
-                <div className="flex items-center gap-2 border border-[var(--red-dim)] bg-[rgba(255,0,0,0.05)] px-2 py-1.5 font-mono text-[9px] uppercase tracking-wider text-[var(--red)] sm:gap-3 sm:px-3">
-                  <div className="pulse" />
-                  {isPending ? "Recomputing…" : "Engine: Live"}
+              {!printMode && (
+                <div className="flex flex-wrap items-center gap-2">
+                  <ReportOpenButton />
+                  <HeaderLangToggle />
+                  <ThemeToggle />
+                  <div className="flex items-center gap-2 border border-[var(--red-dim)] bg-[rgba(255,0,0,0.05)] px-2 py-1.5 font-mono text-[9px] uppercase tracking-wider text-[var(--red)] sm:gap-3 sm:px-3">
+                    <div className="pulse" />
+                    {isPending ? "Recomputing…" : "Engine: Live"}
+                  </div>
                 </div>
-              </div>
+              )}
             </header>
 
             {/* Preview mode banner — shown when sliders differ from server-rendered benchmarks */}
-            {isPreview && (
+            {!printMode && isPreview && (
               <div
                 className="flex flex-wrap items-center justify-between gap-3 border-b border-[#fbbf2440] px-4 py-2.5 sm:px-10"
                 style={{ background: "rgba(251,191,36,0.06)" }}
@@ -182,7 +200,7 @@ export default function AuditDashboard({
             )}
 
             {/* Fact ribbon (below sticky header, not sticky itself) */}
-            <AuditRibbon audit={audit} />
+            {!printMode && <AuditRibbon audit={audit} />}
 
             <div className="grid grid-cols-12 gap-4 p-4 sm:gap-5 sm:p-6 lg:p-10">
               {/* Executive summary */}
@@ -200,6 +218,14 @@ export default function AuditDashboard({
                   weightedCtr={audit.spend.weightedCtr}
                   isPreview={isPreview}
                 />
+                <p className="mt-2 text-[10px] leading-snug text-[var(--text-dim)]" style={{ maxWidth: 880 }}>
+                  <span className="font-mono uppercase tracking-wider">Methodology:</span>{" "}
+                  CPL is computed as total ad spend divided by lead-form
+                  submissions (Meta&apos;s &ldquo;Results&rdquo; column for
+                  Leads-objective campaigns). For Traffic-objective campaigns,
+                  CPC (cost per click) is shown instead. Mixed-objective
+                  accounts use a weighted blend, documented per row.
+                </p>
               </section>
 
               {/* Benchmark status strip — makes slider effects immediately visible */}
@@ -225,7 +251,14 @@ export default function AuditDashboard({
 
               {/* Geo + Creative */}
               <section id="geo" className="col-span-12 lg:col-span-6">
-                <GeographicHeatmap geo={audit.geo} liveCpl={liveCpl} />
+                {/* Lead-objective campaigns → "CPL"; otherwise the
+                    Results column is link clicks, so the per-region cost
+                    is really CPC. Choose label honestly. */}
+                <GeographicHeatmap
+                  geo={audit.geo}
+                  liveCpl={liveCpl}
+                  costMetricLabel={audit.spend.blendedCpl > 0 ? "CPL" : "CPC"}
+                />
               </section>
               <section id="creative" className="col-span-12 lg:col-span-6">
                 <CreativeAnalysisGrid creative={audit.creative} liveCpl={liveCpl} />
@@ -250,22 +283,24 @@ export default function AuditDashboard({
             </div>
           </main>
 
-          {/* Right controls rail */}
-          <ControlsPanel
-            targetCpl={liveCpl}
-            targetCtr={liveCtr}
-            originalCpl={originalCpl}
-            originalCtr={originalCtr}
-            onLiveCpl={setLiveCpl}
-            onLiveCtr={setLiveCtr}
-            industry={industry}
-            industryOptions={industryOptions}
-            onChange={updateParam}
-            onBatchChange={updateParams}
-            isPending={isPending}
-            onReset={resetToOriginal}
-            reportingPeriod={audit.reportingPeriod}
-          />
+          {/* Right controls rail — hidden in PDF export mode */}
+          {!printMode && (
+            <ControlsPanel
+              targetCpl={liveCpl}
+              targetCtr={liveCtr}
+              originalCpl={originalCpl}
+              originalCtr={originalCtr}
+              onLiveCpl={setLiveCpl}
+              onLiveCtr={setLiveCtr}
+              industry={industry}
+              industryOptions={industryOptions}
+              onChange={updateParam}
+              onBatchChange={updateParams}
+              isPending={isPending}
+              onReset={resetToOriginal}
+              reportingPeriod={audit.reportingPeriod}
+            />
+          )}
         </div>
       </ReportProvider>
     </LangProvider>

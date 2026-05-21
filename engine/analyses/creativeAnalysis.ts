@@ -3,6 +3,17 @@
  *
  * Per-ad metrics from the Ad-level CSV: CTR, CPC, CPL, frequency, rankings.
  * Top quartile by CPL = winners; bottom quartile with >$100 spend = wasters.
+ *
+ * CPL vs CPC methodology (matches spendEfficiency):
+ *   - `cpl`  = spend / `Results` for the ad. Only meaningful when the ad's
+ *              campaign objective was Leads/Conversions (so Results = lead-
+ *              form submissions). For Traffic-objective ads, `Results`
+ *              is link clicks — that case is the same number as `cpc`.
+ *   - `cpc`  = either the parser-provided CPC (cost per link click) column,
+ *              or derived from impressions * CTR / 100 when absent.
+ *   - The dashboard chooses which to surface based on objective context;
+ *     a Traffic-objective ad should be evaluated by CPC, a Leads-objective
+ *     ad by CPL.
  */
 import { AdRow, StatusLevel } from '../types';
 
@@ -14,6 +25,7 @@ export interface AdScore {
   spend: number;
   results: number;
   cpl: number;
+  cpc: number;
   ctr: number;
   frequency: number;
   status: StatusLevel;
@@ -26,6 +38,7 @@ export interface CreativeAnalysisResult {
   totalAds: number;
   totalSpend: number;
   blendedCpl: number;
+  blendedCpc: number;
 }
 
 export function analyzeCreatives(ads: AdRow[]): CreativeAnalysisResult {
@@ -33,6 +46,12 @@ export function analyzeCreatives(ads: AdRow[]): CreativeAnalysisResult {
     const spend = a.amountSpent ?? 0;
     const results = a.results ?? 0;
     const cpl = results > 0 ? round(spend / results, 2) : 0;
+    // Prefer parser-provided CPC; fall back to derived clicks if missing.
+    let cpc = a.cpc ?? 0;
+    if (!cpc && a.impressions != null && a.ctr != null && a.ctr > 0) {
+      const derivedClicks = (a.impressions * a.ctr) / 100;
+      cpc = derivedClicks > 0 ? round(spend / derivedClicks, 2) : 0;
+    }
     return {
       adName: a.adName,
       campaignName: a.campaignName,
@@ -41,6 +60,7 @@ export function analyzeCreatives(ads: AdRow[]): CreativeAnalysisResult {
       spend: round(spend, 2),
       results,
       cpl,
+      cpc: round(cpc, 2),
       ctr: a.ctr ?? 0,
       frequency: a.frequency ?? 0,
       status: 'ok',
@@ -82,7 +102,21 @@ export function analyzeCreatives(ads: AdRow[]): CreativeAnalysisResult {
 
   const totalSpend = scored.reduce((a, s) => a + s.spend, 0);
   const totalResults = scored.reduce((a, s) => a + s.results, 0);
-  const blendedCpl = totalResults > 0 ? round(totalSpend / totalResults, 2) : 0;
+  // Per-ad results may be clicks (Traffic) or leads (Leads). Use cpl only when
+  // any converter ad ran — otherwise it would falsely report "CPL" derived
+  // from click counts.
+  const anyConverters = converters.length > 0;
+  const blendedCpl = anyConverters && totalResults > 0 ? round(totalSpend / totalResults, 2) : 0;
+
+  // Blended CPC: prefer derived clicks (impressions * CTR) so it's defined
+  // for every ad regardless of how the Results column was populated.
+  let totalDerivedClicks = 0;
+  for (const a of ads) {
+    if (a.impressions != null && a.ctr != null) {
+      totalDerivedClicks += (a.impressions * a.ctr) / 100;
+    }
+  }
+  const blendedCpc = totalDerivedClicks > 0 ? round(totalSpend / totalDerivedClicks, 2) : 0;
 
   return {
     winners,
@@ -90,6 +124,7 @@ export function analyzeCreatives(ads: AdRow[]): CreativeAnalysisResult {
     totalAds: ads.length,
     totalSpend: round(totalSpend, 2),
     blendedCpl,
+    blendedCpc,
   };
 }
 

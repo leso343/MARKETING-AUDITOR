@@ -361,3 +361,37 @@ body {
 .dark-select:hover { border-color: #333; }
 .dark-select:focus { border-color: var(--red); }
 
+
+/* ─── print mode (Puppeteer-driven PDF export, /audit/[client]?print=true) ── */
+.print-mode {
+  /* Standard letter-ish width — Puppeteer pdf format: Letter */
+  max-width: 8.5in;
+  margin: 0 auto;
+  background: var(--bg) !important;
+}
+.print-mode section {
+  page-break-inside: avoid;
+  break-inside: avoid;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+.print-mode .panel {
+  box-shadow: none !important;
+}
+/* Disable hover-only / motion animations during export so the PDF capture
+   never lands mid-transition. */
+.print-mode *,
+.print-mode *::before,
+.print-mode *::after {
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
+  transition: none !important;
+}
+.print-mode .pulse { animation: none !important; }
+
+/* When the OS browser actually prints the page (Ctrl+P), give the same
+   treatment as Puppeteer's headless print. */
+@media print {
+  body { background: var(--bg) !important; }
+  section { page-break-inside: avoid; break-inside: avoid; }
+}
