@@ -89,7 +89,14 @@ export interface BreakdownRow {
   device?: string;
   hour?: string;
   campaignName?: string;
+  /** Generic Meta "Results" column — may be link clicks, leads, etc. depending on the row's Result indicator. */
   results: number | null;
+  /** Result indicator (e.g. "actions:leadgen.other") describing what the Results column means. */
+  resultIndicator: string;
+  /** True lead count from the dedicated "Leads" column when present (age/gender exports). */
+  leads: number | null;
+  /** "Link clicks" column when present. */
+  linkClicks: number | null;
   costPerResult: number | null;
   reach: number | null;
   impressions: number | null;

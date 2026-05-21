@@ -27,8 +27,17 @@ export interface TrackingFailuresResult {
   totalLeadCampaigns: number;
 }
 
-function isLeadObjective(o: string): boolean {
-  return /lead|conversion|sales|appointment/i.test(o);
+function isLeadObjective(o: string, ri?: string, name?: string): boolean {
+  if (/lead|conversion|sales|appointment/i.test(o)) return true;
+  // Campaign exports from Meta often lack an explicit Objective column; use the
+  // Result indicator as a fallback (it carries leadgen.other / fb_pixel_lead).
+  if (ri && /leadgen|^lead$|pixel_lead|onsite_conversion\.lead/i.test(ri)) return true;
+  // Final fallback: many agencies prefix lead-objective campaigns with "LF" /
+  // "Lead Form" / "Lead". Catches the broken-tracking case where the row is
+  // completely empty (empty objective, empty indicator, zero results despite
+  // spend) — that is the exact pattern this analyser exists to surface.
+  if (name && /^(lf\b|lead\b|lead form|lead generation)/i.test(name.trim())) return true;
+  return false;
 }
 
 export function analyzeTrackingFailures(
@@ -39,7 +48,7 @@ export function analyzeTrackingFailures(
   let wastedSpend = 0;
 
   // 1) Lead-objective campaigns with spend but zero tracked results.
-  const leadCampaigns = campaigns.filter((c) => isLeadObjective(c.objective));
+  const leadCampaigns = campaigns.filter((c) => isLeadObjective(c.objective, c.resultIndicator, c.campaignName));
   const brokenLeadCampaigns = leadCampaigns.filter(
     (c) => c.amountSpent > 10 && (c.results ?? 0) === 0,
   );

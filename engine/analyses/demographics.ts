@@ -35,7 +35,18 @@ export function analyzeDemographics(rows: BreakdownRow[]): DemographicsResult {
     if (!key) continue;
     const cur = agg.get(key)!;
     cur.spend += r.amountSpent ?? 0;
-    cur.leads += r.results ?? 0;
+    // Prefer the dedicated "Leads" column (always real leads). Fall back to the
+    // generic "Results" column ONLY when the row's Result indicator points at a
+    // lead-shaped event — otherwise Results is link clicks / engagement and
+    // contaminates the CPL.
+    if (r.leads !== null && r.leads !== undefined) {
+      cur.leads += r.leads;
+    } else if (
+      r.resultIndicator &&
+      /lead|fb_pixel_lead|leadgen|onsite_conversion\.lead/i.test(r.resultIndicator)
+    ) {
+      cur.leads += r.results ?? 0;
+    }
   }
 
   const brackets: AgeBracketStat[] = AGE_BUCKETS.map((b) => {

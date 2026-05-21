@@ -32,7 +32,8 @@ export function toNumber(v: unknown): number | null {
   let s = String(v).trim();
   if (NA_VALUES.has(s.toLowerCase())) return null;
   // strip currency symbols, percent signs, thousand separators
-  s = s.replace(/[\$,€£¥]/g, '').replace(/,(?=\d{3}\b)/g, '').replace(/%$/, '').trim();
+  // Strip currency symbols (NOT commas — comma is handled separately as a thousands-grouping char).
+  s = s.replace(/[\$€£¥]/g, '').replace(/,(?=\d{3}\b)/g, '').replace(/%$/, '').trim();
   if (s === '') return null;
   const n = Number(s);
   return Number.isFinite(n) ? n : null;
@@ -234,7 +235,10 @@ function mapBreakdown(r: Record<string, string>, breakdownKind: BreakdownKind): 
     hour: hour || undefined,
     campaignName: toString(field(r, ['Campaign name', 'Campaign Name'])) || undefined,
     results: toNumber(field(r, ['Results', 'Result'])),
-    costPerResult: toNumber(field(r, ['Cost per result', 'Cost per Result'])),
+    resultIndicator: toString(field(r, ['Result indicator', 'Result Indicator'])),
+    leads: toNumber(field(r, ['Leads', 'Website leads', 'Meta leads'])),
+    linkClicks: toNumber(field(r, ['Link clicks', 'Link Clicks'])),
+    costPerResult: toNumber(field(r, ['Cost per result', 'Cost per Result', 'Cost per lead (USD)'])),
     reach: toNumber(field(r, ['Reach'])),
     impressions: toNumber(field(r, ['Impressions'])),
     ctr: toNumber(field(r, ['CTR (link click-through rate)', 'CTR (all)', 'CTR'])),

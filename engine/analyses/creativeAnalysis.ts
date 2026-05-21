@@ -28,21 +28,78 @@ export interface CreativeAnalysisResult {
   blendedCpl: number;
 }
 
+/**
+ * Whether a given Meta "Result indicator" string corresponds to an actual lead.
+ * Pure traffic/link-click rows must not be counted as leads.
+ */
+function isLeadIndicator(ri: string | undefined): boolean {
+  if (!ri) return false;
+  if (/link_click|landing_page_view|profile_visit|video_view/i.test(ri)) return false;
+  return /lead|leadgen|fb_pixel_lead|onsite_conversion/i.test(ri);
+}
+
 export function analyzeCreatives(ads: AdRow[]): CreativeAnalysisResult {
-  const scored: AdScore[] = ads.map((a) => {
-    const spend = a.amountSpent ?? 0;
-    const results = a.results ?? 0;
-    const cpl = results > 0 ? round(spend / results, 2) : 0;
+  // Group by ad name (Meta exports repeat the same creative once per ad set).
+  // We aggregate spend, impressions, and leads across the same-named ad before
+  // ranking — otherwise the same creative shows up 6+ times as both "winner"
+  // and "waster" depending on which ad set it ran in.
+  type Agg = {
+    adName: string;
+    campaignName: string;
+    headline: string;
+    body: string;
+    spend: number;
+    results: number;
+    impressions: number;
+    ctrAcc: number; // weighted by impressions
+    freqAcc: number; // weighted by reach
+    reach: number;
+  };
+  const grouped = new Map<string, Agg>();
+  for (const a of ads) {
+    const key = a.adName || '(unnamed)';
+    const cur =
+      grouped.get(key) ??
+      {
+        adName: a.adName,
+        campaignName: a.campaignName,
+        headline: a.headline,
+        body: a.body,
+        spend: 0,
+        results: 0,
+        impressions: 0,
+        ctrAcc: 0,
+        freqAcc: 0,
+        reach: 0,
+      };
+    const ri = (a.raw && (a.raw['Result indicator'] || a.raw['Result Indicator'])) || '';
+    cur.spend += a.amountSpent ?? 0;
+    // Only count Results as leads when the row's Result indicator is a lead event.
+    // Traffic-objective rows report Results = link clicks, which used to fake winners.
+    if (isLeadIndicator(ri)) cur.results += a.results ?? 0;
+    const imp = a.impressions ?? 0;
+    cur.impressions += imp;
+    if (imp && a.ctr !== null && a.ctr !== undefined) cur.ctrAcc += imp * a.ctr;
+    const reach = a.reach ?? 0;
+    cur.reach += reach;
+    if (reach && a.frequency !== null && a.frequency !== undefined) cur.freqAcc += reach * a.frequency;
+    grouped.set(key, cur);
+  }
+
+  const scored: AdScore[] = Array.from(grouped.values()).map((a) => {
+    const cpl = a.results > 0 ? round(a.spend / a.results, 2) : 0;
+    const ctr = a.impressions > 0 ? a.ctrAcc / a.impressions : 0;
+    const frequency = a.reach > 0 ? a.freqAcc / a.reach : 0;
     return {
       adName: a.adName,
       campaignName: a.campaignName,
       headline: a.headline,
       body: a.body,
-      spend: round(spend, 2),
-      results,
+      spend: round(a.spend, 2),
+      results: a.results,
       cpl,
-      ctr: a.ctr ?? 0,
-      frequency: a.frequency ?? 0,
+      ctr: round(ctr, 2),
+      frequency: round(frequency, 2),
       status: 'ok',
       reason: '',
     };
@@ -87,7 +144,7 @@ export function analyzeCreatives(ads: AdRow[]): CreativeAnalysisResult {
   return {
     winners,
     wasters,
-    totalAds: ads.length,
+    totalAds: scored.length,
     totalSpend: round(totalSpend, 2),
     blendedCpl,
   };
