@@ -130,3 +130,20 @@ The PDF export route ships in Tier 1 (`app/api/audit/[client]/pdf/route.ts`). It
 ## License
 
 Private — internal SNA Marketing tool.
+
+## Deploying without DB/auth (legacy single-tenant mode)
+
+The Tier 3 multi-tenant features (NextAuth, Drizzle/libsql, admin UI, white-label branding) all degrade gracefully when their env vars are missing. This means you can deploy this branch to Vercel with **zero env vars** and the dashboard still works against the on-disk CSV bundles under `public/csvs/<slug>/`.
+
+The mode is auto-detected at runtime:
+
+| Env var       | Set                                | Unset (legacy mode)                                                                                                  |
+| ------------- | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `AUTH_SECRET`  | Middleware gates routes; `/login` works; `auth()` returns a session. | `middleware.ts` is a pass-through; `auth()` returns `null`; `/login` shows a "auth disabled" notice; `/admin/*` redirects to `/`. |
+| `DATABASE_URL` | Drizzle/libsql client wired; clients listed from DB; uploads stored as rows in `csv_files`. | `lib/db` exports a stub whose queries resolve to `[]`; home page falls back to scanning `public/csvs/*/`; `/api/clients/*`, `/api/agency`, `/api/billing/checkout` return 503. |
+
+In legacy mode the take-charge-roofing baseline still reconciles to **$3,137.11 / 31 leads** because the audit page falls through to its filesystem path. See [`TIER-3-DEPLOY-SAFE-CHANGES.md`](./TIER-3-DEPLOY-SAFE-CHANGES.md) for the full graceful-degrade matrix.
+
+### Enabling multi-tenant on Vercel
+
+Set both `AUTH_SECRET` (via `openssl rand -base64 32`) and `DATABASE_URL` (libsql/Turso connection string), redeploy, and the admin UI, sign-in, and per-agency branding light up. See the Vercel + Turso section above for the full setup.

@@ -8,6 +8,15 @@
  *      how the take-charge-roofing baseline (Tier 0 / Tier 1 dataset) still
  *      reconciles to $3,137.11 / 31 leads without re-uploading.
  *
+ * ─── Deploy-safe guard (Tier 3-deploy-safe) ────────────────────────────────
+ * All DB-touching calls (`getVisibleClientBySlug`, `listClientCsvs`,
+ * `getAgencyById`) are wrapped in try/catch. When AUTH_SECRET / DATABASE_URL
+ * are unset the helpers in `lib/access.ts` already short-circuit to null/[],
+ * but the try/catch is a belt-and-suspenders net for unexpected runtime
+ * errors (e.g. transient libsql failure on Vercel cold start). On any DB
+ * error we silently fall through to the filesystem path so the audit
+ * dashboard still renders.
+ *
  * Notes:
  *   - The legacy engine.runAudit (filesystem) is preserved untouched.
  *   - The DB path uses engine.runAuditFromFiles (Tier 3-only sibling).
@@ -45,12 +54,23 @@ function findAsset(dir: string, base: string): string | null {
   return null;
 }
 
+/** Safely call a DB-backed access helper. Any failure → null. */
+async function safe<T>(fn: () => Promise<T>): Promise<T | null> {
+  try {
+    return await fn();
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.warn("[audit/[client]] DB call failed; falling back to FS:", err);
+    return null;
+  }
+}
+
 export default async function AuditPage({ params, searchParams }: PageProps) {
   const { client: clientSlug } = await params;
   const search = await searchParams;
 
-  // Auth + access gate.
-  const dbClient = await getVisibleClientBySlug(clientSlug);
+  // Auth + access gate. Falls through to FS path when DB/auth unavailable.
+  const dbClient = await safe(() => getVisibleClientBySlug(clientSlug));
 
   const fsCsvDir = path.join(process.cwd(), "public", "csvs", clientSlug);
   const fsExists = fs.existsSync(fsCsvDir);
@@ -60,7 +80,7 @@ export default async function AuditPage({ params, searchParams }: PageProps) {
     notFound();
   }
 
-  const csvFilesInDb = dbClient ? await listClientCsvs(dbClient.id) : [];
+  const csvFilesInDb = dbClient ? ((await safe(() => listClientCsvs(dbClient.id))) ?? []) : [];
   const useDb = csvFilesInDb.length > 0;
 
   // Resolve display name / subtitle / industry — DB first, then on-disk client.json fallback.
@@ -86,7 +106,7 @@ export default async function AuditPage({ params, searchParams }: PageProps) {
   // Client logo: DB logoUrl wins; else on-disk public/csvs/<slug>/logo.*.
   let agencyLogo: string | null = null;
   if (dbClient) {
-    const agency = await getAgencyById(dbClient.agencyId);
+    const agency = await safe(() => getAgencyById(dbClient.agencyId));
     agencyLogo = agency?.logoUrl ?? findAsset(path.join(process.cwd(), "public", "logos"), "agency");
   } else {
     agencyLogo = findAsset(path.join(process.cwd(), "public", "logos"), "agency");
