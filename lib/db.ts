@@ -64,7 +64,6 @@ function makeStubChain(): unknown {
 }
 
 let realDb: ReturnType<typeof drizzle<typeof schema>> | null = null;
-let initError: unknown = null;
 
 if (url) {
   try {
@@ -75,7 +74,6 @@ if (url) {
     }
     realDb = drizzle(client, { schema });
   } catch (err) {
-    initError = err;
     // eslint-disable-next-line no-console
     console.warn(
       "[lib/db] DB init failed — running in stub mode. Multi-tenant features disabled.",
@@ -87,11 +85,8 @@ if (url) {
 /** True when a usable DB client is wired. False → callers should fall back. */
 export const dbAvailable: boolean = realDb !== null;
 
-/** Reason DB is unavailable (for logging only). */
-export const dbInitError: unknown = initError;
 
 // Cast the stub to the realDb type so callers' TypeScript still type-checks.
 // The stub *behaviorally* honors the awaited-array contract — runtime is safe.
 export const db = (realDb ?? (makeStubChain() as ReturnType<typeof drizzle<typeof schema>>));
-export type DB = typeof db;
 export { schema };

@@ -8,10 +8,6 @@
  * this branch, those fixes flow through `classify`, `mapAd`, etc., which
  * are imported here from the same file.
  */
-import Papa from "papaparse";
-import {
-  classify,
-} from "./metaAdsCsv";
 import type {
   ParsedFile,
   ParsedRow,
@@ -65,19 +61,6 @@ export function parseUploadedCsvs(files: UploadedCsv[]): ParsedFile[] {
   return out;
 }
 
-// Pure in-memory variant (no tempfile) — only used if the caller wants to
-// short-circuit fs entirely. Uses Papa + classify and falls back to a
-// minimal row mapping. Most callers should prefer parseUploadedCsv above.
-export function parseUploadedCsvInMemory(file: UploadedCsv): { kind: string; headers: string[]; rows: Record<string, string>[] } {
-  const result = Papa.parse<Record<string, string>>(file.content, {
-    header: true,
-    skipEmptyLines: "greedy",
-    transformHeader: (h) => h.trim(),
-  });
-  const headers = result.meta.fields ?? [];
-  const cls = classify(headers);
-  return { kind: cls.kind, headers, rows: result.data };
-}
 
 // re-export for callers that want the type
 export type { ParsedFile, ParsedRow };
