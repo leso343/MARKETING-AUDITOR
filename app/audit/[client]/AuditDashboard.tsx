@@ -218,7 +218,7 @@ export default function AuditDashboard({
 
   return (
     <LangProvider>
-      <ReportProvider pdfPath={pdfPath}>
+      <ReportProvider pdfPath={pdfPath} clientSlug={clientSlug}>
         <div
           className={printMode ? "min-h-screen print-mode" : "flex h-screen overflow-hidden"}
         >
@@ -229,6 +229,7 @@ export default function AuditDashboard({
               clientSubtitle={clientSubtitle}
               primaryLeak={audit.funnel.primaryLeak}
               pdfPath={pdfPath}
+              clientSlug={clientSlug}
               agencyLogo={agencyLogo}
               clientLogo={clientLogo}
             />

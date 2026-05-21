@@ -20,12 +20,14 @@ import {
   Layers,
 } from "lucide-react";
 import { useLang } from "@/context/LangContext";
+import PdfDownloadLink from "@/components/audit/PdfDownloadLink";
 
 interface Props {
   clientName: string;
   clientSubtitle?: string;
   primaryLeak: string;
   pdfPath?: string;
+  clientSlug?: string;
   agencyLogo?: string;
   clientLogo?: string;
 }
@@ -75,7 +77,7 @@ function ClientLogoSVG({ name, subtitle }: { name: string; subtitle?: string }) 
   );
 }
 
-export default function Sidebar({ clientName, clientSubtitle, primaryLeak, pdfPath, agencyLogo, clientLogo }: Props) {
+export default function Sidebar({ clientName, clientSubtitle, primaryLeak, pdfPath, clientSlug, agencyLogo, clientLogo }: Props) {
   const { t } = useLang();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -182,14 +184,15 @@ export default function Sidebar({ clientName, clientSubtitle, primaryLeak, pdfPa
         </a>
 
         {pdfPath && (
-          <a
-            href={pdfPath}
-            download
-            className="mt-2 flex items-center gap-2 border border-[var(--border)] px-3 py-2 font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)] transition-colors hover:border-white hover:text-white"
+          <PdfDownloadLink
+            pdfPath={pdfPath}
+            filenameBase={`${clientSlug ?? "audit"}-audit`}
+            title={t("Download PDF Report", "Download PDF Report")}
+            className="mt-2 flex w-full items-center gap-2 border border-[var(--border)] px-3 py-2 font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)] transition-colors hover:border-white hover:text-white disabled:opacity-60"
           >
             <Download className="h-3 w-3 flex-shrink-0" />
             {t("Download PDF Report", "Download PDF Report")}
-          </a>
+          </PdfDownloadLink>
         )}
       </div>
     </>
