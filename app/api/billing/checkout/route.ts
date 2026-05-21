@@ -1,29 +1,43 @@
 /**
- * POST /api/billing/checkout — stub.
+ * POST /api/billing/checkout — create a Stripe Checkout session.
  *
- * Tier 4 will wire this to Stripe Checkout:
- *   1. Verify session.user (auth())
- *   2. Look up / create a Stripe Customer for session.user.agencyId
- *   3. Call stripe.checkout.sessions.create({ price, mode: "subscription", ... })
- *   4. Return { url: session.url } so the client redirects
- *   5. Stripe webhook /api/billing/webhook updates schema.subscriptions
+ * Body: { tier: "pro" | "agency" }   (legacy alias `plan` is also accepted)
  *
- * For now this just records the intended plan in the agency's Subscription
- * row (creating one if missing) and returns a friendly TODO.
+ * Returns: { url: string }  → the client redirects to Stripe.
  *
- * ─── Deploy-safe guard (Tier 3-deploy-safe) ────────────────────────────────
- * Returns 503 when DB or auth is unavailable so callers see a clear message
- * instead of a 500.
+ * Flow:
+ *   1. Verify session (auth())
+ *   2. Resolve tier → price ID via env (STRIPE_PRO_PRICE_ID / STRIPE_AGENCY_PRICE_ID)
+ *   3. Upsert a Subscription row in 'incomplete' state so we have something
+ *      to correlate the webhook to (looked up by agencyId / client_reference_id).
+ *   4. Stripe Checkout session with mode=subscription, success/cancel URLs,
+ *      customer_email from session.user, client_reference_id=agencyId.
+ *   5. Return { url }.
+ *
+ * ─── Deploy-safe guard ─────────────────────────────────────────────────────
+ *   - STRIPE_SECRET_KEY unset → 503 "Stripe not configured — set STRIPE_SECRET_KEY"
+ *   - AUTH_SECRET or DATABASE_URL unset → 503 (multi-tenant required)
+ *   - Missing price ID → 503 with a clear message naming the env var.
  */
 import { NextResponse } from "next/server";
 import { db, schema, dbAvailable } from "@/lib/db";
 import { eq } from "drizzle-orm";
 import { auth, authEnabled } from "@/auth";
 import { randomUUID } from "node:crypto";
+import {
+  stripe,
+  stripeEnabled,
+  stripeNotConfiguredResponse,
+  appUrl,
+  priceIdForTier,
+} from "@/lib/stripe";
 
-const ALLOWED_PLANS = new Set(["free", "pro", "agency"]);
+const ALLOWED_TIERS = new Set(["pro", "agency"]);
 
 export async function POST(req: Request) {
+  if (!stripeEnabled || !stripe) {
+    return stripeNotConfiguredResponse();
+  }
   if (!authEnabled || !dbAvailable) {
     return NextResponse.json(
       {
@@ -36,60 +50,98 @@ export async function POST(req: Request) {
 
   const session = await auth();
   if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized — sign in first." }, { status: 401 });
+  }
+
+  const body = (await req.json().catch(() => ({}))) as { tier?: string; plan?: string };
+  // Accept `tier` (new spec) or `plan` (legacy from existing PricingCard).
+  const tier = (body.tier ?? body.plan ?? "").toLowerCase();
+  if (!ALLOWED_TIERS.has(tier)) {
     return NextResponse.json(
-      {
-        message:
-          "Sign in (or contact your agency admin) and then return to /pricing to subscribe. " +
-          "Billing isn't wired up yet — Stripe integration is on the roadmap.",
-      },
-      { status: 401 },
+      { error: `Unknown tier "${tier}". Expected "pro" or "agency".` },
+      { status: 400 },
     );
   }
 
-  const body = (await req.json().catch(() => ({}))) as { plan?: string };
-  const plan = body.plan ?? "pro";
-  if (!ALLOWED_PLANS.has(plan)) {
-    return NextResponse.json({ error: "Unknown plan" }, { status: 400 });
+  const priceId = priceIdForTier(tier);
+  if (!priceId) {
+    const envName = tier === "pro" ? "STRIPE_PRO_PRICE_ID" : "STRIPE_AGENCY_PRICE_ID";
+    return NextResponse.json(
+      { error: `Stripe not configured — set ${envName}` },
+      { status: 503 },
+    );
   }
 
   const agencyId = session.user.agencyId;
   if (!agencyId) {
-    return NextResponse.json({
-      message: "Your user isn't assigned to an agency yet, so we can't attach a subscription. Contact support.",
-    }, { status: 400 });
+    return NextResponse.json(
+      {
+        error:
+          "Your user isn't attached to an agency. Contact support to provision one before subscribing.",
+      },
+      { status: 400 },
+    );
   }
 
-  // Upsert subscription row.
-  const existing = await db.select().from(schema.subscriptions).where(eq(schema.subscriptions.agencyId, agencyId)).limit(1);
+  // Pre-create / update the local Subscription row so the webhook handler
+  // has a stable target to correlate against (looked up by agencyId).
+  const existing = await db
+    .select()
+    .from(schema.subscriptions)
+    .where(eq(schema.subscriptions.agencyId, agencyId))
+    .limit(1);
+
   if (existing[0]) {
-    await db.update(schema.subscriptions)
-      .set({ plan: plan as "free" | "pro" | "agency", status: "trialing" })
+    await db
+      .update(schema.subscriptions)
+      .set({
+        plan: tier as "pro" | "agency",
+        status: "incomplete",
+        updatedAt: new Date(),
+      })
       .where(eq(schema.subscriptions.id, existing[0].id));
   } else {
     await db.insert(schema.subscriptions).values({
       id: randomUUID(),
       agencyId,
-      plan: plan as "free" | "pro" | "agency",
-      status: "trialing",
+      plan: tier as "pro" | "agency",
+      status: "incomplete",
     });
   }
 
-  // TODO: integrate Stripe.
-  //   const customer = await stripe.customers.create({ email: session.user.email });
-  //   const checkoutSession = await stripe.checkout.sessions.create({
-  //     customer: customer.id,
-  //     mode: "subscription",
-  //     line_items: [{ price: PLAN_TO_PRICE_ID[plan], quantity: 1 }],
-  //     success_url: `${process.env.NEXTAUTH_URL}/admin/settings?subscribed=1`,
-  //     cancel_url:  `${process.env.NEXTAUTH_URL}/pricing?canceled=1`,
-  //   });
-  //   return NextResponse.json({ url: checkoutSession.url });
+  // Create the Checkout session.
+  const base = appUrl();
+  let checkoutSession;
+  try {
+    checkoutSession = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: `${base}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${base}/pricing`,
+      customer_email: session.user.email ?? undefined,
+      client_reference_id: agencyId,
+      metadata: {
+        agencyId,
+        tier,
+      },
+      subscription_data: {
+        metadata: { agencyId, tier },
+      },
+      allow_promotion_codes: true,
+    });
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error("[/api/billing/checkout] Stripe error:", err);
+    const msg = err instanceof Error ? err.message : "Stripe error";
+    return NextResponse.json({ error: msg }, { status: 502 });
+  }
 
-  return NextResponse.json({
-    message:
-      `Selected plan: ${plan}. Stripe checkout isn't wired yet — your selection has been recorded ` +
-      `against your agency's Subscription row (status: trialing). The team will be in touch to complete billing.`,
-    plan,
-    todo: "Stripe checkout integration",
-  });
+  if (!checkoutSession.url) {
+    return NextResponse.json(
+      { error: "Stripe did not return a checkout URL." },
+      { status: 502 },
+    );
+  }
+
+  return NextResponse.json({ url: checkoutSession.url });
 }
