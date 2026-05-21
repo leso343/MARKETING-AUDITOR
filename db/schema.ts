@@ -7,7 +7,7 @@
  * Roles & ownership:
  *   - User has role `admin` (sees all clients) or `agency` (sees only their agency's clients).
  *   - Agency owns Clients. Client owns CsvFiles (the uploaded Meta exports).
- *   - Subscription is per-Agency (Tier 4 will wire to Stripe).
+ *   - Subscription is per-Agency (Tier 4 — wired to Stripe).
  */
 import { sqliteTable, text, integer, index, uniqueIndex } from "drizzle-orm/sqlite-core";
 import { sql, relations } from "drizzle-orm";
@@ -82,7 +82,15 @@ export const csvFiles = sqliteTable(
   }),
 );
 
-/** Tier 4 placeholder. Stripe IDs are nullable until checkout is wired. */
+/**
+ * Tier 4 — Stripe-backed subscriptions, per-Agency.
+ *
+ *   plan   : "free" | "pro" | "agency"
+ *   status : "trialing" | "active" | "past_due" | "canceled" | "incomplete"
+ *
+ * Stripe IDs populate on checkout (via /api/billing/verify) and stay in
+ * sync via /api/billing/webhook.
+ */
 export const subscriptions = sqliteTable("subscriptions", {
   id: text("id").primaryKey(),
   agencyId: text("agency_id")
@@ -91,9 +99,8 @@ export const subscriptions = sqliteTable("subscriptions", {
     .references(() => agencies.id, { onDelete: "cascade" }),
   /** "free" | "pro" | "agency" */
   plan: text("plan").notNull().default("free"),
-  /** "trialing" | "active" | "past_due" | "canceled" */
+  /** "trialing" | "active" | "past_due" | "canceled" | "incomplete" */
   status: text("status").notNull().default("trialing"),
-  // TODO: integrate Stripe — populate on checkout webhook.
   stripeCustomerId: text("stripe_customer_id").unique(),
   stripeSubscriptionId: text("stripe_subscription_id").unique(),
   currentPeriodEnd: integer("current_period_end", { mode: "timestamp_ms" }),
@@ -141,4 +148,9 @@ export type NewSubscription = typeof subscriptions.$inferInsert;
 
 export type Role = "admin" | "agency";
 export type BillingPlan = "free" | "pro" | "agency";
-export type BillingStatus = "trialing" | "active" | "past_due" | "canceled";
+export type BillingStatus =
+  | "trialing"
+  | "active"
+  | "past_due"
+  | "canceled"
+  | "incomplete";

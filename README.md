@@ -116,12 +116,21 @@ The PDF export route ships in Tier 1 (`app/api/audit/[client]/pdf/route.ts`). It
 
 ## Billing
 
-`/pricing` is public. Subscribe buttons currently hit `/api/billing/checkout` which records the chosen plan against `schema.subscriptions` and returns a TODO message. To wire Stripe:
+`/pricing` is public. Subscribe buttons POST to `/api/billing/checkout`, which creates a Stripe Checkout session (`mode=subscription`) and redirects the user. After payment Stripe sends them back to `/billing/success?session_id=...`, which calls `/api/billing/verify` to confirm and mark the subscription active. Long-term state is kept in sync by `/api/billing/webhook` (signature-verified Stripe events).
 
-1. `npm install stripe`
-2. Replace the body of `app/api/billing/checkout/route.ts` with the `stripe.checkout.sessions.create` call (the inline `// TODO: integrate Stripe` comment shows the exact call).
-3. Add `app/api/billing/webhook/route.ts` to listen for `checkout.session.completed` / `customer.subscription.updated` and patch the Subscription row.
-4. Add Stripe price IDs to env (`STRIPE_PRICE_ID_PRO`, `STRIPE_PRICE_ID_AGENCY`).
+### Setup
+
+1. Add Stripe env vars to Vercel (see `.env.example`):
+   - `STRIPE_SECRET_KEY` (`sk_test_...` for test mode)
+   - `STRIPE_WEBHOOK_SECRET` (`whsec_...`)
+   - `STRIPE_PRO_PRICE_ID` — Pro $99/month price ID
+   - `STRIPE_AGENCY_PRICE_ID` — Agency $299/month price ID
+   - `NEXT_PUBLIC_APP_URL` — e.g. `https://marketing-auditor.vercel.app`
+2. In the Stripe dashboard (test mode), create two products with recurring monthly billing — `Pro` at $99 and `Agency` at $299 — and copy each price ID into the env vars above.
+3. Create a webhook endpoint pointing at `https://<your-app>/api/billing/webhook` and subscribe it to: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid`, `invoice.payment_failed`. Copy the signing secret into `STRIPE_WEBHOOK_SECRET`.
+4. Redeploy. Test with card `4242 4242 4242 4242`. See [`STRIPE-SETUP-GUIDE.md`](./STRIPE-SETUP-GUIDE.md) for the full walkthrough including going live.
+
+When any Stripe env var is missing, `/api/billing/*` returns **HTTP 503** with a clear message and the rest of the app keeps working — same deploy-safe pattern as auth/DB.
 
 ## Skipped scope
 
