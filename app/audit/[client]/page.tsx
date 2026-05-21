@@ -55,6 +55,25 @@ export default async function AuditPage({ params, searchParams }: PageProps) {
   const agencyLogo = findAsset(path.join(process.cwd(), "public", "logos"), "agency");
   const clientLogo = findAsset(csvDir, "logo");
 
+  // Resolve per-client PDF report. Look in the client folder first, then in /public.
+  // Previous code hardcoded /SNA_Marketing_TakeCharge_Audit.pdf for every client,
+  // which 404'd for everyone other than take-charge-roofing.
+  function findPdf(): string | undefined {
+    const candidates = [
+      path.join(csvDir, "report.pdf"),
+      path.join(csvDir, `${client}.pdf`),
+      path.join(process.cwd(), "public", `${client}-audit.pdf`),
+      path.join(process.cwd(), "public", `${client}.pdf`),
+    ];
+    for (const abs of candidates) {
+      if (fs.existsSync(abs)) {
+        return abs.replace(path.join(process.cwd(), "public"), "");
+      }
+    }
+    return undefined;
+  }
+  const pdfPath = findPdf();
+
   // Resolve benchmarks: ?industry overrides default; ?cpl / ?ctr override either.
   type IndustryBench = {
     label?: string;
@@ -67,12 +86,19 @@ export default async function AuditPage({ params, searchParams }: PageProps) {
   };
   const industry = search.industry ?? "roofing";
   const base = benchmarksTyped.industries[industry] ?? benchmarksTyped.default;
+  // Guard Number() — NaN from a malformed query (e.g. ?cpl=abc) used to silently
+  // poison the entire dashboard. Fall back to the industry default on invalid input.
+  const parseNum = (v?: string): number | undefined => {
+    if (!v) return undefined;
+    const n = Number(v);
+    return Number.isFinite(n) && n > 0 ? n : undefined;
+  };
   const benchmarks = {
-    targetCpl: search.cpl ? Number(search.cpl) : base.targetCpl,
-    targetCtr: search.ctr ? Number(search.ctr) : base.targetCtr,
+    targetCpl: parseNum(search.cpl) ?? base.targetCpl,
+    targetCtr: parseNum(search.ctr) ?? base.targetCtr,
   };
 
-  const daysFilter = search.days ? Number(search.days) : undefined;
+  const daysFilter = parseNum(search.days);
 
   const audit = runAudit({
     csvDir,
@@ -116,6 +142,7 @@ export default async function AuditPage({ params, searchParams }: PageProps) {
       clientLogo={clientLogo ?? undefined}
       industry={clientConfig.industry ?? industry}
       industryOptions={industryOptions}
+      pdfPath={pdfPath}
     />
   );
 }

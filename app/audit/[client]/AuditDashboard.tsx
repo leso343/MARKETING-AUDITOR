@@ -31,6 +31,7 @@ interface Props {
   clientLogo?: string;
   industry: string;
   industryOptions: { key: string; label: string }[];
+  pdfPath?: string;
 }
 
 /** Small client component that can call useLang inside the LangProvider tree. */
@@ -74,6 +75,7 @@ export default function AuditDashboard({
   clientLogo,
   industry,
   industryOptions,
+  pdfPath,
 }: Props) {
   const router = useRouter();
   const search = useSearchParams();
@@ -119,11 +121,14 @@ export default function AuditDashboard({
     setLiveCtr(originalCtr);
   };
 
-  const pdfPath = "/SNA_Marketing_TakeCharge_Audit.pdf";
+  // pdfPath should come from the server (page.tsx) since the .pdf existence is
+  // file-system gated. The hardcoded TakeCharge URL was a bug — it 404'd for
+  // every other client and downloaded the wrong report for any matching client.
+  // For now we omit it when not explicitly provided.
 
   return (
     <LangProvider>
-      <ReportProvider>
+      <ReportProvider pdfPath={pdfPath}>
         <div className="flex h-screen overflow-hidden">
           {/* Left nav rail */}
           <Sidebar

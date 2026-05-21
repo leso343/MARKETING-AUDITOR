@@ -4,7 +4,6 @@ import {
   createContext,
   useContext,
   useState,
-  useEffect,
   type ReactNode,
 } from "react";
 import ReportViewer from "@/components/audit/ReportViewer";
@@ -21,7 +20,12 @@ const ReportCtx = createContext<ReportContextValue>({
   openPage: null,
 });
 
-export function ReportProvider({ children }: { children: ReactNode }) {
+interface ReportProviderProps {
+  children: ReactNode;
+  pdfPath?: string;
+}
+
+export function ReportProvider({ children, pdfPath }: ReportProviderProps) {
   const [openPage, setOpenPage] = useState<number | null>(null);
 
   const openReport = (page: number) => setOpenPage(page);
@@ -34,6 +38,7 @@ export function ReportProvider({ children }: { children: ReactNode }) {
         open={openPage !== null}
         page={openPage ?? 1}
         onClose={closeReport}
+        pdfPath={pdfPath}
       />
     </ReportCtx.Provider>
   );
