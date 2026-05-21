@@ -11,7 +11,10 @@ import {
 type Mode = "pro" | "plain";
 
 const Ctx = createContext<{ mode: Mode; toggle: () => void }>({
-  mode: "pro",
+  // Default mode matches LangProvider's initial state (plain). The provider
+  // also reads localStorage on mount and may switch to "pro" if the user
+  // chose it last session — see useEffect below.
+  mode: "plain",
   toggle: () => {},
 });
 
