@@ -82,14 +82,6 @@ const HEADER_HINTS = {
   campaign: ['Campaign name', 'Campaign Name'],
 };
 
-const BREAKDOWN_HINTS: Record<BreakdownKind, string[]> = {
-  age_gender: ['Age', 'Gender'],
-  placement: ['Placement', 'Platform'],
-  dma: ['DMA region', 'DMA Region', 'Region', 'Designated market area'],
-  device: ['Device platform', 'Impression device'],
-  hour: ['Hour', 'Time of day', 'Hourly'],
-  unknown: [],
-};
 
 export function classify(headers: string[]): ClassifiedHeaders {
   const lc = headers.map((h) => h.toLowerCase());

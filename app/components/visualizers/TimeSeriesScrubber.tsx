@@ -269,7 +269,7 @@ export default function TimeSeriesScrubber({
             }}
           />
           {/* Tick marks */}
-          {weeks.map((w, i) => {
+          {weeks.map((_w, i) => {
             const left = weeks.length <= 1 ? 0 : (i / (weeks.length - 1)) * 100;
             const isA = anomalyIdxs.has(i);
             return (

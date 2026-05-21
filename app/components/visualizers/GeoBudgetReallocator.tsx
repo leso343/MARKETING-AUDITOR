@@ -18,7 +18,7 @@
  * Hit targets ≥ 44px on touch; honours prefers-reduced-motion.
  */
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MapPin, RotateCcw, TrendingUp, AlertCircle, Lock, Unlock } from "lucide-react";
 import type { GeographicWasteResult, RegionStat } from "@/engine/analyses/geographicWaste";
 import { useLang } from "@/context/LangContext";

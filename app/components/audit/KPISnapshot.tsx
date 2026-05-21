@@ -68,7 +68,7 @@ function translateBenchmark(raw: string): string {
 }
 
 export default function KPISnapshot({ kpis, liveCpl, liveCtr, blendedCpl, weightedCtr, isPreview }: Props) {
-  const { t, plain } = useLang();
+  const { plain } = useLang();
 
   // Re-evaluate CPL and CTR status client-side so sliders update them live
   function liveStatus(k: KpiCard): string {
