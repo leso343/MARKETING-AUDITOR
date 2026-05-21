@@ -2,7 +2,7 @@
 
 import type { AuditResult } from "@/engine/runAudit";
 import copyBank from "@/data/copy-bank.json";
-import { CheckCircle2, AlertOctagon, AlertTriangle, TrendingUp, Activity, Trash2, ArrowDown } from "lucide-react";
+import { CheckCircle2, AlertOctagon, AlertTriangle, TrendingUp, Activity, Trash2 } from "lucide-react";
 import { useLang } from "@/context/LangContext";
 import { useReport } from "@/context/ReportContext";
 import {
@@ -193,7 +193,7 @@ const OUTCOME: Record<string, string> = {
   FREQUENCY_FATIGUE: "CTR stabilises, CPL stops drifting up. Fresh creative typically buys 4–6 weeks of healthy delivery before the next refresh cycle.",
 };
 
-export default function RecommendationCards({ audit, targetCpl, targetCtr }: Props) {
+export default function RecommendationCards({ audit, targetCpl }: Props) {
   const { t } = useLang();
   const { openReport } = useReport();
   const recos = buildRecos(audit);

@@ -10,6 +10,7 @@
  * Each failure carries a severity, a description, and an estimated dollar impact.
  */
 import { CampaignRow, AdRow, StatusLevel } from '../types';
+import { round } from "./_shared";
 
 export interface TrackingFailure {
   type: string;
@@ -131,7 +132,3 @@ function dedupe(xs: string[]): string[] {
   return Array.from(new Set(xs));
 }
 
-function round(n: number, d: number): number {
-  const f = Math.pow(10, d);
-  return Math.round(n * f) / f;
-}

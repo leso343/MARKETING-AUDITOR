@@ -93,7 +93,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ slug:
   return NextResponse.json({ ok: true });
 }
 
-export async function GET(req: Request, { params }: { params: Promise<{ slug: string }> }) {
+export async function GET(_req: Request, { params }: { params: Promise<{ slug: string }> }) {
   if (!authEnabled || !dbAvailable) return gatedOff();
 
   const { slug } = await params;

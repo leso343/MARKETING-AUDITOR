@@ -16,6 +16,7 @@
  *     ad by CPL.
  */
 import { AdRow, StatusLevel } from '../types';
+import { round } from "./_shared";
 
 /**
  * Whether a Meta "Result indicator" string corresponds to a lead-form
@@ -228,7 +229,3 @@ export function analyzeCreatives(ads: AdRow[]): CreativeAnalysisResult {
   };
 }
 
-function round(n: number, d: number): number {
-  const f = Math.pow(10, d);
-  return Math.round(n * f) / f;
-}

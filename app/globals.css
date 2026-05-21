@@ -236,7 +236,6 @@ body {
   align-items: center;
 }
 .status-ok       { color: #4ade80; }
-.status-warn     { color: #fbbf24; }
 .status-critical { color: var(--red); }
 
 /* ─── pulse dot (header) ─── */

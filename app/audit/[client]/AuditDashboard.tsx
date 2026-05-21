@@ -21,6 +21,7 @@ import InteractiveFunnelExplorer from "@/components/visualizers/InteractiveFunne
 import TimeSeriesScrubber from "@/components/visualizers/TimeSeriesScrubber";
 import GeoBudgetReallocator from "@/components/visualizers/GeoBudgetReallocator";
 import dynamic from "next/dynamic";
+import DensityControl, { type Density } from "@/components/audit/DensityControl";
 import { Languages } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 
@@ -158,6 +159,24 @@ export default function AuditDashboard({
   const [liveCpl, setLiveCpl] = useState(audit.benchmarks.targetCpl);
   const [liveCtr, setLiveCtr] = useState(audit.benchmarks.targetCtr);
 
+  // Dashboard density — Compact / Normal / Comfortable. Persisted in
+  // localStorage. Wraps the main content column in a transform-scaled
+  // div; side panels (Sidebar, ControlsPanel) are intentionally outside
+  // this wrapper so they stay full-size.
+  const [density, setDensity] = useState<Density>("normal");
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("dashboard-density") as Density | null;
+      if (saved === "compact" || saved === "normal" || saved === "comfortable") {
+        setDensity(saved);
+      }
+    } catch {}
+  }, []);
+  const setDensityPersisted = (d: Density) => {
+    setDensity(d);
+    try { localStorage.setItem("dashboard-density", d); } catch {}
+  };
+
   // Sync when server re-renders with committed URL params
   useEffect(() => { setLiveCpl(audit.benchmarks.targetCpl); }, [audit.benchmarks.targetCpl]);
   useEffect(() => { setLiveCtr(audit.benchmarks.targetCtr); }, [audit.benchmarks.targetCtr]);
@@ -259,6 +278,21 @@ export default function AuditDashboard({
             {/* Fact ribbon (below sticky header, not sticky itself) */}
             {!printMode && <AuditRibbon audit={audit} />}
 
+            {!printMode && (
+              <DensityControl density={density} onChange={setDensityPersisted} />
+            )}
+            <div
+              style={
+                printMode
+                  ? undefined
+                  : {
+                      transform: `scale(${density === "compact" ? 0.85 : density === "comfortable" ? 1.15 : 1})`,
+                      transformOrigin: "top left",
+                      width: `calc(100% / ${density === "compact" ? 0.85 : density === "comfortable" ? 1.15 : 1})`,
+                      transition: "transform 180ms ease-out",
+                    }
+              }
+            >
             <div className="grid grid-cols-12 gap-4 p-4 sm:gap-5 sm:p-6 lg:p-10">
               {/* Executive summary */}
               <section id="overview" className="col-span-12">
@@ -350,6 +384,7 @@ export default function AuditDashboard({
               <section id="plan" className="col-span-12">
                 <RecommendationCards audit={audit} targetCpl={liveCpl} targetCtr={liveCtr} />
               </section>
+            </div>
             </div>
           </main>
 

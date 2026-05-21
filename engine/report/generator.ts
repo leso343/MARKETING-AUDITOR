@@ -26,11 +26,6 @@ export interface ReportInput {
   demographics: DemographicsResult;
 }
 
-const STATUS_COLORS: Record<StatusLevel, string> = {
-  ok: '#4ade80',
-  warn: '#facc15',
-  critical: '#ff0000',
-};
 
 function fmtUsd(n: number): string {
   return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });

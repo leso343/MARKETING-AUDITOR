@@ -9,6 +9,7 @@
  * weakest stage as the "primary leak".
  */
 import { CampaignRow, AdRow, StatusLevel } from '../types';
+import { round, sum } from "./_shared";
 
 export interface FunnelStage {
   name: string;
@@ -29,9 +30,6 @@ export interface FunnelLeakageResult {
   clickToSessionLossPct: number;
 }
 
-function sum(nums: Array<number | null | undefined>): number {
-  return nums.reduce<number>((a, b) => a + (b ?? 0), 0);
-}
 
 function isTrafficObjective(o: string): boolean {
   return /traffic|link.?click|reach|aware|engagement/i.test(o);
@@ -171,7 +169,3 @@ export function analyzeFunnelLeakage(
   };
 }
 
-function round(n: number, d: number): number {
-  const f = Math.pow(10, d);
-  return Math.round(n * f) / f;
-}
