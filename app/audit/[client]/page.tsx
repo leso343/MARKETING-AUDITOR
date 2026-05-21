@@ -27,7 +27,7 @@ export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: Promise<{ client: string }>;
-  searchParams: Promise<{ cpl?: string; ctr?: string; industry?: string; days?: string }>;
+  searchParams: Promise<{ cpl?: string; ctr?: string; industry?: string; days?: string; print?: string }>;
 }
 
 function prettyClient(slug: string): string {
@@ -101,12 +101,33 @@ export default async function AuditPage({ params, searchParams }: PageProps) {
   };
   const industry = search.industry ?? clientIndustry ?? "roofing";
   const base = benchmarksTyped.industries[industry] ?? benchmarksTyped.default;
+
+  /**
+   * Parse a positive finite number from a query-string value. \`Number(\"foo\")\` is
+   * \`NaN\`, and \`NaN > x\` / \`NaN < x\` are always false — that silently
+   * poisoned every benchmark comparison downstream (passing badges flipped
+   * green) when a user fed e.g. \`?cpl=foo\` or \`?cpl=-5\`. Return the
+   * fallback for anything not a finite positive number.
+   */
+  function parsePosNum(v: string | undefined, fallback: number): number {
+    if (v === undefined || v === '') return fallback;
+    const n = Number(v);
+    return Number.isFinite(n) && n > 0 ? n : fallback;
+  }
+
   const benchmarks = {
-    targetCpl: search.cpl ? Number(search.cpl) : base.targetCpl,
-    targetCtr: search.ctr ? Number(search.ctr) : base.targetCtr,
+    targetCpl: parsePosNum(search.cpl, base.targetCpl),
+    targetCtr: parsePosNum(search.ctr, base.targetCtr),
   };
 
-  const daysFilter = search.days ? Number(search.days) : undefined;
+  // ?days must be a positive integer; anything else (foo, -7, 0, NaN) means
+  // "no time-window filter" — the engine treats undefined as the full range.
+  function parsePosInt(v: string | undefined): number | undefined {
+    if (v === undefined || v === '') return undefined;
+    const n = Number(v);
+    return Number.isFinite(n) && Number.isInteger(n) && n > 0 ? n : undefined;
+  }
+  const daysFilter = parsePosInt(search.days);
 
   const audit = useDb
     ? runAuditFromFiles({
@@ -146,6 +167,8 @@ export default async function AuditPage({ params, searchParams }: PageProps) {
     );
   }
 
+  const printMode = search.print === "true" || search.print === "1";
+
   return (
     <AuditDashboard
       audit={audit}
@@ -155,6 +178,7 @@ export default async function AuditPage({ params, searchParams }: PageProps) {
       clientLogo={clientLogo ?? undefined}
       industry={industry}
       industryOptions={industryOptions}
+      printMode={printMode}
     />
   );
 }

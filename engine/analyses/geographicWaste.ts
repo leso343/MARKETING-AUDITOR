@@ -1,11 +1,19 @@
 /**
  * Geographic waste detection.
  *
- * Groups DMA / Region rows by bucket name, computes CPL per region, and flags:
- *   - hot:    CPL <= median, positive leads
- *   - mixed:  CPL within [median, 2x median]
- *   - cold:   CPL > 2x median OR low lead volume with high spend
- *   - leak:   spend > $50 AND zero conversions (likely out-of-service-area)
+ * Groups DMA / Region rows by bucket name, computes spend / Results per region,
+ * and flags:
+ *   - hot:    cost-per-result <= median, positive results
+ *   - mixed:  cost-per-result within [median, 2x median]
+ *   - cold:   cost-per-result > 2x median OR low result volume with high spend
+ *   - leak:   spend > $50 AND zero results (likely out-of-service-area)
+ *
+ * Note on the `cpl` field: it is literally `spend / Results` per bucket. When
+ * the campaign objective was Leads, this is true cost-per-lead. When the
+ * objective was Traffic, `Results` is link clicks and the field is really
+ * cost-per-click. The dashboard relabels the column accordingly using the
+ * `costMetricLabel` prop on GeographicHeatmap. See spendEfficiency.ts for
+ * the canonical CPL vs CPC methodology.
  */
 import { BreakdownRow, StatusLevel } from '../types';
 

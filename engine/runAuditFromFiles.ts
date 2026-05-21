@@ -18,6 +18,7 @@ import { analyzeGeographicWaste } from "./analyses/geographicWaste";
 import { analyzeCreatives } from "./analyses/creativeAnalysis";
 import { analyzeSpendEfficiency } from "./analyses/spendEfficiency";
 import { analyzeDemographics } from "./analyses/demographics";
+import { buildWeeklySeries } from "./analyses/weeklySeries";
 import type { AuditResult, ReportingPeriod, RunAuditOpts } from "./runAudit";
 
 export interface RunAuditFromFilesOpts extends Omit<RunAuditOpts, "csvDir"> {
@@ -118,5 +119,6 @@ export function runAuditFromFiles(opts: RunAuditFromFilesOpts): AuditResult {
     creative:     analyzeCreatives(ads),
     spend:        analyzeSpendEfficiency(campaigns, ads, breakdowns, benchmarks),
     demographics: analyzeDemographics(breakdowns),
+    weeklySeries: buildWeeklySeries(campaigns, ads),
   };
 }

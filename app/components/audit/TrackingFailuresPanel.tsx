@@ -26,12 +26,12 @@ export default function TrackingFailuresPanel({ tracking }: Props) {
   return (
     <div className="panel">
       <div className="panel-label">
-        {t("Sentinel_Tracking_Audit", "Ad Tracking Health")}
+        {t("Sentinel_Tracking_Audit", "Is your tracking working?")}
       </div>
 
       <div className="border border-[#222] bg-black p-6 text-center">
         <div className="mb-2 font-mono text-[10px] uppercase tracking-wider text-[var(--red)]">
-          {t("Anomaly_Detected", "Attention Needed")}
+          {t("Anomaly_Detected", "Something is broken")}
         </div>
         <div className="text-5xl font-extrabold leading-none">
           {tracking.brokenLeadCampaigns}
@@ -47,20 +47,20 @@ export default function TrackingFailuresPanel({ tracking }: Props) {
         </div>
         <div className="text-xl font-extrabold text-[var(--red)]">
           ${tracking.totalWastedSpend.toLocaleString()}{" "}
-          {t("EXPOSED", "AT RISK")}
+          {t("EXPOSED", "BROKEN")}
         </div>
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-3">
         <Mini
-          label={t("Tracking Score", "Health Score")}
+          label={t("Tracking Score", "Tracking health")}
           value={`${tracking.overallScore}/100`}
           tone={
             tracking.overallScore >= 80 ? "ok" : tracking.overallScore >= 50 ? "warn" : "critical"
           }
         />
         <Mini
-          label={t("Failures Detected", "Issues Found")}
+          label={t("Failures Detected", "Problems found")}
           value={String(tracking.failures.length)}
           tone={tracking.failures.length === 0 ? "ok" : "critical"}
         />
@@ -69,7 +69,7 @@ export default function TrackingFailuresPanel({ tracking }: Props) {
       <div className="mt-5 space-y-2">
         {tracking.failures.length === 0 && (
           <div className="border border-[var(--border)] p-3 text-xs text-[var(--text-dim)]">
-            {t("No tracking failures detected.", "All tracking is working correctly.")}
+            {t("No tracking failures detected.", "Tracking is working fine.")}
           </div>
         )}
         {tracking.failures.map((f) => {

@@ -7,6 +7,13 @@ import { useReport } from "@/context/ReportContext";
 interface Props {
   geo: GeographicWasteResult;
   liveCpl?: number;
+  /**
+   * Label for the per-result cost column. When the account ran lead-objective
+   * campaigns this should be "CPL"; for Traffic-objective accounts the
+   * Results column is link clicks, so the same math is really CPC.
+   * See spendEfficiency.ts for the canonical methodology.
+   */
+  costMetricLabel?: "CPL" | "CPC";
 }
 
 const STATUS_BG: Record<string, string> = {
@@ -29,7 +36,7 @@ const PLAIN_STATUS: Record<string, string> = {
   leak:  "WASTED",
 };
 
-export default function GeographicHeatmap({ geo, liveCpl }: Props) {
+export default function GeographicHeatmap({ geo, liveCpl, costMetricLabel = "CPL" }: Props) {
   const { t, plain } = useLang();
   const { openReport } = useReport();
   const maxSpend = Math.max(...geo.regions.map((r) => r.spend), 1);
@@ -37,7 +44,7 @@ export default function GeographicHeatmap({ geo, liveCpl }: Props) {
   return (
     <div className="panel">
       <div className="panel-label">
-        {t("Geographic_Leakage_Audit", "Spending by Location")}
+        {t("Geographic_Leakage_Audit", "Money spent by city")}
       </div>
 
       <div className="mb-5 grid grid-cols-3 gap-2 sm:gap-3">
@@ -46,11 +53,11 @@ export default function GeographicHeatmap({ geo, liveCpl }: Props) {
           value={String(geo.zonesMapped)}
         />
         <Mini
-          label={t("Core_Hot", "Best Area Spend")}
+          label={t("Core_Hot", "Best cities spend")}
           value={`$${Math.round(geo.coreHotSpend).toLocaleString()}`}
         />
         <Mini
-          label={t("Leakage_Out", "Wasted Budget")}
+          label={t("Leakage_Out", "Money wasted")}
           value={`$${Math.round(geo.wasteUSD).toLocaleString()}`}
           tone="leak"
         />
@@ -69,7 +76,7 @@ export default function GeographicHeatmap({ geo, liveCpl }: Props) {
             <th style={{ padding: "10px 8px" }}>{t("Region", "Location")}</th>
             <th className="text-right" style={{ padding: "10px 8px" }}>{t("Spend", "Spent")}</th>
             <th className="text-right" style={{ padding: "10px 8px" }}>{t("Leads", "Leads")}</th>
-            <th className="text-right" style={{ padding: "10px 8px" }}>{t("CPL", "Cost/Lead")}</th>
+            <th className="text-right" style={{ padding: "10px 8px" }}>{costMetricLabel === "CPC" ? t("CPC", "Cost/Click") : t("CPL", "Cost/Lead")}</th>
             <th style={{ padding: "10px 8px" }}>{t("Status", "Result")}</th>
           </tr>
         </thead>
@@ -145,14 +152,14 @@ export default function GeographicHeatmap({ geo, liveCpl }: Props) {
       </table>
 
       <div className="insight-box">
-        <b>{t("RECOMMENDATION:", "SUGGESTED ACTION:")}</b> {geo.recommendation}
+        <b>{t("RECOMMENDATION:", "WHAT TO DO:")}</b> {geo.recommendation}
       </div>
 
       <button
         onClick={() => openReport(4)}
         className="mt-4 flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-wider text-[var(--red)] opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
       >
-        → {t("View full analysis →", "See detailed breakdown →")}
+        → {t("View full analysis →", "See the full breakdown →")}
       </button>
     </div>
   );

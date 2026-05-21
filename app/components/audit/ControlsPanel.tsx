@@ -98,7 +98,7 @@ export default function ControlsPanel({
         {/* Industry */}
         <div className="mb-6">
           <label className="mb-2 block font-mono text-[9px] uppercase tracking-[2px] text-[var(--text-dim)]">
-            {t("Industry Benchmark", "Industry Type")}
+            {t("Industry Benchmark", "Your industry")}
           </label>
           <select
             className="dark-select"
@@ -120,7 +120,7 @@ export default function ControlsPanel({
         <div className="mb-6">
           <div className="mb-2 flex items-baseline justify-between">
             <label className="font-mono text-[9px] uppercase tracking-[2px] text-[var(--text-dim)]">
-              {t("Target CPL", "Target Cost Per Lead")}
+              {t("Target CPL", "Cost per lead goal")}
             </label>
             <div className="flex items-baseline gap-1.5">
               {cplModified && (
@@ -157,7 +157,7 @@ export default function ControlsPanel({
         <div className="mb-6">
           <div className="mb-2 flex items-baseline justify-between">
             <label className="font-mono text-[9px] uppercase tracking-[2px] text-[var(--text-dim)]">
-              {t("Target CTR", "Target Click Rate")}
+              {t("Target CTR", "Click rate goal")}
             </label>
             <div className="flex items-baseline gap-1.5">
               {ctrModified && (
@@ -197,14 +197,14 @@ export default function ControlsPanel({
             onClick={onReset}
             className="mb-6 w-full border border-[#fbbf2440] py-2 font-mono text-[9px] uppercase tracking-wider text-[#fbbf24] transition-colors hover:border-[#fbbf24] hover:bg-[rgba(251,191,36,0.08)]"
           >
-            ← Reset to original analysis
+            {t("← Reset to original analysis", "← Go back to your real numbers")}
           </button>
         )}
 
         {/* Time window */}
         <div className="mb-6">
           <label className="mb-2 block font-mono text-[9px] uppercase tracking-[2px] text-[var(--text-dim)]">
-            {t("Time Window", "Date Range")}
+            {t("Time Window", "Dates to look at")}
           </label>
           <select
             className="dark-select"

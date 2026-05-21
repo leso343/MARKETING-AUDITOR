@@ -17,20 +17,20 @@ export default function CreativeAnalysisGrid({ creative, liveCpl }: Props) {
   return (
     <div className="panel">
       <div className="panel-label">
-        {t("Creative_Performance_Drill", "Best vs. Worst Ads")}
+        {t("Creative_Performance_Drill", "Best and worst ads")}
       </div>
       <h2
         className="mb-1 text-2xl font-bold tracking-tight"
         style={{ fontFamily: "var(--font-head)" }}
       >
-        {t("Winners vs. Wasters", "Best Ads vs. Worst Ads")}
+        {t("Winners vs. Wasters", "Best and Worst Ads")}
       </h2>
       <p className="mb-5 text-xs text-[var(--text-dim)]">
         {t(
           "Top quartile by CPL = scale. Dead-weight ($100+ spend, 0 leads) = pause.",
           "Your best-performing ads vs. ones spending money with no results.",
         )}
-        {liveCpl && (
+        {liveCpl != null && liveCpl > 0 && (
           <span className="ml-1 font-mono text-[9px]" style={{ color: "#fbbf24" }}>
             — showing vs. ${liveCpl} CPL target
           </span>
@@ -43,7 +43,7 @@ export default function CreativeAnalysisGrid({ creative, liveCpl }: Props) {
       </div>
       <div className="space-y-2">
         {creative.winners.length === 0 && (
-          <Empty msg={t("No conversion-positive ads yet.", "No successful ads found yet.")} />
+          <Empty msg={t("No conversion-positive ads yet.", "No ads have brought in leads yet.")} />
         )}
         {creative.winners.slice(0, 3).map((w, i) => (
           <AdCard key={`winner-${w.adName}-${i}`} ad={w} tone="ok" liveCpl={liveCpl} />
@@ -52,11 +52,11 @@ export default function CreativeAnalysisGrid({ creative, liveCpl }: Props) {
 
       <div className="mt-5 mb-3 flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-[var(--red)]">
         <TrendingDown className="h-3.5 w-3.5" />
-        {t("Wasters", "Wasting Budget")} ({creative.wasters.length})
+        {t("Wasters", "Wasting money")} ({creative.wasters.length})
       </div>
       <div className="space-y-2">
         {creative.wasters.length === 0 && (
-          <Empty msg={t("No dead-weight ads detected.", "No wasteful ads found — looking good!")} />
+          <Empty msg={t("No dead-weight ads detected.", "No ads are wasting money — nice.")} />
         )}
         {creative.wasters.slice(0, 3).map((w, i) => (
           <AdCard key={`waster-${w.adName}-${i}`} ad={w} tone="critical" liveCpl={liveCpl} />
@@ -78,7 +78,7 @@ function AdCard({ ad, tone, liveCpl }: { ad: AdScore; tone: "ok" | "critical"; l
   const border = tone === "ok" ? "#4ade80" : "var(--red)";
 
   // Live target badge — honest comparison vs. slider value
-  const liveTag = liveCpl && ad.cpl > 0
+  const liveTag = liveCpl != null && liveCpl > 0 && ad.cpl > 0
     ? ad.cpl <= liveCpl
       ? { label: `✓ below $${liveCpl} target`, color: "#4ade80" }
       : { label: `✗ ${((ad.cpl / liveCpl - 1) * 100).toFixed(0)}% above $${liveCpl} target`, color: "#ff0000" }
@@ -95,7 +95,7 @@ function AdCard({ ad, tone, liveCpl }: { ad: AdScore; tone: "ok" | "critical"; l
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div className="truncate text-xs font-bold text-white" title={ad.headline || ad.adName}>
-            {ad.headline || ad.adName || t("(no name)", "(unnamed ad)")}
+            {ad.headline || ad.adName || t("(no name)", "(ad has no name)")}
           </div>
           {liveTag && (
             <span
@@ -111,10 +111,15 @@ function AdCard({ ad, tone, liveCpl }: { ad: AdScore; tone: "ok" | "critical"; l
         </div>
         <div className="mt-2 grid grid-cols-3 gap-2 font-mono text-[10px]">
           <Metric label={t("Spend", "Spent")} value={`$${ad.spend.toLocaleString()}`} />
-          <Metric
-            label={t("CPL", "Cost/Lead")}
-            value={ad.cpl > 0 ? `$${ad.cpl.toFixed(2)}` : "—"}
-          />
+          {/* CPL when leads exist; otherwise CPC (cost per click). Never conflate the two. */}
+          {ad.cpl > 0 ? (
+            <Metric label={t("CPL", "Cost/Lead")} value={`$${ad.cpl.toFixed(2)}`} />
+          ) : (
+            <Metric
+              label={t("CPC", "Cost/Click")}
+              value={ad.cpc > 0 ? `$${ad.cpc.toFixed(2)}` : "—"}
+            />
+          )}
           <Metric label={t("CTR", "Click Rate")} value={`${ad.ctr.toFixed(2)}%`} />
         </div>
         <div className="mt-2 text-[10px] italic" style={{ color: border }}>

@@ -1,0 +1,141 @@
+/**
+ * Weekly time-series builder.
+ *
+ * Meta Ads Manager CSVs we ingest don't carry per-day rows by default, only
+ * a single Reporting starts / Reporting ends window per row. To give the
+ * TimeSeriesScrubber something real to graph, we bucket each ad's contribution
+ * across whole weeks of its reporting window — proportional to days-in-week
+ * vs total-days-in-window.
+ *
+ * This is a deliberate approximation, not a daily spend curve. Where Meta
+ * later exports per-day data we can swap this implementation with no API
+ * change to the visualiser.
+ */
+
+import { AdRow, CampaignRow } from "../types";
+
+export interface WeeklySeriesPoint {
+  /** Friendly week label, e.g. "Apr 1 – Apr 7" */
+  weekLabel: string;
+  /** ISO start date of the week (Monday-aligned) */
+  weekStart: string;
+  cpl: number;
+  spend: number;
+  leads: number;
+  activeAdSets: string[];
+}
+
+const MS_PER_DAY = 86_400_000;
+
+function startOfWeek(d: Date): Date {
+  // Align to Monday (ISO week)
+  const out = new Date(d);
+  out.setUTCHours(0, 0, 0, 0);
+  const day = out.getUTCDay(); // 0 = Sun, 1 = Mon
+  const diff = (day === 0 ? -6 : 1 - day);
+  out.setUTCDate(out.getUTCDate() + diff);
+  return out;
+}
+
+function fmt(d: Date): string {
+  const m = d.toLocaleString("en-US", { month: "short", timeZone: "UTC" });
+  return `${m} ${d.getUTCDate()}`;
+}
+
+function parseDate(s: string | undefined): Date | null {
+  if (!s) return null;
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+/** Build weekly CPL buckets from campaign + ad rows */
+export function buildWeeklySeries(
+  campaigns: CampaignRow[],
+  ads: AdRow[],
+): WeeklySeriesPoint[] {
+  // Discover the overall window
+  let windowStart: Date | null = null;
+  let windowEnd: Date | null = null;
+  const all = [
+    ...campaigns.map((c) => ({
+      start: parseDate(c.raw["Reporting starts"]),
+      end: parseDate(c.raw["Reporting ends"]),
+      spend: c.amountSpent ?? 0,
+      leads: c.results ?? 0,
+      adsetName: c.campaignName,
+    })),
+    ...ads.map((a) => ({
+      start: parseDate(a.raw["Reporting starts"]),
+      end: parseDate(a.raw["Reporting ends"]),
+      spend: a.amountSpent ?? 0,
+      leads: a.results ?? 0,
+      adsetName: a.adsetName || a.adName,
+    })),
+  ].filter((r) => r.start && r.end && (r.spend > 0 || r.leads > 0));
+
+  if (!all.length) return [];
+
+  for (const r of all) {
+    if (!windowStart || r.start! < windowStart) windowStart = r.start;
+    if (!windowEnd || r.end! > windowEnd) windowEnd = r.end;
+  }
+  if (!windowStart || !windowEnd) return [];
+
+  // Build week buckets (Mon-aligned) covering the window
+  const first = startOfWeek(windowStart);
+  const buckets: Map<string, WeeklySeriesPoint & { _names: Set<string> }> = new Map();
+  let cursor = new Date(first);
+  while (cursor <= windowEnd) {
+    const wkStart = new Date(cursor);
+    const wkEnd = new Date(cursor);
+    wkEnd.setUTCDate(wkEnd.getUTCDate() + 6);
+    const key = wkStart.toISOString().split("T")[0];
+    buckets.set(key, {
+      weekLabel: `${fmt(wkStart)} – ${fmt(wkEnd)}`,
+      weekStart: key,
+      cpl: 0,
+      spend: 0,
+      leads: 0,
+      activeAdSets: [],
+      _names: new Set<string>(),
+    });
+    cursor.setUTCDate(cursor.getUTCDate() + 7);
+  }
+
+  // Distribute each row's spend/leads across the weeks it overlaps,
+  // proportional to days of overlap with that week
+  for (const r of all) {
+    const rStart = r.start!.getTime();
+    const rEnd = r.end!.getTime() + MS_PER_DAY; // inclusive end → exclusive
+    const totalDays = Math.max(1, (rEnd - rStart) / MS_PER_DAY);
+    for (const [, b] of buckets) {
+      const wStart = new Date(b.weekStart).getTime();
+      const wEnd = wStart + 7 * MS_PER_DAY;
+      const overlapStart = Math.max(rStart, wStart);
+      const overlapEnd = Math.min(rEnd, wEnd);
+      const overlapDays = Math.max(0, (overlapEnd - overlapStart) / MS_PER_DAY);
+      if (overlapDays <= 0) continue;
+      const share = overlapDays / totalDays;
+      b.spend += r.spend * share;
+      b.leads += r.leads * share;
+      if (r.adsetName) b._names.add(r.adsetName);
+    }
+  }
+
+  // Finalise
+  const out: WeeklySeriesPoint[] = [];
+  for (const [, b] of buckets) {
+    if (b.spend <= 0 && b.leads <= 0) continue; // drop empty weeks
+    const leadsRounded = Math.round(b.leads);
+    out.push({
+      weekLabel: b.weekLabel,
+      weekStart: b.weekStart,
+      spend: Math.round(b.spend * 100) / 100,
+      leads: leadsRounded,
+      cpl: leadsRounded > 0 ? Math.round((b.spend / leadsRounded) * 100) / 100 : 0,
+      activeAdSets: Array.from(b._names).sort(),
+    });
+  }
+  out.sort((a, b) => a.weekStart.localeCompare(b.weekStart));
+  return out;
+}
