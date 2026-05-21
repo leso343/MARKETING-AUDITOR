@@ -190,7 +190,7 @@ export default function BenchmarkStatus({
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <div className="panel-label" style={{ marginBottom: 0 }}>
-            {t("Benchmark_Status", "Performance vs. Target")}
+            {t("Benchmark_Status", "How you compare to the goal")}
           </div>
           {isPreview && (
             <span className="border border-[#fbbf2440] px-2 py-0.5 font-mono text-[8px] uppercase tracking-wider text-[#fbbf24]">
@@ -215,7 +215,7 @@ export default function BenchmarkStatus({
       {/* Metric cards */}
       <div className="flex flex-wrap gap-3">
         <Metric
-          label={t("Blended CPL", "Cost Per Lead")}
+          label={t("Blended CPL", "What each lead costs you")}
           actual={blendedCpl}
           target={liveCpl}
           formatActual={(v) => `$${v.toFixed(2)}`}
@@ -223,7 +223,7 @@ export default function BenchmarkStatus({
           lowerIsBetter={true}
         />
         <Metric
-          label={t("Weighted CTR", "Click Rate")}
+          label={t("Weighted CTR", "How often people click")}
           actual={weightedCtr}
           target={liveCtr}
           formatActual={(v) => `${v.toFixed(2)}%`}
@@ -232,7 +232,7 @@ export default function BenchmarkStatus({
         />
         <div className="flex-1 min-w-[160px] border border-[var(--border)] bg-black p-4">
           <div className="mb-2 font-mono text-[9px] uppercase tracking-widest text-[var(--text-dim)]">
-            {t("Industry", "Industry Benchmarks")}
+            {t("Industry", "Industry averages")}
           </div>
           <div className="font-mono text-sm font-bold capitalize text-white">{industry}</div>
           <div className="mt-1 font-mono text-[10px] text-[var(--text-dim)]">
@@ -251,14 +251,14 @@ export default function BenchmarkStatus({
       {isPreview && (
         <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2">
           <InsightCard
-            title={t("CPL Insight", "What Cost Per Lead Means Here")}
+            title={t("CPL Insight", "What this cost means for you")}
             summary={cplData.summary}
             detail={cplData.detail}
             actions={cplData.actions}
             accent={cplAccent}
           />
           <InsightCard
-            title={t("CTR Insight", "What Click Rate Means Here")}
+            title={t("CTR Insight", "What this click rate means")}
             summary={ctrData.summary}
             detail={ctrData.detail}
             actions={ctrData.actions}

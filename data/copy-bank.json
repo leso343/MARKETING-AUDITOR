@@ -1,90 +1,223 @@
 {
   "$schema": "https://sna-forensic.local/schemas/copy-bank.v1.json",
-  "$comment": "Pre-written recommendation copy. The engine fills slots like {{count}}, {{spend}}, {{primaryLeak}}. Lester / Claude-Design pass should expand this set.",
+  "$comment": "Pre-written copy. `findings` holds engine-driven recommendation text (slots like {{count}}, {{spend}} are filled at runtime). `ui` holds dashboard chrome strings — each entry has a `pro` (agency mode) and `plain` (contractor-readable English) variant. Default mode is plain on first visit.",
   "findings": {
     "FUNNEL_CLICK_TO_SESSION_LOSS": {
       "severity": "critical",
       "title": "Click-to-Session Loss",
+      "titlePlain": "People click but never reach your site",
       "headline": "{{clickToSessionLossPct}}% of paid clicks never reached the site",
+      "headlinePlain": "{{clickToSessionLossPct}}% of clicks never made it to your website",
       "fixSteps": [
         "Audit landing-page load time on mobile — anything above 3s drops 50%+ of clicks.",
         "Verify Meta Pixel ViewContent fires on landing — Events Manager should show it within seconds of a paid click.",
         "Switch traffic-objective campaigns to Conversions; traffic ads buy accidental clicks.",
         "Add a redirect-test campaign to confirm clicks resolve to your domain at all."
       ],
-      "impactNote": "Recovering even half this loss typically halves CPL."
+      "fixStepsPlain": [
+        "Test your site on a phone — if it takes more than 3 seconds to load, half your clicks vanish.",
+        "Open Meta Events Manager and confirm clicks are reaching your page (look for the ViewContent event firing).",
+        "Stop using Traffic campaigns — switch them to Conversions so Meta sends real prospects, not accidental clicks.",
+        "Click one of your own ads to make sure it actually opens your website."
+      ],
+      "impactNote": "Recovering even half this loss typically halves CPL.",
+      "impactNotePlain": "Fixing this can cut your cost per lead in half."
     },
     "LEAD_PIXEL_DISCONNECTED": {
       "severity": "critical",
       "title": "Lead Pixel Disconnected",
+      "titlePlain": "Tracking is broken — Meta can't see your leads",
       "headline": "{{count}} lead campaign(s) spent ${{spend}} and reported 0 tracked leads",
+      "headlinePlain": "{{count}} campaign(s) spent ${{spend}} but Meta saw zero leads",
       "fixSteps": [
         "Open Events Manager → confirm Lead event has fired in the last 24h.",
         "Install or fix CAPI alongside the pixel for resilience against iOS ATT loss.",
         "Re-issue the campaign with a fresh ad set so Meta re-evaluates the conversion event.",
         "If you're using a 3rd-party form (Jotform, etc.), enable native event-forwarding."
       ],
-      "impactNote": "Once tracking is restored, optimisation typically recovers within 7-10 days."
+      "fixStepsPlain": [
+        "Open Meta Events Manager and check if any leads were recorded in the last day — if not, the tracking is broken.",
+        "Have your dev install Meta's Conversions API (CAPI) so iPhone users still get tracked.",
+        "Pause the campaign, then restart it with a fresh ad set — that forces Meta to re-learn.",
+        "If you use a form tool like Jotform, turn on its built-in Meta forwarding."
+      ],
+      "impactNote": "Once tracking is restored, optimisation typically recovers within 7-10 days.",
+      "impactNotePlain": "Once tracking works again, the ads start improving on their own within a week or two."
     },
     "GEO_LEAK_OUT_OF_AREA": {
       "severity": "critical",
       "title": "Geographic Spend Leakage",
+      "titlePlain": "Money being spent outside your service area",
       "headline": "${{wasteUSD}} burned on DMAs that produced zero leads",
+      "headlinePlain": "${{wasteUSD}} spent in cities that brought in zero leads",
       "fixSteps": [
         "Hard-cap delivery to your service area in the ad-set Locations field.",
         "Exclude (not just deselect) the leaking DMAs to prevent spillover.",
         "If targeting by ZIP, verify the radius doesn't punch into neighbouring metros."
       ],
-      "impactNote": "Geographic waste reallocated to hot DMAs typically lifts lead volume 15-30%."
+      "fixStepsPlain": [
+        "Lock your ad targeting to only the cities you actually serve.",
+        "In Locations, EXCLUDE the cities that aren't working — don't just leave them un-checked.",
+        "If you target by ZIP code, double-check your radius isn't bleeding into the next city over."
+      ],
+      "impactNote": "Geographic waste reallocated to hot DMAs typically lifts lead volume 15-30%.",
+      "impactNotePlain": "Moving that money to your best cities usually gets you 15-30% more leads."
     },
     "CREATIVE_DEAD_WEIGHT": {
       "severity": "warn",
       "title": "Dead-Weight Creative",
+      "titlePlain": "Ads that are wasting money",
       "headline": "{{count}} ad(s) spent $100+ with zero conversions",
+      "headlinePlain": "{{count}} ad(s) spent over $100 and brought in no leads",
       "fixSteps": [
         "Pause ads with >$100 spend and 0 leads immediately.",
         "Clone the top-CPL winner into a new ad set with the same audience.",
         "A/B test 3 fresh hooks against the dead-weight headlines."
       ],
-      "impactNote": "Pausing wasters is the cheapest CPL improvement available."
+      "fixStepsPlain": [
+        "Pause any ad that spent more than $100 with no leads — today.",
+        "Copy your best-performing ad and run it again with the same audience.",
+        "Try 3 new opening lines against the ads that aren't working."
+      ],
+      "impactNote": "Pausing wasters is the cheapest CPL improvement available.",
+      "impactNotePlain": "Pausing bad ads is the easiest way to lower your cost per lead — it costs you nothing."
     },
     "FREQUENCY_FATIGUE": {
       "severity": "warn",
       "title": "Audience Fatigue",
+      "titlePlain": "Same people keep seeing the same ads",
       "headline": "Average frequency {{frequency}} — past creative-rotation threshold",
+      "headlinePlain": "The same people have seen your ads {{frequency}} times on average — they're tuning out",
       "fixSteps": [
         "Refresh creative — same audience needs new hooks at >2.5 freq.",
         "Expand audience size by relaxing one targeting layer.",
         "If lookalikes, regenerate from a fresher seed (last 90d converters)."
       ],
-      "impactNote": "Frequency >4 is correlated with 1.5-2x CPL inflation in our data."
+      "fixStepsPlain": [
+        "Make new ad creative — when people have seen the same ad 3+ times, they stop noticing it.",
+        "Widen your audience by removing one of your targeting filters.",
+        "If you use Lookalike Audiences, rebuild them from leads you got in the last 90 days."
+      ],
+      "impactNote": "Frequency >4 is correlated with 1.5-2x CPL inflation in our data.",
+      "impactNotePlain": "When people see your ad more than 4 times, your cost per lead doubles."
     },
     "ATTRIBUTION_WINDOW_UNSET": {
       "severity": "warn",
       "title": "Attribution Window Not Configured",
+      "titlePlain": "Some leads aren't being tracked",
       "headline": "{{count}} campaign(s) have no attribution setting",
+      "headlinePlain": "{{count}} campaign(s) aren't set up to track leads properly",
       "fixSteps": [
         "Set every lead-objective campaign to 7-day click / 1-day view at minimum.",
         "If you have CAPI, extend to 7-day click / 1-day view across surfaces.",
         "Re-run reporting after 7 days for the new attribution to backfill."
       ],
-      "impactNote": "Under-attribution makes CPL look ~15-25% worse than it is."
+      "fixStepsPlain": [
+        "In each campaign settings, set 'Attribution Setting' to 7-day click and 1-day view.",
+        "If you have Meta's Conversions API installed, apply this across all surfaces.",
+        "Wait a week, then check reporting again — you'll see more leads counted."
+      ],
+      "impactNote": "Under-attribution makes CPL look ~15-25% worse than it is.",
+      "impactNotePlain": "Right now your reports make ads look 15-25% worse than they actually are."
     },
     "WRONG_OPTIMIZATION_EVENT": {
       "severity": "critical",
       "title": "Wrong Optimization Event",
+      "titlePlain": "Ads are optimizing for the wrong action",
       "headline": "Lead campaign optimising for a non-lead event",
+      "headlinePlain": "A lead campaign is being judged on the wrong thing (not actual leads)",
       "fixSteps": [
         "Switch the campaign's conversion event to a true Lead event.",
         "Wait 50 conversions for Meta to recalibrate the model.",
         "If you can't hit 50 in 7 days, broaden audience or shift to a higher-volume custom event."
       ],
-      "impactNote": "Wrong-event optimisation can double effective CPL silently."
+      "fixStepsPlain": [
+        "Change the campaign's 'optimize for' setting to your real Lead event.",
+        "Wait until you get 50 leads — that's when Meta's auto-optimization kicks in.",
+        "If you can't get 50 leads in a week, widen your audience or pick a higher-volume action."
+      ],
+      "impactNote": "Wrong-event optimisation can double effective CPL silently.",
+      "impactNotePlain": "Optimizing for the wrong thing can quietly double your cost per lead."
     }
   },
   "primaryActions": [
     "Fix tracking first — every other recommendation depends on clean conversion data.",
     "Then re-allocate spend from cold DMAs / dead-weight ads to your top 25% by CPL.",
     "Refresh creative on any ad set above 2.5 frequency before scaling spend."
-  ]
+  ],
+  "primaryActionsPlain": [
+    "Fix the tracking first — nothing else matters until Meta can see your leads.",
+    "Then move money from cities and ads that don't work to your top performers.",
+    "Make new ad creative before you spend more — old ads stop working after a few weeks."
+  ],
+  "ui": {
+    "engineLive": {
+      "pro": "Engine: Live",
+      "plain": "Connected"
+    },
+    "engineRecomputing": {
+      "pro": "Recomputing…",
+      "plain": "Updating…"
+    },
+    "whatIfPreview": {
+      "pro": "WHAT-IF PREVIEW",
+      "plain": "TRYING SOMETHING NEW"
+    },
+    "whatIfOriginalAnalysis": {
+      "pro": "original analysis:",
+      "plain": "your real numbers:"
+    },
+    "resetToOriginal": {
+      "pro": "← Reset to original",
+      "plain": "← Go back to real numbers"
+    },
+    "resetToOriginalAnalysis": {
+      "pro": "← Reset to original analysis",
+      "plain": "← Go back to your real numbers"
+    },
+    "addNewClient": {
+      "pro": "Add new client",
+      "plain": "Add another client"
+    },
+    "multiTenantComing": {
+      "pro": "Multi-tenant — coming soon",
+      "plain": "Coming soon"
+    },
+    "methodologyLabel": {
+      "pro": "Methodology:",
+      "plain": "How we calculated this:"
+    },
+    "methodologyBody": {
+      "pro": "CPL is computed as total ad spend divided by lead-form submissions (Meta's \"Results\" column for Leads-objective campaigns). For Traffic-objective campaigns, CPC (cost per click) is shown instead. Mixed-objective accounts use a weighted blend, documented per row.",
+      "plain": "Cost per lead is just total money spent divided by how many lead forms got filled out. For ads that only buy clicks (not leads), we show cost per click instead. If you have a mix, we blend them — see each row's note for which is being used."
+    },
+    "noDataTitle": {
+      "pro": "No data — drop CSVs to populate",
+      "plain": "No data yet — add your Meta Ads exports"
+    },
+    "noDataExplain": {
+      "pro": "No Meta Ads Manager CSV exports were found for",
+      "plain": "We couldn't find any Meta Ads reports for"
+    },
+    "agencyMode": {
+      "pro": "Agency Mode",
+      "plain": "Agency Mode"
+    },
+    "plainEnglish": {
+      "pro": "Plain English",
+      "plain": "Plain English"
+    },
+    "switchToAgencyMode": {
+      "pro": "Switch to Agency Mode",
+      "plain": "Switch to Agency Mode"
+    },
+    "switchToPlainEnglish": {
+      "pro": "Switch to Plain English",
+      "plain": "Switch to Plain English"
+    },
+    "interactiveReport": {
+      "pro": "Interactive Report",
+      "plain": "Full Report"
+    }
+  }
 }

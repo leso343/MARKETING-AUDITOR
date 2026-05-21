@@ -173,28 +173,28 @@ export default function AuditRibbon({ audit }: Props) {
       />
 
       <Chip
-        label={t("FREQ", "FREQUENCY")}
+        label={t("FREQ", "TIMES SHOWN")}
         value={spend.averageFrequency.toFixed(2)}
         status={freqStatus}
         anchor="leakage"
       />
 
       <Chip
-        label={t("TRACKING", "TRACKING")}
+        label={t("TRACKING", "TRACKING OK?")}
         value={`${tracking.overallScore}/100`}
         status={trackStatus}
         anchor="tracking"
       />
 
       <Chip
-        label={t("GEO WASTE", "GEO WASTE")}
+        label={t("GEO WASTE", "MONEY WASTED")}
         value={`$${Math.round(geo.wasteUSD).toLocaleString()}`}
         status={geo.wasteUSD > 200 ? "critical" : geo.wasteUSD > 50 ? "warn" : "ok"}
         anchor="geo"
       />
 
       <Chip
-        label={t("WINNERS", "BEST ADS")}
+        label={t("WINNERS", "TOP ADS")}
         value={String(creative.winners.length)}
         status={creative.winners.length > 0 ? "ok" : "warn"}
         anchor="creative"

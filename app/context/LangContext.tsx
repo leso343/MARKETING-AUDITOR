@@ -16,11 +16,14 @@ const Ctx = createContext<{ mode: Mode; toggle: () => void }>({
 });
 
 export function LangProvider({ children }: { children: ReactNode }) {
-  const [mode, setMode] = useState<Mode>("pro");
+  const [mode, setMode] = useState<Mode>("plain");
 
   useEffect(() => {
+    // Default is plain English on first visit. Only switch to pro if the
+    // user explicitly chose it last session (persisted in localStorage).
     const saved = localStorage.getItem("sna-lang") as Mode | null;
-    if (saved === "plain") setMode("plain");
+    if (saved === "pro") setMode("pro");
+    else if (saved === "plain") setMode("plain");
   }, []);
 
   const toggle = () => {
