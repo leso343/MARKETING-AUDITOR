@@ -3,13 +3,26 @@
  *
  * Agency users can only update their own agency. Admins can target any agency
  * via { agencyId } in the body.
+ *
+ * ─── Deploy-safe guard (Tier 3-deploy-safe) ────────────────────────────────
+ * Returns 503 when AUTH_SECRET / DATABASE_URL are unset.
  */
 import { NextResponse } from "next/server";
-import { db, schema } from "@/lib/db";
+import { db, schema, dbAvailable } from "@/lib/db";
 import { eq } from "drizzle-orm";
-import { auth } from "@/auth";
+import { auth, authEnabled } from "@/auth";
 
 export async function PATCH(req: Request) {
+  if (!authEnabled || !dbAvailable) {
+    return NextResponse.json(
+      {
+        error:
+          "Agency branding is disabled — multi-tenant features require AUTH_SECRET and DATABASE_URL.",
+      },
+      { status: 503 },
+    );
+  }
+
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

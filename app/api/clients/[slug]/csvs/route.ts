@@ -7,16 +7,33 @@
  *
  * Each upload upserts on (clientId, filename) so re-uploading replaces
  * the previous version.
+ *
+ * ─── Deploy-safe guard (Tier 3-deploy-safe) ────────────────────────────────
+ * Returns 503 when AUTH_SECRET / DATABASE_URL are unset (multi-tenant
+ * features require both).
  */
 import { NextResponse } from "next/server";
-import { db, schema } from "@/lib/db";
+import { db, schema, dbAvailable } from "@/lib/db";
 import { eq, and } from "drizzle-orm";
 import { getVisibleClientBySlug } from "@/lib/access";
+import { authEnabled } from "@/auth";
 import { randomUUID } from "node:crypto";
 
 const MAX_BYTES = 10 * 1024 * 1024; // 10 MB per file
 
+function gatedOff() {
+  return NextResponse.json(
+    {
+      error:
+        "CSV uploads are disabled — multi-tenant features require AUTH_SECRET and DATABASE_URL.",
+    },
+    { status: 503 },
+  );
+}
+
 export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
+  if (!authEnabled || !dbAvailable) return gatedOff();
+
   const { slug } = await params;
   const client = await getVisibleClientBySlug(slug);
   if (!client) return NextResponse.json({ error: "Client not found" }, { status: 404 });
@@ -60,6 +77,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
 }
 
 export async function DELETE(req: Request, { params }: { params: Promise<{ slug: string }> }) {
+  if (!authEnabled || !dbAvailable) return gatedOff();
+
   const { slug } = await params;
   const client = await getVisibleClientBySlug(slug);
   if (!client) return NextResponse.json({ error: "Client not found" }, { status: 404 });
@@ -75,6 +94,8 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ slug:
 }
 
 export async function GET(req: Request, { params }: { params: Promise<{ slug: string }> }) {
+  if (!authEnabled || !dbAvailable) return gatedOff();
+
   const { slug } = await params;
   const client = await getVisibleClientBySlug(slug);
   if (!client) return NextResponse.json({ error: "Client not found" }, { status: 404 });

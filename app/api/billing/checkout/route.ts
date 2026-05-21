@@ -10,16 +10,30 @@
  *
  * For now this just records the intended plan in the agency's Subscription
  * row (creating one if missing) and returns a friendly TODO.
+ *
+ * ─── Deploy-safe guard (Tier 3-deploy-safe) ────────────────────────────────
+ * Returns 503 when DB or auth is unavailable so callers see a clear message
+ * instead of a 500.
  */
 import { NextResponse } from "next/server";
-import { db, schema } from "@/lib/db";
+import { db, schema, dbAvailable } from "@/lib/db";
 import { eq } from "drizzle-orm";
-import { auth } from "@/auth";
+import { auth, authEnabled } from "@/auth";
 import { randomUUID } from "node:crypto";
 
 const ALLOWED_PLANS = new Set(["free", "pro", "agency"]);
 
 export async function POST(req: Request) {
+  if (!authEnabled || !dbAvailable) {
+    return NextResponse.json(
+      {
+        error:
+          "Billing is disabled — multi-tenant features require AUTH_SECRET and DATABASE_URL.",
+      },
+      { status: 503 },
+    );
+  }
+
   const session = await auth();
   if (!session?.user) {
     return NextResponse.json(

@@ -3,11 +3,15 @@
  *
  * Admins can specify agencyId in the body; agency users always create under
  * their own agency.
+ *
+ * ─── Deploy-safe guard (Tier 3-deploy-safe) ────────────────────────────────
+ * Returns 503 when AUTH_SECRET / DATABASE_URL are unset (multi-tenant
+ * features require both).
  */
 import { NextResponse } from "next/server";
-import { db, schema } from "@/lib/db";
+import { db, schema, dbAvailable } from "@/lib/db";
 import { eq } from "drizzle-orm";
-import { auth } from "@/auth";
+import { auth, authEnabled } from "@/auth";
 import { randomUUID } from "node:crypto";
 
 function slugify(name: string): string {
@@ -20,6 +24,16 @@ function slugify(name: string): string {
 }
 
 export async function POST(req: Request) {
+  if (!authEnabled || !dbAvailable) {
+    return NextResponse.json(
+      {
+        error:
+          "Client management is disabled — multi-tenant features require AUTH_SECRET and DATABASE_URL.",
+      },
+      { status: 503 },
+    );
+  }
+
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
