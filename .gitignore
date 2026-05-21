@@ -39,8 +39,8 @@ config/
 reports/*.html
 
 # Tier 3 — local dev database & generated Prisma client
-prisma/dev.db
-prisma/dev.db-journal
+data/dev.db
+data/dev.db-journal
 /data/csvs/
 
 # Tier 3 — uploaded client logos & CSVs (live in DB or per-dev disk)
