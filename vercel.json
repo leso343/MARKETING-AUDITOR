@@ -7,7 +7,7 @@
   "functions": {
     "app/api/audit/[client]/pdf/route.ts": {
       "maxDuration": 60,
-      "memory": 3008
+      "memory": 2048
     }
   }
 }
