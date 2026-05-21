@@ -24,6 +24,7 @@
  * never from `Results` on mixed-objective data.
  */
 import { BreakdownRow, StatusLevel } from '../types';
+import { round } from "./_shared";
 
 export interface AgeBracketStat {
   bracket: string;
@@ -126,7 +127,3 @@ export function analyzeDemographics(rows: BreakdownRow[]): DemographicsResult {
   };
 }
 
-function round(n: number, d: number): number {
-  const f = Math.pow(10, d);
-  return Math.round(n * f) / f;
-}

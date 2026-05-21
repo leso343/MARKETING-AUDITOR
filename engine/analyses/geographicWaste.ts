@@ -16,6 +16,7 @@
  * the canonical CPL vs CPC methodology.
  */
 import { BreakdownRow, StatusLevel } from '../types';
+import { round } from "./_shared";
 
 export type GeoStatus = 'hot' | 'mixed' | 'cold' | 'leak';
 
@@ -120,7 +121,3 @@ export function analyzeGeographicWaste(rows: BreakdownRow[]): GeographicWasteRes
   };
 }
 
-function round(n: number, d: number): number {
-  const f = Math.pow(10, d);
-  return Math.round(n * f) / f;
-}

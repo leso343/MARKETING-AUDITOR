@@ -25,6 +25,7 @@
  *     CPC is reported as a separate KPI.
  */
 import { CampaignRow, AdRow, BreakdownRow, KpiCard, StatusLevel } from '../types';
+import { round, sum } from "./_shared";
 
 export interface SpendEfficiencyResult {
   kpis: KpiCard[];
@@ -41,9 +42,6 @@ export interface SpendEfficiencyResult {
   totalCampaigns: number;
 }
 
-function sum(nums: Array<number | null | undefined>): number {
-  return nums.reduce<number>((a, b) => a + (b ?? 0), 0);
-}
 
 function isLeadObjective(o: string, ri?: string): boolean {
   if (/lead|conversion|sales|appointment/i.test(o)) return true;
@@ -230,10 +228,6 @@ export function analyzeSpendEfficiency(
   };
 }
 
-function round(n: number, d: number): number {
-  const f = Math.pow(10, d);
-  return Math.round(n * f) / f;
-}
 
 function fmt(n: number): string {
   return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
