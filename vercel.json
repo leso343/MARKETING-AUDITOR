@@ -3,5 +3,11 @@
   "buildCommand": "npm run build",
   "devCommand": "npm run dev",
   "installCommand": "npm install",
-  "outputDirectory": ".next"
+  "outputDirectory": ".next",
+  "functions": {
+    "app/api/audit/[client]/pdf/route.ts": {
+      "maxDuration": 60,
+      "memory": 3008
+    }
+  }
 }

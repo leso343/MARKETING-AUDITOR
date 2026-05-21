@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { X, Printer, ChevronLeft, Download } from "lucide-react";
 import { useLang } from "@/context/LangContext";
+import PdfDownloadLink from "@/components/audit/PdfDownloadLink";
 
 interface Props {
   open: boolean;
@@ -11,6 +12,9 @@ interface Props {
   /** Per-client PDF URL, e.g. /api/audit/<slug>/pdf. When omitted, the
    *  Download PDF link is hidden (no PDF available for this client). */
   pdfPath?: string;
+  /** Slug used to compute the saved filename. Optional — falls back to a
+   *  generic name when omitted. */
+  clientSlug?: string;
 }
 
 const PAGE_TABS = [
@@ -20,7 +24,7 @@ const PAGE_TABS = [
   { label: "Geo Audit", page: 4 },
 ];
 
-export default function ReportViewer({ open, page, onClose, pdfPath }: Props) {
+export default function ReportViewer({ open, page, onClose, pdfPath, clientSlug }: Props) {
   const { t } = useLang();
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [loaded, setLoaded] = useState(false);
@@ -158,15 +162,15 @@ export default function ReportViewer({ open, page, onClose, pdfPath }: Props) {
 
           {/* PDF download — hidden when no per-client PDF is available */}
           {pdfPath && (
-            <a
-              href={pdfPath}
-              download
-              className="flex items-center gap-1.5 border border-[var(--border)] px-2 py-1.5 font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)] transition-colors hover:border-[var(--red)] hover:text-white sm:px-3"
+            <PdfDownloadLink
+              pdfPath={pdfPath}
+              filenameBase={`${clientSlug ?? "audit"}-audit`}
               title="Download PDF"
+              className="flex items-center gap-1.5 border border-[var(--border)] px-2 py-1.5 font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)] transition-colors hover:border-[var(--red)] hover:text-white disabled:opacity-60 sm:px-3"
             >
               <Download className="h-3 w-3" />
               <span className="hidden sm:inline">{t("PDF", "PDF")}</span>
-            </a>
+            </PdfDownloadLink>
           )}
 
           {/* Close */}
