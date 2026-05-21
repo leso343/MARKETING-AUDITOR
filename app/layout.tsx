@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import ScrollbarFade from "@/components/ScrollbarFade";
+import SessionProviderWrapper from "./SessionProviderWrapper";
 
 export const metadata: Metadata = {
   title: "SNA Forensic — Marketing Auditor",
@@ -27,7 +28,7 @@ export default function RootLayout({
       </head>
       <body>
         <ScrollbarFade />
-        {children}
+        <SessionProviderWrapper>{children}</SessionProviderWrapper>
       </body>
     </html>
   );

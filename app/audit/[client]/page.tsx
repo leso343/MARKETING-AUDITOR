@@ -1,18 +1,28 @@
 /**
- * /audit/[client] — Server Component
+ * /audit/[client] — Server Component (auth-gated, multi-tenant).
  *
- * Reads CSVs from /public/csvs/[client]/ on each request, runs the engine, and
- * hands the result to the client-side dashboard. Dev mode hot-reloads on
- * code changes; CSV changes are picked up on the next request (full reload).
+ * Data resolution order:
+ *   1. Look up Client by slug in DB (and check session user can see it).
+ *   2. If the Client has csv_files rows uploaded, run audit from DB content.
+ *   3. Otherwise fall back to on-disk CSVs at public/csvs/[slug]/ — this is
+ *      how the take-charge-roofing baseline (Tier 0 / Tier 1 dataset) still
+ *      reconciles to $3,137.11 / 31 leads without re-uploading.
+ *
+ * Notes:
+ *   - The legacy engine.runAudit (filesystem) is preserved untouched.
+ *   - The DB path uses engine.runAuditFromFiles (Tier 3-only sibling).
+ *   - Client display name comes from the DB record, falling back to the
+ *     legacy public/csvs/<slug>/client.json (kept for back-compat).
  */
 import { notFound } from "next/navigation";
 import path from "node:path";
 import fs from "node:fs";
 import { runAudit } from "@/engine/runAudit";
+import { runAuditFromFiles } from "@/engine/runAuditFromFiles";
 import AuditDashboard from "./AuditDashboard";
 import benchmarksData from "@/data/benchmarks.json";
+import { getVisibleClientBySlug, listClientCsvs, getAgencyById } from "@/lib/access";
 
-// Disable static caching — we want this to re-run on every nav.
 export const dynamic = "force-dynamic";
 
 interface PageProps {
@@ -36,36 +46,60 @@ function findAsset(dir: string, base: string): string | null {
 }
 
 export default async function AuditPage({ params, searchParams }: PageProps) {
-  const { client } = await params;
+  const { client: clientSlug } = await params;
   const search = await searchParams;
 
-  const csvDir = path.join(process.cwd(), "public", "csvs", client);
-  if (!fs.existsSync(csvDir)) {
+  // Auth + access gate.
+  const dbClient = await getVisibleClientBySlug(clientSlug);
+
+  const fsCsvDir = path.join(process.cwd(), "public", "csvs", clientSlug);
+  const fsExists = fs.existsSync(fsCsvDir);
+
+  // If neither DB nor filesystem has data, 404.
+  if (!dbClient && !fsExists) {
     notFound();
   }
 
-  // Read optional per-client config (displayName, subtitle, industry)
-  let clientConfig: { displayName?: string; subtitle?: string; industry?: string } = {};
-  const configPath = path.join(csvDir, "client.json");
-  if (fs.existsSync(configPath)) {
-    try { clientConfig = JSON.parse(fs.readFileSync(configPath, "utf8")); } catch { /* ignore */ }
+  const csvFilesInDb = dbClient ? await listClientCsvs(dbClient.id) : [];
+  const useDb = csvFilesInDb.length > 0;
+
+  // Resolve display name / subtitle / industry — DB first, then on-disk client.json fallback.
+  let clientName = dbClient?.name ?? prettyClient(clientSlug);
+  let clientSubtitle: string | undefined = dbClient?.subtitle ?? undefined;
+  let clientIndustry = dbClient?.industry ?? "roofing";
+
+  if (!dbClient && fsExists) {
+    const configPath = path.join(fsCsvDir, "client.json");
+    if (fs.existsSync(configPath)) {
+      try {
+        const cfg = JSON.parse(fs.readFileSync(configPath, "utf8")) as {
+          displayName?: string; subtitle?: string; industry?: string;
+        };
+        if (cfg.displayName) clientName = cfg.displayName;
+        if (cfg.subtitle) clientSubtitle = cfg.subtitle;
+        if (cfg.industry) clientIndustry = cfg.industry;
+      } catch { /* ignore */ }
+    }
   }
 
-  // Resolve logo paths (served as /logos/... or /csvs/[client]/...)
-  const agencyLogo = findAsset(path.join(process.cwd(), "public", "logos"), "agency");
-  const clientLogo = findAsset(csvDir, "logo");
+  // Resolve logos. Agency logo: DB-driven if dbClient exists, else /public/logos/agency.*.
+  // Client logo: DB logoUrl wins; else on-disk public/csvs/<slug>/logo.*.
+  let agencyLogo: string | null = null;
+  if (dbClient) {
+    const agency = await getAgencyById(dbClient.agencyId);
+    agencyLogo = agency?.logoUrl ?? findAsset(path.join(process.cwd(), "public", "logos"), "agency");
+  } else {
+    agencyLogo = findAsset(path.join(process.cwd(), "public", "logos"), "agency");
+  }
+  const clientLogo = dbClient?.logoUrl ?? (fsExists ? findAsset(fsCsvDir, "logo") : null);
 
-  // Resolve benchmarks: ?industry overrides default; ?cpl / ?ctr override either.
-  type IndustryBench = {
-    label?: string;
-    targetCpl: number;
-    targetCtr: number;
-  };
+  // Resolve benchmarks.
+  type IndustryBench = { label?: string; targetCpl: number; targetCtr: number };
   const benchmarksTyped = benchmarksData as unknown as {
     default: IndustryBench;
     industries: Record<string, IndustryBench>;
   };
-  const industry = search.industry ?? "roofing";
+  const industry = search.industry ?? clientIndustry ?? "roofing";
   const base = benchmarksTyped.industries[industry] ?? benchmarksTyped.default;
 
   /**
@@ -95,12 +129,19 @@ export default async function AuditPage({ params, searchParams }: PageProps) {
   }
   const daysFilter = parsePosInt(search.days);
 
-  const audit = runAudit({
-    csvDir,
-    clientName: prettyClient(client),
-    benchmarks,
-    daysFilter,
-  });
+  const audit = useDb
+    ? runAuditFromFiles({
+        files: csvFilesInDb.map((c) => ({ filename: c.filename, content: c.content })),
+        clientName,
+        benchmarks,
+        daysFilter,
+      })
+    : runAudit({
+        csvDir: fsCsvDir,
+        clientName,
+        benchmarks,
+        daysFilter,
+      });
 
   const industryOptions = Object.entries(benchmarksTyped.industries).map(
     ([key, v]) => ({ key, label: v.label ?? key }),
@@ -111,17 +152,15 @@ export default async function AuditPage({ params, searchParams }: PageProps) {
       <div className="min-h-screen bg-gray-950 text-gray-100 flex items-center justify-center p-8">
         <div className="max-w-lg text-center space-y-4">
           <div className="text-5xl">📂</div>
-          <h1 className="text-2xl font-bold">No data — drop CSVs to populate</h1>
+          <h1 className="text-2xl font-bold">No data — upload CSVs to populate</h1>
           <p className="text-gray-400">
             No Meta Ads Manager CSV exports were found for{" "}
-            <span className="text-white font-mono">{prettyClient(client)}</span>.
+            <span className="text-white font-mono">{clientName}</span>.
           </p>
-          <p className="text-gray-500 text-sm font-mono bg-gray-900 rounded p-3">
-            /public/csvs/{client}/
-          </p>
-          <p className="text-gray-400 text-sm">
-            Drop your exports there (campaigns.csv, ads.csv, breakdowns.csv) and
-            reload. The engine picks up any .csv file in that folder automatically.
+          <p className="text-gray-500 text-sm">
+            {dbClient
+              ? "Upload the five Meta exports (campaigns, ads, breakdown_age_gender, breakdown_placement, breakdowns) on the client's admin page."
+              : `Drop your exports in /public/csvs/${clientSlug}/ or create the client through /admin/clients.`}
           </p>
         </div>
       </div>
@@ -133,11 +172,11 @@ export default async function AuditPage({ params, searchParams }: PageProps) {
   return (
     <AuditDashboard
       audit={audit}
-      clientSlug={client}
-      clientSubtitle={clientConfig.subtitle}
+      clientSlug={clientSlug}
+      clientSubtitle={clientSubtitle}
       agencyLogo={agencyLogo ?? undefined}
       clientLogo={clientLogo ?? undefined}
-      industry={clientConfig.industry ?? industry}
+      industry={industry}
       industryOptions={industryOptions}
       printMode={printMode}
     />
