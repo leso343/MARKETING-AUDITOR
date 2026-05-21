@@ -105,8 +105,23 @@ async function launchBrowser(): Promise<LaunchResult> {
   // executablePath() with undefined throws. Env var wins; fall back to the
   // pinned upstream pack tarball.
   const packUrl = process.env.CHROMIUM_REMOTE_URL || DEFAULT_CHROMIUM_PACK_URL;
+  // Vercel Hobby plan caps function memory at 2048MB, which is tight for
+  // Chromium. The flags below disable subsystems we don't need for PDF
+  // rendering (GPU, /dev/shm tmpfs, background throttling) and force a
+  // single renderer process. `--single-process` is what actually lets the
+  // browser fit inside the 2GB envelope; the others trim allocations
+  // around the edges.
   return await puppeteer.default.launch({
-    args: chromium.default.args,
+    args: [
+      ...chromium.default.args,
+      "--disable-dev-shm-usage",
+      "--disable-gpu",
+      "--single-process", // critical for low-memory environments
+      "--no-zygote",
+      "--disable-background-timer-throttling",
+      "--disable-backgrounding-occluded-windows",
+      "--disable-renderer-backgrounding",
+    ],
     executablePath: await chromium.default.executablePath(packUrl),
     // chromium-min v137+ no longer ships an opinionated `headless` value;
     // it's nullable. Coerce to puppeteer-core's "shell" string default.
@@ -210,10 +225,13 @@ export async function GET(
     const page = await browser.newPage();
 
     // chromium-min v137+ requires the caller to set the viewport explicitly.
+    // Kept small (1280x800 @1x) to fit within the 2048MB Hobby-plan memory
+    // budget — a 2x scale factor on a 1240x1600 viewport allocates ~4x the
+    // raster buffer of a 1x 1280x800 one, and was pushing us over the cap.
     await page.setViewport({
-      width: 1240,
-      height: 1600,
-      deviceScaleFactor: 2,
+      width: 1280,
+      height: 800,
+      deviceScaleFactor: 1,
       hasTouch: false,
       isLandscape: true,
       isMobile: false,
