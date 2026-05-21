@@ -17,6 +17,21 @@
  */
 import { AdRow, StatusLevel } from '../types';
 
+/**
+ * Whether a Meta "Result indicator" string corresponds to a lead-form
+ * submission. Traffic / link-click / video / engagement rows must NOT be
+ * counted as leads, even though they populate the same Results column.
+ *
+ * Returns true for lead-shaped indicators only. Empty / unknown → false
+ * (the safer default: a row whose objective we can't identify cannot fake
+ * a win by inflating leadlike counts).
+ */
+function isLeadIndicator(ri: string | undefined): boolean {
+  if (!ri) return false;
+  if (/link_click|landing_page_view|profile_visit|video_view|post_engagement/i.test(ri)) return false;
+  return /lead|leadgen|fb_pixel_lead|onsite_conversion/i.test(ri);
+}
+
 export interface AdScore {
   adName: string;
   campaignName: string;
@@ -62,6 +77,10 @@ export function analyzeCreatives(ads: AdRow[]): CreativeAnalysisResult {
     conversionRateRanking: string;
     spend: number;
     results: number;
+    /** Subset of `results` from rows whose Result indicator is a lead
+     *  event. Used for the blended-CPL totals so traffic-objective ads
+     *  with 947 link clicks in Results can't fake a \$3.23 blended CPL. */
+    leadResults: number;
     impressions: number;
     clicks: number; // derived from per-row impressions * CTR / 100
     parsedCpcSpend: number; // weighted parser-CPC fallback when CTR missing
@@ -86,6 +105,7 @@ export function analyzeCreatives(ads: AdRow[]): CreativeAnalysisResult {
         conversionRateRanking: a.conversionRateRanking,
         spend: 0,
         results: 0,
+        leadResults: 0,
         impressions: 0,
         clicks: 0,
         parsedCpcSpend: 0,
@@ -97,6 +117,8 @@ export function analyzeCreatives(ads: AdRow[]): CreativeAnalysisResult {
     }
     cur.spend += a.amountSpent ?? 0;
     cur.results += a.results ?? 0;
+    const ri = (a.raw && (a.raw['Result indicator'] || a.raw['Result Indicator'])) || '';
+    if (isLeadIndicator(ri)) cur.leadResults += a.results ?? 0;
     const imps = a.impressions ?? 0;
     cur.impressions += imps;
     if (imps > 0 && a.ctr != null) {
@@ -177,12 +199,13 @@ export function analyzeCreatives(ads: AdRow[]): CreativeAnalysisResult {
     .slice(0, 8);
 
   const totalSpend = scored.reduce((a, s) => a + s.spend, 0);
-  const totalResults = scored.reduce((a, s) => a + s.results, 0);
-  // Per-ad results may be clicks (Traffic) or leads (Leads). Use cpl only when
-  // any converter ad ran — otherwise it would falsely report "CPL" derived
-  // from click counts.
-  const anyConverters = converters.length > 0;
-  const blendedCpl = anyConverters && totalResults > 0 ? round(totalSpend / totalResults, 2) : 0;
+  // Sum only lead-indicator results across the grouped ads. The earlier
+  // version used the full Results sum, which silently mixed link clicks
+  // from traffic-objective ads (947 clicks for take-charge-roofing's
+  // Traffic Ad) with real leadgen submissions and reported a \$3.23
+  // blended CPL across the account.
+  const totalLeadResults = Array.from(aggMap.values()).reduce((a, g) => a + g.leadResults, 0);
+  const blendedCpl = totalLeadResults > 0 ? round(totalSpend / totalLeadResults, 2) : 0;
 
   // Blended CPC: prefer derived clicks (impressions * CTR) so it's defined
   // for every ad regardless of how the Results column was populated. Computed

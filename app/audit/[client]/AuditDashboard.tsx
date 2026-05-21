@@ -199,7 +199,7 @@ export default function AuditDashboard({
 
   return (
     <LangProvider>
-      <ReportProvider>
+      <ReportProvider pdfPath={pdfPath}>
         <div
           className={printMode ? "min-h-screen print-mode" : "flex h-screen overflow-hidden"}
         >

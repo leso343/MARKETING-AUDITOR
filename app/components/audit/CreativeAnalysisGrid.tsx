@@ -30,7 +30,7 @@ export default function CreativeAnalysisGrid({ creative, liveCpl }: Props) {
           "Top quartile by CPL = scale. Dead-weight ($100+ spend, 0 leads) = pause.",
           "Your best-performing ads vs. ones spending money with no results.",
         )}
-        {liveCpl && (
+        {liveCpl != null && liveCpl > 0 && (
           <span className="ml-1 font-mono text-[9px]" style={{ color: "#fbbf24" }}>
             — showing vs. ${liveCpl} CPL target
           </span>
@@ -78,7 +78,7 @@ function AdCard({ ad, tone, liveCpl }: { ad: AdScore; tone: "ok" | "critical"; l
   const border = tone === "ok" ? "#4ade80" : "var(--red)";
 
   // Live target badge — honest comparison vs. slider value
-  const liveTag = liveCpl && ad.cpl > 0
+  const liveTag = liveCpl != null && liveCpl > 0 && ad.cpl > 0
     ? ad.cpl <= liveCpl
       ? { label: `✓ below $${liveCpl} target`, color: "#4ade80" }
       : { label: `✗ ${((ad.cpl / liveCpl - 1) * 100).toFixed(0)}% above $${liveCpl} target`, color: "#ff0000" }
