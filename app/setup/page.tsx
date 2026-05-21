@@ -305,6 +305,40 @@ function NavItem({
 /* ─────────────────────────────────────────────
    Main page
 ───────────────────────────────────────────── */
+function ClientLogoSection() {
+  const [slug, setSlug] = useState<string>("");
+  return (
+    <div className="space-y-3">
+      <div>
+        <label className="block font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)] mb-1">
+          Client Slug
+        </label>
+        <input
+          type="text"
+          value={slug}
+          onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-"))}
+          placeholder="acme-roofing"
+          className="w-full bg-black border border-[var(--border)] px-3 py-2 text-sm font-mono focus:border-[var(--red)] outline-none"
+        />
+      </div>
+      {slug ? (
+        <LogoDropzone
+          label="Client Logo"
+          hint="Per-client logo. Stored under public/csvs/<slug>/ via the existing /api/upload-logo endpoint."
+          target="client"
+          clientSlug={slug}
+          previewHeight="h-32"
+        />
+      ) : (
+        <div className="rounded border border-dashed border-[var(--border)] p-6 text-center text-xs font-mono text-[var(--text-dim)]">
+          Enter a client slug to upload their logo.
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 export default function SetupPage() {
   const [activeSection, setActiveSection] = useState(0);
 
@@ -449,18 +483,12 @@ export default function SetupPage() {
 
               <div className="border-t border-[var(--border)]" />
 
-              <LogoDropzone
-                label="Client Logo"
-                hint="Per-client logo saved alongside their CSV data. Enter the client slug below."
-                target="client"
-                clientSlug="take-charge-roofing"
-                previewHeight="h-32"
-              />
+              <ClientLogoSection />
 
               <div className="border-t border-[var(--border)] pt-4">
                 <p className="font-mono text-[10px] text-[var(--text-dim)]">
-                  Client logos are saved to <code className="text-white">public/csvs/[client]/logo.png</code>.
-                  Edit the client slug in the API call for multi-tenant use.
+                  Client logos are managed per-client via <code className="text-white">/admin/clients/&lt;slug&gt;</code>.
+                  The legacy <code className="text-white">public/csvs/&lt;slug&gt;/logo.png</code> path is still honored as a fallback.
                 </p>
               </div>
             </div>
