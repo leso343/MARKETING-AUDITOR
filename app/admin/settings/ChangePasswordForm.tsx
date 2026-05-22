@@ -1,6 +1,59 @@
 "use client";
 import { useState, useTransition } from "react";
-import { Lock } from "lucide-react";
+import {
+  Lock,
+  Eye,
+  EyeOff,
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
+  ShieldCheck,
+} from "lucide-react";
+
+function PasswordInput({
+  label,
+  value,
+  onChange,
+  placeholder,
+  hint,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  hint?: string;
+}) {
+  const [show, setShow] = useState(false);
+
+  return (
+    <div>
+      <label className="block font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)] mb-1.5">
+        {label}
+      </label>
+      <div className="relative">
+        <input
+          type={show ? "text" : "password"}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          required
+          minLength={label.toLowerCase().includes("current") ? 1 : 8}
+          placeholder={placeholder}
+          className="w-full bg-black border border-[var(--border)] rounded px-3 py-2.5 pr-10 text-sm focus:border-[var(--red)] outline-none transition-colors"
+        />
+        <button
+          type="button"
+          onClick={() => setShow(!show)}
+          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-dim)] hover:text-white transition-colors"
+        >
+          {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+        </button>
+      </div>
+      {hint && (
+        <p className="mt-1 text-[9px] font-mono text-[var(--text-dim)]">{hint}</p>
+      )}
+    </div>
+  );
+}
 
 export default function ChangePasswordForm() {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -10,22 +63,25 @@ export default function ChangePasswordForm() {
   const [success, setSuccess] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
+  // live validation hints
+  const hasLength = newPassword.length >= 8;
+  const hasMatch = newPassword.length > 0 && newPassword === confirmPassword;
+  const isDifferent = newPassword.length > 0 && currentPassword !== newPassword;
+
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSuccess(null);
 
-    if (newPassword.length < 8) {
+    if (!hasLength) {
       setError("New password must be at least 8 characters.");
       return;
     }
-
-    if (newPassword !== confirmPassword) {
+    if (!hasMatch) {
       setError("New passwords don't match.");
       return;
     }
-
-    if (currentPassword === newPassword) {
+    if (!isDifferent) {
       setError("New password must be different from current password.");
       return;
     }
@@ -54,62 +110,81 @@ export default function ChangePasswordForm() {
     <form onSubmit={onSubmit} className="panel space-y-5">
       <div className="flex items-center gap-2">
         <Lock className="h-4 w-4 text-[var(--red)]" />
-        <div className="panel-label">Change password</div>
+        <div className="panel-label mb-0">Change password</div>
       </div>
 
-      <div>
-        <label className="block font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)] mb-1">
-          Current password
-        </label>
-        <input
-          type="password"
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <PasswordInput
+          label="Current password"
           value={currentPassword}
-          onChange={(e) => setCurrentPassword(e.target.value)}
-          required
-          className="w-full bg-black border border-[var(--border)] px-3 py-2 text-sm focus:border-[var(--red)] outline-none"
+          onChange={setCurrentPassword}
+          placeholder="••••••••"
         />
-      </div>
-
-      <div>
-        <label className="block font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)] mb-1">
-          New password
-        </label>
-        <input
-          type="password"
+        <PasswordInput
+          label="New password"
           value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
-          required
-          minLength={8}
-          className="w-full bg-black border border-[var(--border)] px-3 py-2 text-sm focus:border-[var(--red)] outline-none"
+          onChange={setNewPassword}
+          placeholder="••••••••"
+          hint="Minimum 8 characters"
         />
-        <p className="mt-1 text-[10px] font-mono text-[var(--text-dim)]">
-          Minimum 8 characters
-        </p>
-      </div>
-
-      <div>
-        <label className="block font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)] mb-1">
-          Confirm new password
-        </label>
-        <input
-          type="password"
+        <PasswordInput
+          label="Confirm new password"
           value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          required
-          minLength={8}
-          className="w-full bg-black border border-[var(--border)] px-3 py-2 text-sm focus:border-[var(--red)] outline-none"
+          onChange={setConfirmPassword}
+          placeholder="••••••••"
         />
       </div>
 
-      {error && <div className="text-xs font-mono text-[var(--red)]">{error}</div>}
-      {success && <div className="text-xs font-mono text-emerald-400">{success}</div>}
+      {/* live validation checklist */}
+      {(newPassword.length > 0 || confirmPassword.length > 0) && (
+        <div className="flex flex-wrap gap-3">
+          {[
+            { ok: hasLength, label: "8+ characters" },
+            { ok: hasMatch, label: "Passwords match" },
+            { ok: isDifferent, label: "Different from current" },
+          ].map((check) => (
+            <div
+              key={check.label}
+              className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-wider"
+            >
+              {check.ok ? (
+                <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+              ) : (
+                <AlertCircle className="h-3 w-3 text-[var(--text-dim)]" />
+              )}
+              <span className={check.ok ? "text-emerald-400" : "text-[var(--text-dim)]"}>
+                {check.label}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* status messages */}
+      {error && (
+        <div className="flex items-center gap-2 rounded bg-red-500/10 px-3 py-2">
+          <AlertCircle className="h-3.5 w-3.5 shrink-0 text-red-400" />
+          <span className="text-xs font-mono text-red-400">{error}</span>
+        </div>
+      )}
+      {success && (
+        <div className="flex items-center gap-2 rounded bg-emerald-500/10 px-3 py-2">
+          <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-emerald-400" />
+          <span className="text-xs font-mono text-emerald-400">{success}</span>
+        </div>
+      )}
 
       <button
         type="submit"
-        disabled={pending}
-        className="bg-[var(--red)] text-white font-mono text-xs uppercase tracking-widest px-4 py-2 hover:opacity-90 disabled:opacity-50"
+        disabled={pending || !hasLength || !hasMatch || !isDifferent}
+        className="flex items-center gap-2 rounded bg-[var(--red)] px-4 py-2.5 text-white font-mono text-xs uppercase tracking-widest hover:opacity-90 disabled:opacity-30 transition-all"
       >
-        {pending ? "Updating..." : "Update password"}
+        {pending ? (
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        ) : (
+          <ShieldCheck className="h-3.5 w-3.5" />
+        )}
+        {pending ? "Updating…" : "Update password"}
       </button>
     </form>
   );

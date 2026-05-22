@@ -1,32 +1,36 @@
 /**
- * /admin/billing — current agency's subscription overview.
- *
- * Shows: tier, status, next billing date, "Manage subscription" button that
- * POSTs to /api/billing/portal and redirects to the Stripe Customer Portal.
- *
- * Access:
- *   - Wrapped in the existing /admin layout, which already requires auth+DB.
- *   - Resolves agency via the session user's agencyId.
+ * /admin/billing — subscription overview + management.
  */
 import Link from "next/link";
 import { requireUser, getCurrentAgency } from "@/lib/access";
 import { db, schema } from "@/lib/db";
 import { eq } from "drizzle-orm";
+import {
+  CreditCard,
+  Zap,
+  Calendar,
+  ArrowUpRight,
+  Sparkles,
+  ShieldCheck,
+  AlertTriangle,
+  XCircle,
+} from "lucide-react";
 import ManageSubscriptionButton from "./ManageSubscriptionButton";
 
 export const dynamic = "force-dynamic";
 
-const PLAN_LABELS: Record<string, string> = {
-  free: "Free trial",
-  pro: "Pro — $99/mo",
-  agency: "Agency — $299/mo",
+const PLAN_CONFIG: Record<string, { label: string; price: string; color: string; icon: typeof Zap }> = {
+  free: { label: "Free", price: "$0/mo", color: "#64748b", icon: Zap },
+  pro: { label: "Pro", price: "$99/mo", color: "#f59e0b", icon: Sparkles },
+  agency: { label: "Agency", price: "$299/mo", color: "#8b5cf6", icon: ShieldCheck },
 };
-const STATUS_LABELS: Record<string, string> = {
-  trialing: "Trialing",
-  active: "Active",
-  past_due: "Past due",
-  canceled: "Canceled",
-  incomplete: "Incomplete",
+
+const STATUS_CONFIG: Record<string, { label: string; color: string; icon: typeof ShieldCheck }> = {
+  trialing: { label: "Trialing", color: "#38bdf8", icon: Zap },
+  active: { label: "Active", color: "#10b981", icon: ShieldCheck },
+  past_due: { label: "Past due", color: "#f59e0b", icon: AlertTriangle },
+  canceled: { label: "Canceled", color: "#64748b", icon: XCircle },
+  incomplete: { label: "Incomplete", color: "#ef4444", icon: AlertTriangle },
 };
 
 export default async function AdminBillingPage() {
@@ -35,17 +39,19 @@ export default async function AdminBillingPage() {
 
   if (!agency) {
     return (
-      <div className="max-w-3xl mx-auto space-y-6">
+      <div className="space-y-6">
         <div>
           <div className="font-mono text-[10px] uppercase tracking-[3px] text-[var(--text-dim)] mb-2">
             &gt; Admin / Billing
           </div>
-          <h1 className="text-2xl font-bold" style={{ fontFamily: "var(--font-head)" }}>
-            Billing
-          </h1>
+          <h1 className="text-2xl font-bold" style={{ fontFamily: "var(--font-head)" }}>Billing</h1>
         </div>
-        <div className="panel text-sm text-[var(--text-dim)]">
-          Your user isn&apos;t attached to an agency. Billing is per-agency.
+        <div className="panel flex flex-col items-center justify-center py-12 text-center">
+          <CreditCard className="h-10 w-10 text-[var(--text-dim)] mb-3" />
+          <div className="text-sm font-semibold">No agency attached</div>
+          <div className="text-xs text-[var(--text-dim)] mt-1">
+            Your user isn&apos;t assigned to an agency. Billing is per-agency.
+          </div>
         </div>
       </div>
     );
@@ -58,103 +64,170 @@ export default async function AdminBillingPage() {
     .limit(1);
   const sub = subs[0] ?? null;
 
+  const plan = PLAN_CONFIG[sub?.plan ?? "free"] ?? PLAN_CONFIG.free;
+  const status = STATUS_CONFIG[sub?.status ?? "trialing"] ?? STATUS_CONFIG.trialing;
+
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="space-y-6">
       <div>
         <div className="font-mono text-[10px] uppercase tracking-[3px] text-[var(--text-dim)] mb-2">
           &gt; Admin / Billing
         </div>
-        <h1 className="text-2xl font-bold" style={{ fontFamily: "var(--font-head)" }}>
-          Billing
-        </h1>
+        <h1 className="text-2xl font-bold" style={{ fontFamily: "var(--font-head)" }}>Billing</h1>
         <p className="text-sm text-[var(--text-dim)] mt-1">
-          Subscription state for <span className="font-mono">{agency.name}</span>.
+          Subscription for <span className="text-white font-medium">{agency.name}</span>
         </p>
       </div>
 
-      <div className="panel space-y-4">
-        <div className="panel-label">Current plan</div>
-
-        {!sub ? (
-          <div className="space-y-3">
-            <p className="text-sm text-[var(--text-dim)]">
-              No subscription on file. Pick a plan to get started.
+      {!sub ? (
+        /* ── no subscription yet ─────────────────────────────────── */
+        <div className="panel">
+          <div className="flex flex-col items-center justify-center py-10 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-dashed border-[var(--border)] mb-4">
+              <CreditCard className="h-7 w-7 text-[var(--text-dim)]" />
+            </div>
+            <h2 className="text-lg font-bold" style={{ fontFamily: "var(--font-head)" }}>
+              No active subscription
+            </h2>
+            <p className="text-sm text-[var(--text-dim)] mt-1 max-w-md">
+              Pick a plan to unlock advanced features like white-label branding,
+              unlimited clients, and priority support.
             </p>
             <Link
               href="/pricing"
-              className="inline-block bg-[var(--red)] text-white font-mono text-xs uppercase tracking-widest px-4 py-2 hover:opacity-90"
+              className="mt-5 flex items-center gap-2 rounded bg-[var(--red)] px-5 py-2.5 text-white font-mono text-xs uppercase tracking-widest hover:opacity-90 transition-all"
             >
-              View pricing →
+              <Sparkles className="h-3.5 w-3.5" />
+              View plans
+              <ArrowUpRight className="h-3 w-3" />
             </Link>
           </div>
-        ) : (
-          <>
-            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-              <div>
-                <dt className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)]">
-                  Plan
-                </dt>
-                <dd className="mt-1">{PLAN_LABELS[sub.plan] ?? sub.plan}</dd>
+        </div>
+      ) : (
+        /* ── active subscription ─────────────────────────────────── */
+        <>
+          {/* plan card */}
+          <div className="panel overflow-hidden">
+            <div
+              className="absolute inset-x-0 top-0 h-1"
+              style={{ background: `linear-gradient(90deg, ${plan.color}, ${status.color})` }}
+            />
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-2">
+              <div className="flex items-center gap-4">
+                <div
+                  className="flex h-14 w-14 items-center justify-center rounded-xl border"
+                  style={{
+                    borderColor: `${plan.color}33`,
+                    background: `${plan.color}0a`,
+                  }}
+                >
+                  <plan.icon className="h-6 w-6" style={{ color: plan.color }} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="text-xl font-bold"
+                      style={{ fontFamily: "var(--font-head)", color: plan.color }}
+                    >
+                      {plan.label}
+                    </span>
+                    <span
+                      className="rounded-full border px-2 py-0.5 font-mono text-[8px] uppercase tracking-widest"
+                      style={{ borderColor: `${status.color}55`, color: status.color }}
+                    >
+                      {status.label}
+                    </span>
+                  </div>
+                  <div className="font-mono text-sm text-[var(--text-dim)] mt-0.5">
+                    {plan.price}
+                  </div>
+                </div>
               </div>
-              <div>
-                <dt className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)]">
-                  Status
-                </dt>
-                <dd className="mt-1">
-                  <span
-                    className={
-                      sub.status === "active" || sub.status === "trialing"
-                        ? "text-emerald-400"
-                        : sub.status === "past_due"
-                        ? "text-amber-400"
-                        : "text-[var(--text-dim)]"
-                    }
-                  >
-                    {STATUS_LABELS[sub.status] ?? sub.status}
-                  </span>
-                </dd>
-              </div>
-              <div>
-                <dt className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)]">
-                  Next billing
-                </dt>
-                <dd className="mt-1 font-mono">
-                  {sub.currentPeriodEnd
-                    ? new Date(sub.currentPeriodEnd).toLocaleDateString()
-                    : "—"}
-                </dd>
-              </div>
-              <div>
-                <dt className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)]">
-                  Stripe customer
-                </dt>
-                <dd className="mt-1 font-mono text-[var(--text-dim)]">
-                  {sub.stripeCustomerId ?? "—"}
-                </dd>
-              </div>
-            </dl>
 
-            <div className="flex flex-wrap gap-3 pt-2">
-              {sub.stripeCustomerId ? (
-                <ManageSubscriptionButton />
-              ) : (
+              <div className="flex items-center gap-3">
+                {sub.stripeCustomerId ? (
+                  <ManageSubscriptionButton />
+                ) : (
+                  <Link
+                    href="/pricing"
+                    className="flex items-center gap-2 rounded bg-[var(--red)] px-4 py-2 text-white font-mono text-xs uppercase tracking-widest hover:opacity-90 transition-all"
+                  >
+                    Complete setup
+                  </Link>
+                )}
                 <Link
                   href="/pricing"
-                  className="inline-block bg-[var(--red)] text-white font-mono text-xs uppercase tracking-widest px-4 py-2 hover:opacity-90"
+                  className="flex items-center gap-1.5 rounded border border-[var(--border)] px-4 py-2 font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)] hover:border-[var(--red)] hover:text-white transition-all"
                 >
-                  Complete subscription
+                  Change plan
                 </Link>
-              )}
-              <Link
-                href="/pricing"
-                className="inline-block border border-[var(--border)] hover:border-[var(--red)] font-mono text-xs uppercase tracking-widest px-4 py-2"
-              >
-                Change plan
-              </Link>
+              </div>
             </div>
-          </>
-        )}
-      </div>
+          </div>
+
+          {/* detail grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              {
+                label: "Plan",
+                value: plan.label,
+                sub: plan.price,
+                icon: plan.icon,
+                color: plan.color,
+              },
+              {
+                label: "Status",
+                value: status.label,
+                sub:
+                  sub.status === "active"
+                    ? "Everything is good"
+                    : sub.status === "past_due"
+                    ? "Please update payment"
+                    : "",
+                icon: status.icon,
+                color: status.color,
+              },
+              {
+                label: "Next billing",
+                value: sub.currentPeriodEnd
+                  ? new Date(sub.currentPeriodEnd).toLocaleDateString()
+                  : "—",
+                sub: sub.currentPeriodEnd
+                  ? `${Math.max(0, Math.ceil((new Date(sub.currentPeriodEnd).getTime() - Date.now()) / 86400000))} days away`
+                  : "",
+                icon: Calendar,
+                color: "#64748b",
+              },
+              {
+                label: "Customer ID",
+                value: sub.stripeCustomerId
+                  ? `${sub.stripeCustomerId.slice(0, 12)}…`
+                  : "—",
+                sub: "Stripe reference",
+                icon: CreditCard,
+                color: "#64748b",
+              },
+            ].map((card, i) => (
+              <div key={i} className="panel">
+                <div className="flex items-center gap-2 mb-3">
+                  <card.icon className="h-3.5 w-3.5" style={{ color: card.color }} />
+                  <span className="font-mono text-[9px] uppercase tracking-widest text-[var(--text-dim)]">
+                    {card.label}
+                  </span>
+                </div>
+                <div className="text-lg font-bold" style={{ color: card.color }}>
+                  {card.value}
+                </div>
+                {card.sub && (
+                  <div className="font-mono text-[9px] text-[var(--text-dim)] mt-0.5">
+                    {card.sub}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
