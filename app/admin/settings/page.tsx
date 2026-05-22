@@ -1,6 +1,7 @@
 import { requireUser, getCurrentAgency } from "@/lib/access";
 import { redirect } from "next/navigation";
 import AgencyBrandingForm from "./AgencyBrandingForm";
+import ChangePasswordForm from "./ChangePasswordForm";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +38,8 @@ export default async function AdminSettingsPage() {
           You&apos;re an admin without an agency assignment. Create an agency to manage branding.
         </div>
       )}
+
+      <ChangePasswordForm />
     </div>
   );
 }
