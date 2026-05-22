@@ -219,12 +219,23 @@ export async function GET(
   }
   target.searchParams.set("print", "true");
 
+  // Vercel Deployment Protection intercepts unauthenticated requests with a
+  // "Log in to Vercel" gate — Puppeteer has no session, so the PDF captures
+  // that login page instead of the dashboard. The bypass secret lets
+  // automated tooling (like this PDF route) through the gate.
+  // Set VERCEL_AUTOMATION_BYPASS_SECRET in your Vercel project settings →
+  // Deployment Protection → Protection Bypass for Automation.
+  const bypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+  if (bypassSecret) {
+    target.searchParams.set("x-vercel-protection-bypass", bypassSecret);
+    target.searchParams.set("x-vercel-set-bypass-cookie", "samesitenone");
+  }
+
   let browser: LaunchResult | null = null;
   try {
     browser = await launchBrowser();
     const page = await browser.newPage();
 
-    // chromium-min v137+ requires the caller to set the viewport explicitly.
     // Kept small (1280x800 @1x) to fit within the 2048MB Hobby-plan memory
     // budget — a 2x scale factor on a 1240x1600 viewport allocates ~4x the
     // raster buffer of a 1x 1280x800 one, and was pushing us over the cap.
