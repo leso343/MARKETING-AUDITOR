@@ -31,6 +31,8 @@ export default async function AdminSettingsPage() {
             primaryColor: agency.primaryColor ?? "#ff0000",
             secondaryColor: agency.secondaryColor ?? "",
             accentColor: agency.accentColor ?? "",
+            highlightColor: agency.highlightColor ?? "",
+            popColor: agency.popColor ?? "",
           }}
         />
       ) : (

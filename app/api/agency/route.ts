@@ -1,5 +1,5 @@
 /**
- * PATCH /api/agency — update agency branding (name / logoUrl / primaryColor).
+ * PATCH /api/agency — update agency branding (name / logoUrl / colors).
  *
  * Agency users can only update their own agency. Admins can target any agency
  * via { agencyId } in the body.
@@ -33,6 +33,8 @@ export async function PATCH(req: Request) {
     primaryColor?: string;
     secondaryColor?: string | null;
     accentColor?: string | null;
+    highlightColor?: string | null;
+    popColor?: string | null;
   };
 
   // Resolve target agency
@@ -46,20 +48,23 @@ export async function PATCH(req: Request) {
   const updates: Record<string, unknown> = {};
   if (typeof body.name === "string" && body.name.trim().length >= 2) updates.name = body.name.trim();
   if (body.logoUrl === null || typeof body.logoUrl === "string") updates.logoUrl = body.logoUrl || null;
+
   const hexRe = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
-  if (typeof body.primaryColor === "string" && hexRe.test(body.primaryColor)) {
-    updates.primaryColor = body.primaryColor;
+
+  // Helper: validate a nullable hex color field
+  function setColorField(key: string, value: string | null | undefined) {
+    if (value === null) {
+      updates[key] = null;
+    } else if (typeof value === "string" && hexRe.test(value)) {
+      updates[key] = value;
+    }
   }
-  if (body.secondaryColor === null) {
-    updates.secondaryColor = null;
-  } else if (typeof body.secondaryColor === "string" && hexRe.test(body.secondaryColor)) {
-    updates.secondaryColor = body.secondaryColor;
-  }
-  if (body.accentColor === null) {
-    updates.accentColor = null;
-  } else if (typeof body.accentColor === "string" && hexRe.test(body.accentColor)) {
-    updates.accentColor = body.accentColor;
-  }
+
+  setColorField("primaryColor", body.primaryColor);
+  setColorField("secondaryColor", body.secondaryColor);
+  setColorField("accentColor", body.accentColor);
+  setColorField("highlightColor", body.highlightColor);
+  setColorField("popColor", body.popColor);
 
   if (Object.keys(updates).length === 0) {
     return NextResponse.json({ error: "Nothing to update" }, { status: 400 });

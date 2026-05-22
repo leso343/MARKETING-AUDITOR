@@ -1,14 +1,14 @@
 /**
  * Injects agency brand colors as CSS custom property overrides.
  *
- * Drop this inside any layout or page and the entire subtree automatically
- * picks up the agency palette through the existing `var(--red)` / `var(--red-dim)`
- * references in all dashboard components, plus `var(--brand-secondary)` and
- * `var(--brand-accent)` for charts, status indicators, and decorative elements.
+ * Five brand slots:
+ *   --red / --red-dim          ← Primary (buttons, headlines, main brand)
+ *   --brand-secondary(-dim)    ← Secondary (charts, links)
+ *   --brand-accent(-dim)       ← Accent (borders, cards, hover)
+ *   --brand-highlight(-dim)    ← Highlight (alerts, rank badges, callouts)
+ *   --brand-pop(-dim)          ← Pop (sparklines, decorations, chart accents)
  *
- * Also overrides the scrollbar gradient to match the brand palette — the
- * scrollbar is one of the first things a client sees and leaving it stock red
- * while everything else is rebranded looks jarring.
+ * Also overrides scrollbar gradient + slider thumbs to match.
  *
  * When no colors are provided (legacy / filesystem mode), nothing is injected
  * and the default globals.css values remain in effect.
@@ -18,6 +18,8 @@ interface BrandThemeProps {
   primaryColor?: string | null;
   secondaryColor?: string | null;
   accentColor?: string | null;
+  highlightColor?: string | null;
+  popColor?: string | null;
 }
 
 function hexToRgba(hex: string, alpha: number): string {
@@ -27,7 +29,6 @@ function hexToRgba(hex: string, alpha: number): string {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-/** Darken a hex color by a fraction (0–1). */
 function darken(hex: string, amount: number): string {
   const r = Math.round(parseInt(hex.slice(1, 3), 16) * (1 - amount));
   const g = Math.round(parseInt(hex.slice(3, 5), 16) * (1 - amount));
@@ -35,7 +36,6 @@ function darken(hex: string, amount: number): string {
   return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
 }
 
-/** Lighten a hex color by a fraction (0–1). */
 function lighten(hex: string, amount: number): string {
   const r = Math.min(255, Math.round(parseInt(hex.slice(1, 3), 16) + (255 - parseInt(hex.slice(1, 3), 16)) * amount));
   const g = Math.min(255, Math.round(parseInt(hex.slice(3, 5), 16) + (255 - parseInt(hex.slice(3, 5), 16)) * amount));
@@ -43,12 +43,20 @@ function lighten(hex: string, amount: number): string {
   return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
 }
 
-export default function BrandTheme({ primaryColor, secondaryColor, accentColor }: BrandThemeProps) {
+export default function BrandTheme({
+  primaryColor,
+  secondaryColor,
+  accentColor,
+  highlightColor,
+  popColor,
+}: BrandThemeProps) {
   if (!primaryColor) return null;
 
   const primary = primaryColor;
   const secondary = secondaryColor || primary;
   const accent = accentColor || primary;
+  const highlight = highlightColor || "#ff6b35";
+  const pop = popColor || "#ffd700";
 
   const primaryDark = darken(primary, 0.5);
   const primaryLight = lighten(primary, 0.2);
@@ -61,6 +69,10 @@ export default function BrandTheme({ primaryColor, secondaryColor, accentColor }
       --brand-secondary-dim: ${hexToRgba(secondary, 0.1)};
       --brand-accent: ${accent};
       --brand-accent-dim: ${hexToRgba(accent, 0.1)};
+      --brand-highlight: ${highlight};
+      --brand-highlight-dim: ${hexToRgba(highlight, 0.1)};
+      --brand-pop: ${pop};
+      --brand-pop-dim: ${hexToRgba(pop, 0.1)};
     }
     html.light {
       --red: ${primary};
@@ -69,6 +81,10 @@ export default function BrandTheme({ primaryColor, secondaryColor, accentColor }
       --brand-secondary-dim: ${hexToRgba(secondary, 0.08)};
       --brand-accent: ${accent};
       --brand-accent-dim: ${hexToRgba(accent, 0.08)};
+      --brand-highlight: ${highlight};
+      --brand-highlight-dim: ${hexToRgba(highlight, 0.08)};
+      --brand-pop: ${pop};
+      --brand-pop-dim: ${hexToRgba(pop, 0.08)};
     }
 
     /* ── scrollbar branding ── */
