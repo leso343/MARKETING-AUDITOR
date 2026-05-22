@@ -14,24 +14,24 @@ export default async function AgenciesPage() {
         </div>
         <h1 className="text-2xl font-bold" style={{ fontFamily: "var(--font-head)" }}>Agencies</h1>
         <p className="text-sm text-[var(--text-dim)] mt-1">
-          Admins see all agencies. New agencies are seeded via <code>npm run db:seed</code> for now.
+          All registered agencies.
         </p>
       </div>
       <div className="panel">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[var(--border)] text-left font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)]">
-              <th className="py-2">Slug</th>
               <th className="py-2">Name</th>
-              <th className="py-2">Primary color</th>
+              <th className="py-2">URL name</th>
+              <th className="py-2">Brand color</th>
               <th className="py-2">Created</th>
             </tr>
           </thead>
           <tbody>
             {agencies.map((a) => (
               <tr key={a.id} className="border-b border-[var(--border)]/60">
-                <td className="py-2 font-mono">{a.slug}</td>
                 <td className="py-2">{a.name}</td>
+                <td className="py-2 font-mono">{a.slug}</td>
                 <td className="py-2 font-mono">
                   <span className="inline-block h-3 w-3 align-middle mr-2 border border-[var(--border)]"
                     style={{ background: a.primaryColor ?? "#ff0000" }} />

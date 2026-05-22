@@ -42,9 +42,9 @@ export default function NewClientForm() {
             className="w-full bg-black border border-[var(--border)] px-3 py-2 text-sm focus:border-[var(--red)] outline-none" />
         </div>
         <div>
-          <label className="block font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)] mb-1">Slug (optional)</label>
+          <label className="block font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)] mb-1">URL name (optional)</label>
           <input value={slug} onChange={(e) => setSlug(e.target.value)}
-            placeholder="acme-roofing"
+            placeholder="acme-roofing — auto-generated from name if left blank"
             className="w-full bg-black border border-[var(--border)] px-3 py-2 text-sm font-mono focus:border-[var(--red)] outline-none" />
         </div>
         <div>

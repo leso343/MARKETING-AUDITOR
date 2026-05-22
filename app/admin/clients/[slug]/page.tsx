@@ -30,7 +30,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ s
         </Link>
         <h1 className="text-2xl font-bold mt-2" style={{ fontFamily: "var(--font-head)" }}>{client.name}</h1>
         <p className="text-sm text-[var(--text-dim)]">
-          <code className="font-mono">{client.slug}</code> · {client.subtitle ?? client.industry ?? "—"}
+          {client.subtitle ?? client.industry ?? "—"}
         </p>
         <div className="mt-3">
           <Link href={`/audit/${client.slug}`} className="inline-block bg-[var(--red)] text-white font-mono text-xs uppercase tracking-widest px-3 py-2 hover:opacity-90">
