@@ -28,6 +28,8 @@ export default async function AdminSettingsPage() {
             name: agency.name,
             logoUrl: agency.logoUrl ?? "",
             primaryColor: agency.primaryColor ?? "#ff0000",
+            secondaryColor: agency.secondaryColor ?? "",
+            accentColor: agency.accentColor ?? "",
           }}
         />
       ) : (

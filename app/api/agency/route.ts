@@ -31,6 +31,8 @@ export async function PATCH(req: Request) {
     name?: string;
     logoUrl?: string | null;
     primaryColor?: string;
+    secondaryColor?: string | null;
+    accentColor?: string | null;
   };
 
   // Resolve target agency
@@ -44,8 +46,19 @@ export async function PATCH(req: Request) {
   const updates: Record<string, unknown> = {};
   if (typeof body.name === "string" && body.name.trim().length >= 2) updates.name = body.name.trim();
   if (body.logoUrl === null || typeof body.logoUrl === "string") updates.logoUrl = body.logoUrl || null;
-  if (typeof body.primaryColor === "string" && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(body.primaryColor)) {
+  const hexRe = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
+  if (typeof body.primaryColor === "string" && hexRe.test(body.primaryColor)) {
     updates.primaryColor = body.primaryColor;
+  }
+  if (body.secondaryColor === null) {
+    updates.secondaryColor = null;
+  } else if (typeof body.secondaryColor === "string" && hexRe.test(body.secondaryColor)) {
+    updates.secondaryColor = body.secondaryColor;
+  }
+  if (body.accentColor === null) {
+    updates.accentColor = null;
+  } else if (typeof body.accentColor === "string" && hexRe.test(body.accentColor)) {
+    updates.accentColor = body.accentColor;
   }
 
   if (Object.keys(updates).length === 0) {

@@ -18,6 +18,8 @@ export const agencies = sqliteTable("agencies", {
   name: text("name").notNull(),
   logoUrl: text("logo_url"),
   primaryColor: text("primary_color").default("#ff0000"),
+  secondaryColor: text("secondary_color"),
+  accentColor: text("accent_color"),
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().default(sql`(unixepoch() * 1000)`),
 });
 

@@ -168,8 +168,16 @@ export default async function Home() {
   const headerLabel = agency?.name ?? "Forensic Marketing Auditor";
   const headerAccent = agency?.primaryColor ?? "var(--red)";
 
+  // Dynamic import to avoid pulling BrandTheme into the legacy FS path
+  const BrandTheme = (await import("@/components/BrandTheme")).default;
+
   return (
     <main className="min-h-screen p-5 sm:p-8 lg:p-16">
+      <BrandTheme
+        primaryColor={agency?.primaryColor}
+        secondaryColor={agency?.secondaryColor}
+        accentColor={agency?.accentColor}
+      />
       {/* header */}
       <div className="mb-10 flex flex-col gap-4 sm:mb-14 sm:flex-row sm:items-end sm:justify-between">
         <div>

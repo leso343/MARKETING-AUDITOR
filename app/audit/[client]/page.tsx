@@ -29,6 +29,7 @@ import fs from "node:fs";
 import { runAudit } from "@/engine/runAudit";
 import { runAuditFromFiles } from "@/engine/runAuditFromFiles";
 import AuditDashboard from "./AuditDashboard";
+import BrandTheme from "@/components/BrandTheme";
 import benchmarksData from "@/data/benchmarks.json";
 import { getVisibleClientBySlug, listClientCsvs, getAgencyById } from "@/lib/access";
 
@@ -105,9 +106,15 @@ export default async function AuditPage({ params, searchParams }: PageProps) {
   // Resolve logos. Agency logo: DB-driven if dbClient exists, else /public/logos/agency.*.
   // Client logo: DB logoUrl wins; else on-disk public/csvs/<slug>/logo.*.
   let agencyLogo: string | null = null;
+  let agencyPrimaryColor: string | null = null;
+  let agencySecondaryColor: string | null = null;
+  let agencyAccentColor: string | null = null;
   if (dbClient) {
     const agency = await safe(() => getAgencyById(dbClient.agencyId));
     agencyLogo = agency?.logoUrl ?? findAsset(path.join(process.cwd(), "public", "logos"), "agency");
+    agencyPrimaryColor = agency?.primaryColor ?? null;
+    agencySecondaryColor = agency?.secondaryColor ?? null;
+    agencyAccentColor = agency?.accentColor ?? null;
   } else {
     agencyLogo = findAsset(path.join(process.cwd(), "public", "logos"), "agency");
   }
@@ -190,6 +197,12 @@ export default async function AuditPage({ params, searchParams }: PageProps) {
   const printMode = search.print === "true" || search.print === "1";
 
   return (
+    <>
+    <BrandTheme
+      primaryColor={agencyPrimaryColor}
+      secondaryColor={agencySecondaryColor}
+      accentColor={agencyAccentColor}
+    />
     <AuditDashboard
       audit={audit}
       clientSlug={clientSlug}
@@ -200,5 +213,6 @@ export default async function AuditPage({ params, searchParams }: PageProps) {
       industryOptions={industryOptions}
       printMode={printMode}
     />
+    </>
   );
 }
