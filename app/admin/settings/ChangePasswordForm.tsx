@@ -38,7 +38,7 @@ function PasswordInput({
           required
           minLength={label.toLowerCase().includes("current") ? 1 : 8}
           placeholder={placeholder}
-          className="w-full bg-black border border-[var(--border)] rounded px-3 py-2.5 pr-10 text-sm focus:border-[var(--red)] outline-none transition-colors"
+          className="w-full bg-[var(--bg)] border border-[var(--border)] rounded px-3 py-2.5 pr-10 text-sm focus:border-[var(--red)] outline-none transition-colors"
         />
         <button
           type="button"

@@ -44,7 +44,7 @@ export default async function AdminClientsPage() {
               className="group panel transition-all hover:border-[var(--red)]"
             >
               <div className="flex items-start justify-between mb-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded border border-[var(--border)] bg-black">
+                <div className="flex h-10 w-10 items-center justify-center rounded border border-[var(--border)] bg-[var(--bg)]">
                   <Building2 className="h-4 w-4 text-[var(--red)]" />
                 </div>
                 <ArrowUpRight className="h-4 w-4 text-[var(--text-dim)] transition-colors group-hover:text-[var(--red)]" />

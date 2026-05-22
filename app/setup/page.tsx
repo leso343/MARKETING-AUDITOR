@@ -206,7 +206,7 @@ function SecretInput({
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder ?? ""}
           autoComplete="off"
-          className="w-full rounded border border-[var(--border)] bg-black px-3 py-2.5 pr-9 font-mono text-[12px] text-white placeholder-[#333] outline-none transition-colors focus:border-[var(--red)]"
+          className="w-full rounded border border-[var(--border)] bg-[var(--bg)] px-3 py-2.5 pr-9 font-mono text-[12px] text-white placeholder-[#333] outline-none transition-colors focus:border-[var(--red)]"
         />
         <button
           type="button"
@@ -246,7 +246,7 @@ function PlainInput({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder ?? ""}
         autoComplete="off"
-        className="w-full rounded border border-[var(--border)] bg-black px-3 py-2.5 font-mono text-[12px] text-white placeholder-[#333] outline-none transition-colors focus:border-[var(--red)]"
+        className="w-full rounded border border-[var(--border)] bg-[var(--bg)] px-3 py-2.5 font-mono text-[12px] text-white placeholder-[#333] outline-none transition-colors focus:border-[var(--red)]"
       />
       <p className="font-mono text-[10px] text-[var(--text-dim)] opacity-70">{helper}</p>
     </div>
@@ -318,7 +318,7 @@ function ClientLogoSection() {
           value={slug}
           onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-"))}
           placeholder="acme-roofing"
-          className="w-full bg-black border border-[var(--border)] px-3 py-2 text-sm font-mono focus:border-[var(--red)] outline-none"
+          className="w-full bg-[var(--bg)] border border-[var(--border)] px-3 py-2 text-sm font-mono focus:border-[var(--red)] outline-none"
         />
       </div>
       {slug ? (

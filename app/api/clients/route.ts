@@ -1,16 +1,15 @@
 /**
- * POST /api/clients — create a new client under the session user's agency.
- *
- * Admins can specify agencyId in the body; agency users always create under
- * their own agency.
+ * /api/clients
+ *   POST  — create a new client under the session user's agency.
+ *   PATCH — update a client's name / subtitle / industry.
+ *   DELETE — delete a client and all its CSV files.
  *
  * ─── Deploy-safe guard (Tier 3-deploy-safe) ────────────────────────────────
- * Returns 503 when AUTH_SECRET / DATABASE_URL are unset (multi-tenant
- * features require both).
+ * Returns 503 when AUTH_SECRET / DATABASE_URL are unset.
  */
 import { NextResponse } from "next/server";
 import { db, schema, dbAvailable } from "@/lib/db";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { auth, authEnabled } from "@/auth";
 import { randomUUID } from "node:crypto";
 
@@ -23,16 +22,21 @@ function slugify(name: string): string {
     .slice(0, 64);
 }
 
-export async function POST(req: Request) {
+function guard() {
   if (!authEnabled || !dbAvailable) {
     return NextResponse.json(
-      {
-        error:
-          "Client management is disabled — multi-tenant features require AUTH_SECRET and DATABASE_URL.",
-      },
+      { error: "Client management requires AUTH_SECRET and DATABASE_URL." },
       { status: 503 },
     );
   }
+  return null;
+}
+
+/* ── POST — create client ─────────────────────────────────────────────── */
+
+export async function POST(req: Request) {
+  const g = guard();
+  if (g) return g;
 
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -52,9 +56,6 @@ export async function POST(req: Request) {
   const slug = (body.slug && slugify(body.slug)) || slugify(body.name);
   if (!slug) return NextResponse.json({ error: "could not derive slug" }, { status: 400 });
 
-  // Choose target agency:
-  //   - admin: explicit agencyId required (or fall back to their own)
-  //   - agency: always their own agency
   let agencyId: string | null = null;
   if (session.user.role === "admin") {
     agencyId = body.agencyId ?? session.user.agencyId ?? null;
@@ -81,4 +82,78 @@ export async function POST(req: Request) {
   });
 
   return NextResponse.json({ id, slug, name: body.name, agencyId }, { status: 201 });
+}
+
+/* ── PATCH — update client ────────────────────────────────────────────── */
+
+export async function PATCH(req: Request) {
+  const g = guard();
+  if (g) return g;
+
+  const session = await auth();
+  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const body = (await req.json().catch(() => ({}))) as {
+    clientId?: string;
+    name?: string;
+    subtitle?: string | null;
+    industry?: string;
+  };
+
+  if (!body.clientId) {
+    return NextResponse.json({ error: "clientId is required" }, { status: 400 });
+  }
+
+  // Verify access
+  const rows = await db.select().from(schema.clients).where(eq(schema.clients.id, body.clientId)).limit(1);
+  const client = rows[0];
+  if (!client) return NextResponse.json({ error: "Client not found" }, { status: 404 });
+
+  if (session.user.role !== "admin" && client.agencyId !== session.user.agencyId) {
+    return NextResponse.json({ error: "Access denied" }, { status: 403 });
+  }
+
+  const updates: Record<string, unknown> = {};
+  if (typeof body.name === "string" && body.name.trim().length >= 2) updates.name = body.name.trim();
+  if (body.subtitle === null) updates.subtitle = null;
+  else if (typeof body.subtitle === "string") updates.subtitle = body.subtitle.trim() || null;
+  if (typeof body.industry === "string" && body.industry.trim()) updates.industry = body.industry.trim();
+  updates.updatedAt = new Date();
+
+  if (Object.keys(updates).length <= 1) {
+    return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
+  }
+
+  await db.update(schema.clients).set(updates).where(eq(schema.clients.id, body.clientId));
+  const fresh = await db.select().from(schema.clients).where(eq(schema.clients.id, body.clientId)).limit(1);
+  return NextResponse.json(fresh[0] ?? { ok: true });
+}
+
+/* ── DELETE — delete client ───────────────────────────────────────────── */
+
+export async function DELETE(req: Request) {
+  const g = guard();
+  if (g) return g;
+
+  const session = await auth();
+  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { searchParams } = new URL(req.url);
+  const clientId = searchParams.get("clientId");
+  if (!clientId) {
+    return NextResponse.json({ error: "clientId query param required" }, { status: 400 });
+  }
+
+  const rows = await db.select().from(schema.clients).where(eq(schema.clients.id, clientId)).limit(1);
+  const client = rows[0];
+  if (!client) return NextResponse.json({ error: "Client not found" }, { status: 404 });
+
+  if (session.user.role !== "admin" && client.agencyId !== session.user.agencyId) {
+    return NextResponse.json({ error: "Access denied" }, { status: 403 });
+  }
+
+  // Cascade: csv_files have ON DELETE CASCADE, so just deleting the client works
+  await db.delete(schema.clients).where(eq(schema.clients.id, clientId));
+
+  return NextResponse.json({ ok: true, deleted: client.slug });
 }

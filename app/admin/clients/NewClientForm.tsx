@@ -76,7 +76,7 @@ export default function NewClientForm() {
             required
             minLength={2}
             placeholder="Acme Roofing"
-            className="w-full bg-black border border-[var(--border)] rounded px-3 py-2 text-sm focus:border-[var(--red)] outline-none"
+            className="w-full bg-[var(--bg)] border border-[var(--border)] rounded px-3 py-2 text-sm focus:border-[var(--red)] outline-none"
           />
         </div>
         <div>
@@ -99,7 +99,7 @@ export default function NewClientForm() {
             value={subtitle}
             onChange={(e) => setSubtitle(e.target.value)}
             placeholder="Roofing · Florida · Storm leads"
-            className="w-full bg-black border border-[var(--border)] rounded px-3 py-2 text-sm focus:border-[var(--red)] outline-none"
+            className="w-full bg-[var(--bg)] border border-[var(--border)] rounded px-3 py-2 text-sm focus:border-[var(--red)] outline-none"
           />
         </div>
         <div>
@@ -109,7 +109,7 @@ export default function NewClientForm() {
           <select
             value={industry}
             onChange={(e) => setIndustry(e.target.value)}
-            className="w-full bg-black border border-[var(--border)] rounded px-3 py-2 text-sm focus:border-[var(--red)] outline-none"
+            className="w-full bg-[var(--bg)] border border-[var(--border)] rounded px-3 py-2 text-sm focus:border-[var(--red)] outline-none"
           >
             <option value="roofing">Roofing</option>
             <option value="hvac">HVAC</option>

@@ -112,7 +112,7 @@ function ColorSwatch({
           <input
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            className="w-full bg-black border border-[var(--border)] rounded px-2.5 py-1.5 text-xs font-mono focus:border-[var(--red)] outline-none"
+            className="w-full bg-[var(--bg)] border border-[var(--border)] rounded px-2.5 py-1.5 text-xs font-mono focus:border-[var(--red)] outline-none"
           />
           <p className="mt-0.5 text-[8px] font-mono text-[var(--text-dim)] leading-tight">{hint}</p>
         </div>
@@ -205,7 +205,7 @@ export default function AgencyBrandingForm({ agencyId, defaults }: Props) {
             onChange={(e) => setName(e.target.value)}
             required
             minLength={2}
-            className="w-full bg-black border border-[var(--border)] rounded px-3 py-2 text-sm focus:border-[var(--red)] outline-none"
+            className="w-full bg-[var(--bg)] border border-[var(--border)] rounded px-3 py-2 text-sm focus:border-[var(--red)] outline-none"
           />
         </div>
 
@@ -217,7 +217,7 @@ export default function AgencyBrandingForm({ agencyId, defaults }: Props) {
             value={logoUrl}
             onChange={(e) => setLogoUrl(e.target.value)}
             placeholder="/logos/agency.png or https://..."
-            className="w-full bg-black border border-[var(--border)] rounded px-3 py-2 text-sm font-mono focus:border-[var(--red)] outline-none"
+            className="w-full bg-[var(--bg)] border border-[var(--border)] rounded px-3 py-2 text-sm font-mono focus:border-[var(--red)] outline-none"
           />
         </div>
       </div>

@@ -34,14 +34,14 @@
 
 /* ── Light mode overrides ─────────────────────────────────────── */
 html.light {
-  --bg: #f5f5f5;
+  --bg: #f8f9fa;
   --sidebar: #ffffff;
   --card: #ffffff;
-  --red: #cc0000;
-  --red-dim: rgba(204, 0, 0, 0.08);
-  --border: #e2e2e2;
-  --text: #0a0a0a;
-  --text-dim: #555555;
+  --red: #dc2626;
+  --red-dim: rgba(220, 38, 38, 0.06);
+  --border: #e5e7eb;
+  --text: #111827;
+  --text-dim: #6b7280;
 }
 
 html.light body {
@@ -52,7 +52,14 @@ html.light body {
 html.light .panel {
   background: var(--card);
   border-color: var(--border);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+}
+
+html.light .panel-label {
+  color: #374151;
+}
+html.light .panel-label::before {
+  color: var(--red);
 }
 
 html.light .data-table th {
@@ -61,25 +68,70 @@ html.light .data-table th {
 }
 
 html.light .data-table td {
-  border-bottom-color: #ececec;
+  border-bottom-color: #f3f4f6;
+  color: #374151;
 }
 
 html.light .insight-box {
   background: #fafafa;
   border-color: var(--border);
 }
+html.light .insight-box b { color: #111827; }
 
 html.light .status-ok    { color: #16a34a; }
 html.light .status-warn  { color: #b45309; }
 html.light .status-critical { color: var(--red); }
 
 html.light header[class*="sticky"] {
-  background: rgba(245,245,245,0.92) !important;
+  background: rgba(248,249,250,0.92) !important;
 }
 
 html.light .leaflet-container {
   background: #e8e8e8;
 }
+
+/* Light-mode form elements */
+html.light input,
+html.light select,
+html.light textarea {
+  color: var(--text);
+}
+html.light input::placeholder,
+html.light textarea::placeholder {
+  color: #9ca3af;
+}
+
+/* Light-mode scrollbar — subtle gray instead of red fire */
+html.light * { scrollbar-color: #d1d5db #f3f4f6; }
+html.light *::-webkit-scrollbar-track { background: #f3f4f6 !important; }
+html.light *::-webkit-scrollbar-thumb { background: #d1d5db !important; }
+html.light::-webkit-scrollbar-track { background: #f3f4f6 !important; box-shadow: none !important; }
+html.light::-webkit-scrollbar-thumb { background: #d1d5db !important; box-shadow: none !important; }
+html.light::-webkit-scrollbar-thumb:hover { background: #9ca3af !important; box-shadow: none !important; }
+html.light.is-scrolling *::-webkit-scrollbar-thumb:vertical { background: #d1d5db !important; box-shadow: none !important; }
+html.light.is-scrolling *::-webkit-scrollbar-track:vertical { background: #f3f4f6 !important; }
+html.light.is-scrolling::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #d1d5db, #9ca3af) !important; box-shadow: none !important; }
+html.light.is-scrolling::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #9ca3af, #6b7280) !important; box-shadow: none !important; }
+html.light.is-scrolling::-webkit-scrollbar-track { background: #f3f4f6 !important; box-shadow: none !important; }
+
+/* Light-mode range slider */
+html.light .range-input { background: #e5e7eb; }
+html.light .range-input::-webkit-slider-thumb { border-color: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+
+/* Light-mode selects */
+html.light .dark-select { background: #fff; color: #111827; border-color: #e5e7eb; }
+html.light .dark-select:hover { border-color: #d1d5db; }
+
+/* Light-mode funnel */
+html.light .funnel-stage { border-color: var(--border); }
+html.light .funnel-stage:hover { background: rgba(0,0,0,0.02); border-color: #d1d5db; }
+html.light .stage-val { color: #111827; }
+
+/* Light-mode waste meter */
+html.light .waste-meter { background: #e5e7eb; }
+
+/* Light-mode stat values */
+html.light .stat-val { color: #111827; }
 
 * { box-sizing: border-box; scroll-behavior: smooth; }
 

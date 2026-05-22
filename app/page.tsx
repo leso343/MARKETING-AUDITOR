@@ -125,7 +125,7 @@ export default async function Home() {
               className="group panel transition-all hover:border-[var(--red)]"
             >
               <div className="mb-5 flex items-start justify-between">
-                <div className="flex h-12 w-12 items-center justify-center border border-[var(--border)] bg-black">
+                <div className="flex h-12 w-12 items-center justify-center border border-[var(--border)] bg-[var(--bg)]">
                   <Building2 className="h-5 w-5 text-[var(--red)]" />
                 </div>
                 <span className="status-pill status-critical">Active</span>
@@ -242,7 +242,7 @@ export default async function Home() {
             className="group panel transition-all hover:border-[var(--red)]"
           >
             <div className="mb-5 flex items-start justify-between">
-              <div className="flex h-12 w-12 items-center justify-center border border-[var(--border)] bg-black">
+              <div className="flex h-12 w-12 items-center justify-center border border-[var(--border)] bg-[var(--bg)]">
                 <Building2 className="h-5 w-5 text-[var(--red)]" />
               </div>
               <span className="status-pill status-critical">Active</span>
