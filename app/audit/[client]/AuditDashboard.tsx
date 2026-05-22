@@ -213,12 +213,9 @@ export default function AuditDashboard({
     setLiveCtr(originalCtr);
   };
 
-  // Real PDF export — server-rendered on demand via Puppeteer.
-  const pdfPath = `/api/audit/${clientSlug}/pdf`;
-
   return (
     <LangProvider>
-      <ReportProvider pdfPath={pdfPath} clientSlug={clientSlug}>
+      <ReportProvider>
         <div
           className={printMode ? "min-h-screen print-mode" : "flex h-screen overflow-hidden"}
         >
@@ -228,7 +225,6 @@ export default function AuditDashboard({
               clientName={audit.clientName}
               clientSubtitle={clientSubtitle}
               primaryLeak={audit.funnel.primaryLeak}
-              pdfPath={pdfPath}
               clientSlug={clientSlug}
               agencyLogo={agencyLogo}
               clientLogo={clientLogo}

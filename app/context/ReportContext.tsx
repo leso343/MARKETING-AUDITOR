@@ -22,14 +22,9 @@ const ReportCtx = createContext<ReportContextValue>({
 
 interface ReportProviderProps {
   children: ReactNode;
-  /** Per-client PDF URL forwarded to <ReportViewer>'s download link.
-   *  Omit when no PDF is available — the link will be hidden. */
-  pdfPath?: string;
-  /** Slug used to derive the saved filename in the viewer. */
-  clientSlug?: string;
 }
 
-export function ReportProvider({ children, pdfPath, clientSlug }: ReportProviderProps) {
+export function ReportProvider({ children }: ReportProviderProps) {
   const [openPage, setOpenPage] = useState<number | null>(null);
 
   const openReport = (page: number) => setOpenPage(page);
@@ -42,8 +37,6 @@ export function ReportProvider({ children, pdfPath, clientSlug }: ReportProvider
         open={openPage !== null}
         page={openPage ?? 1}
         onClose={closeReport}
-        pdfPath={pdfPath}
-        clientSlug={clientSlug}
       />
     </ReportCtx.Provider>
   );
