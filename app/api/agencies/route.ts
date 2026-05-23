@@ -20,6 +20,12 @@ function slugify(name: string): string {
     .slice(0, 64);
 }
 
+const HEX_COLOR_RE = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
+
+function isValidHex(v: unknown): boolean {
+  return typeof v === "string" && HEX_COLOR_RE.test(v.trim());
+}
+
 function guard() {
   if (!authEnabled || !dbAvailable) {
     return NextResponse.json(
@@ -117,19 +123,28 @@ export async function PATCH(req: Request) {
   const rows = await db.select().from(schema.agencies).where(eq(schema.agencies.id, body.agencyId)).limit(1);
   if (!rows[0]) return NextResponse.json({ error: "Agency not found" }, { status: 404 });
 
+  // Validate hex colors before applying
+  const colorFields = ["primaryColor", "secondaryColor", "accentColor", "highlightColor", "popColor"] as const;
+  for (const field of colorFields) {
+    const val = body[field];
+    if (val !== null && val !== undefined && typeof val === "string" && val.trim() !== "" && !isValidHex(val)) {
+      return NextResponse.json({ error: `Invalid hex color for ${field}: "${val}"` }, { status: 400 });
+    }
+  }
+
   const updates: Record<string, unknown> = {};
   if (typeof body.name === "string" && body.name.trim().length >= 2) updates.name = body.name.trim();
   if (body.logoUrl === null) updates.logoUrl = null;
   else if (typeof body.logoUrl === "string") updates.logoUrl = body.logoUrl.trim() || null;
-  if (typeof body.primaryColor === "string") updates.primaryColor = body.primaryColor.trim();
+  if (typeof body.primaryColor === "string" && isValidHex(body.primaryColor)) updates.primaryColor = body.primaryColor.trim();
   if (body.secondaryColor === null) updates.secondaryColor = null;
-  else if (typeof body.secondaryColor === "string") updates.secondaryColor = body.secondaryColor.trim();
+  else if (typeof body.secondaryColor === "string" && isValidHex(body.secondaryColor)) updates.secondaryColor = body.secondaryColor.trim();
   if (body.accentColor === null) updates.accentColor = null;
-  else if (typeof body.accentColor === "string") updates.accentColor = body.accentColor.trim();
+  else if (typeof body.accentColor === "string" && isValidHex(body.accentColor)) updates.accentColor = body.accentColor.trim();
   if (body.highlightColor === null) updates.highlightColor = null;
-  else if (typeof body.highlightColor === "string") updates.highlightColor = body.highlightColor.trim();
+  else if (typeof body.highlightColor === "string" && isValidHex(body.highlightColor)) updates.highlightColor = body.highlightColor.trim();
   if (body.popColor === null) updates.popColor = null;
-  else if (typeof body.popColor === "string") updates.popColor = body.popColor.trim();
+  else if (typeof body.popColor === "string" && isValidHex(body.popColor)) updates.popColor = body.popColor.trim();
 
   if (Object.keys(updates).length === 0) {
     return NextResponse.json({ error: "Nothing to update" }, { status: 400 });

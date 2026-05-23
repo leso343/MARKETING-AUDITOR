@@ -149,14 +149,14 @@ function DarkTooltip({ active, payload, label }: any) {
         padding: "6px 10px",
         fontFamily: "monospace",
         fontSize: 11,
-        color: "#fff",
+        color: "var(--text)",
       }}
     >
       <div style={{ color: "#888", marginBottom: 4 }}>{label}</div>
       {payload.map(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (p: any) => (
-          <div key={p.dataKey} style={{ color: p.stroke ?? p.fill ?? "#fff" }}>
+          <div key={p.dataKey} style={{ color: p.stroke ?? p.fill ?? "var(--text)" }}>
             {p.name}: ${p.value}
           </div>
         ),
@@ -294,7 +294,7 @@ export default function RecommendationCards({ audit, targetCpl }: Props) {
           return (
             <div
               key={r.key}
-              className="border border-[var(--border)] bg-black p-5"
+              className="border border-[var(--border)] bg-[var(--card)] p-5"
               style={{ borderLeft: `3px solid ${accent}` }}
             >
               <div className="mb-3 flex items-start justify-between">
@@ -442,7 +442,7 @@ export default function RecommendationCards({ audit, targetCpl }: Props) {
             return (
               <div
                 key={i}
-                className="relative overflow-hidden border border-[var(--border)] bg-black p-5"
+                className="relative overflow-hidden border border-[var(--border)] bg-[var(--card)] p-5"
                 style={{
                   borderTop: `2px solid ${seg.color}`,
                   animation: `rca-tile-in 0.45s cubic-bezier(0.16,1,0.3,1) ${i * 0.1}s both`,
@@ -628,7 +628,7 @@ export default function RecommendationCards({ audit, targetCpl }: Props) {
               color: "#9ca3af",
             },
           ].map((row, i) => (
-            <div key={i} className="flex gap-3 border border-[var(--border)] bg-black p-4">
+            <div key={i} className="flex gap-3 border border-[var(--border)] bg-[var(--card)] p-4">
               <div className="shrink-0 font-mono text-2xl font-extrabold tabular-nums" style={{ color: row.color, lineHeight: 1 }}>{row.pct}</div>
               <div>
                 <div className="font-mono text-[11px] font-extrabold uppercase tracking-wider text-white">{row.label}</div>
@@ -654,7 +654,7 @@ export default function RecommendationCards({ audit, targetCpl }: Props) {
               const why = WHY[r.key]?.(r, cur, tgt) ?? r.resolvedHeadline;
               const outcome = OUTCOME[r.key] ?? r.impactNote;
               return (
-                <div key={r.key} className="border border-[var(--border)] bg-black" style={{ borderLeft: `3px solid ${accent}` }}>
+                <div key={r.key} className="border border-[var(--border)] bg-[var(--card)]" style={{ borderLeft: `3px solid ${accent}` }}>
                   <div className="flex items-start gap-4 p-4 pb-3">
                     <div className="shrink-0 font-mono text-3xl font-extrabold tabular-nums" style={{ color: accent, lineHeight: 1 }}>
                       {String(i + 1).padStart(2, "0")}

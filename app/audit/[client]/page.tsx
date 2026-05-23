@@ -180,15 +180,15 @@ export default async function AuditPage({ params, searchParams }: PageProps) {
 
   if (audit.fileSummary.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-950 text-gray-100 flex items-center justify-center p-8">
+      <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] flex items-center justify-center p-8">
         <div className="max-w-lg text-center space-y-4">
           <div className="text-5xl">📂</div>
           <h1 className="text-2xl font-bold">No data — upload CSVs to populate</h1>
-          <p className="text-gray-400">
+          <p className="text-[var(--text-dim)]">
             No Meta Ads Manager CSV exports were found for{" "}
-            <span className="text-white font-mono">{clientName}</span>.
+            <span className="text-[var(--text)] font-mono">{clientName}</span>.
           </p>
-          <p className="text-gray-500 text-sm">
+          <p className="text-[var(--text-dim)] text-sm">
             {dbClient
               ? "Upload the five Meta exports (campaigns, ads, breakdown_age_gender, breakdown_placement, breakdowns) on the client's admin page."
               : `Drop your exports in /public/csvs/${clientSlug}/ or create the client through /admin/clients.`}

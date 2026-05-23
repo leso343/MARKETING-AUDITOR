@@ -60,7 +60,7 @@ function Chip({ label, value, status, anchor }: ChipProps) {
       style={{ background: "transparent", cursor: anchor ? "pointer" : "default" }}
     >
       <span style={{ color: "var(--text-dim)" }}>{label}</span>
-      <span style={{ color: "#fff", fontWeight: 700 }}>{value}</span>
+      <span style={{ color: "var(--text)", fontWeight: 700 }}>{value}</span>
       {status && dot(status)}
     </button>
   );

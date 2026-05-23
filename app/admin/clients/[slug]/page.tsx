@@ -1,4 +1,6 @@
 import Link from "next/link";
+import fs from "node:fs";
+import path from "node:path";
 import { notFound } from "next/navigation";
 import { getVisibleClientBySlug, listClientCsvs } from "@/lib/access";
 import {
@@ -9,22 +11,110 @@ import {
   FileSpreadsheet,
   BarChart3,
   Clock,
-  Trash2,
+  HardDrive,
+  Database,
+  ExternalLink,
 } from "lucide-react";
 import UploadCsvForm from "./UploadCsvForm";
 import DeleteCsvButton from "./DeleteCsvButton";
 import EditClientForm from "./EditClientForm";
 import DeleteClientButton from "./DeleteClientButton";
+import ExportGuide from "./ExportGuide";
 
 export const dynamic = "force-dynamic";
 
 const REQUIRED_EXPORTS = [
-  { name: "campaigns.csv", desc: "Campaign-level metrics — spend, leads, frequency, impressions" },
-  { name: "ads.csv", desc: "Ad-level metrics — quality, engagement, and conversion rankings" },
-  { name: "breakdowns.csv", desc: "DMA / region geographic breakdown for geo waste detection" },
-  { name: "breakdown_age_gender.csv", desc: "Age × gender breakdown for demographic analysis" },
-  { name: "breakdown_placement.csv", desc: "Placement breakdown — feed, reels, story, audience network" },
+  {
+    name: "campaigns.csv",
+    desc: "Campaign-level metrics — spend, leads, frequency, impressions",
+    guide: {
+      title: "Campaign Performance Export",
+      steps: [
+        "Open Meta Ads Manager → go to the Campaigns tab",
+        "Set your date range (last 30–90 days recommended)",
+        "Click \"Columns\" → choose \"Performance and Clicks\" or customize to include: Campaign name, Status, Objective, Results, Cost per result, Reach, Impressions, Frequency, CPM, CPC, CTR, Amount spent, Attribution setting, Quality ranking, Landing page views",
+        "Click \"Reports\" → \"Export Table Data\" → CSV",
+        "Rename the downloaded file to campaigns.csv",
+      ],
+      metaLink: "https://adsmanager.facebook.com/adsmanager/manage/campaigns",
+    },
+  },
+  {
+    name: "ads.csv",
+    desc: "Ad-level metrics — quality, engagement, and conversion rankings",
+    guide: {
+      title: "Ad-Level Performance Export",
+      steps: [
+        "Open Meta Ads Manager → go to the Ads tab",
+        "Set the same date range as your campaigns export",
+        "Click \"Columns\" → customize to include: Ad name, Ad set name, Campaign name, Status, Headline, Body, Results, Cost per result, Reach, Impressions, Frequency, CTR, CPC, Amount spent, Quality ranking, Engagement rate ranking, Conversion rate ranking",
+        "Click \"Reports\" → \"Export Table Data\" → CSV",
+        "Rename the downloaded file to ads.csv",
+      ],
+      metaLink: "https://adsmanager.facebook.com/adsmanager/manage/ads",
+    },
+  },
+  {
+    name: "breakdowns.csv",
+    desc: "DMA / region geographic breakdown for geo waste detection",
+    guide: {
+      title: "Geographic (DMA Region) Breakdown",
+      steps: [
+        "Open Meta Ads Manager → go to the Campaigns tab",
+        "Set your date range",
+        "Click \"Breakdown\" → \"By Delivery\" → \"Region\" (or \"DMA Region\" for US)",
+        "Make sure columns include: Campaign name, Region/DMA, Results, Amount spent, Impressions, Reach, CTR, CPC",
+        "Click \"Reports\" → \"Export Table Data\" → CSV",
+        "Rename the downloaded file to breakdowns.csv",
+      ],
+      metaLink: "https://adsmanager.facebook.com/adsmanager/manage/campaigns",
+    },
+  },
+  {
+    name: "breakdown_age_gender.csv",
+    desc: "Age × gender breakdown for demographic analysis",
+    guide: {
+      title: "Age & Gender Demographic Breakdown",
+      steps: [
+        "Open Meta Ads Manager → go to the Campaigns tab",
+        "Set your date range",
+        "Click \"Breakdown\" → \"By Delivery\" → \"Age and Gender\"",
+        "Make sure columns include: Campaign name, Age, Gender, Results, Leads, Amount spent, Impressions, CTR",
+        "Click \"Reports\" → \"Export Table Data\" → CSV",
+        "Rename the downloaded file to breakdown_age_gender.csv",
+      ],
+      metaLink: "https://adsmanager.facebook.com/adsmanager/manage/campaigns",
+    },
+  },
+  {
+    name: "breakdown_placement.csv",
+    desc: "Placement breakdown — feed, reels, story, audience network",
+    guide: {
+      title: "Placement & Platform Breakdown",
+      steps: [
+        "Open Meta Ads Manager → go to the Campaigns tab",
+        "Set your date range",
+        "Click \"Breakdown\" → \"By Delivery\" → \"Placement\"",
+        "Make sure columns include: Campaign name, Placement, Results, Amount spent, Impressions, Reach, CTR, CPC",
+        "Click \"Reports\" → \"Export Table Data\" → CSV",
+        "Rename the downloaded file to breakdown_placement.csv",
+      ],
+      metaLink: "https://adsmanager.facebook.com/adsmanager/manage/campaigns",
+    },
+  },
 ];
+
+/** Scan public/csvs/<slug>/ for on-disk CSV files (demo/legacy data). */
+function scanFsCsvs(slug: string): Set<string> {
+  const dir = path.join(process.cwd(), "public", "csvs", slug);
+  if (!fs.existsSync(dir)) return new Set();
+  return new Set(
+    fs
+      .readdirSync(dir)
+      .filter((f) => f.endsWith(".csv"))
+      .map((f) => f.toLowerCase()),
+  );
+}
 
 export default async function ClientDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -32,7 +122,11 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ s
   if (!client) notFound();
 
   const csvs = await listClientCsvs(client.id);
-  const have = new Set(csvs.map((c) => c.filename.toLowerCase()));
+  const dbFiles = new Set(csvs.map((c) => c.filename.toLowerCase()));
+  const fsFiles = scanFsCsvs(client.slug);
+
+  // Merge both sources — a file is "present" if it exists in DB OR on disk
+  const have = new Set([...dbFiles, ...fsFiles]);
   const completedCount = REQUIRED_EXPORTS.filter((r) => have.has(r.name.toLowerCase())).length;
   const allComplete = completedCount === REQUIRED_EXPORTS.length;
 
@@ -98,8 +192,6 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ s
         </div>
       </div>
 
-      {/* ── danger zone (delete confirmation renders here) ────── */}
-
       {/* ── data completeness ────────────────────────────────────── */}
       <div className="panel">
         <div className="flex items-center justify-between mb-5">
@@ -117,7 +209,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ s
 
         {/* progress bar */}
         <div className="mb-5">
-          <div className="h-1.5 w-full rounded-full bg-[#111] overflow-hidden">
+          <div className="h-1.5 w-full rounded-full bg-[var(--bg)] overflow-hidden border border-[var(--border)]">
             <div
               className="h-full rounded-full transition-all duration-700"
               style={{
@@ -133,31 +225,43 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ s
         {/* checklist */}
         <div className="space-y-1">
           {REQUIRED_EXPORTS.map((r) => {
-            const ok = have.has(r.name.toLowerCase());
+            const inDb = dbFiles.has(r.name.toLowerCase());
+            const onDisk = fsFiles.has(r.name.toLowerCase());
+            const ok = inDb || onDisk;
+            const source = inDb ? "db" : onDisk ? "fs" : null;
+
             return (
-              <div
-                key={r.name}
-                className={`flex items-center gap-3 rounded px-3 py-2.5 transition-colors ${
-                  ok ? "bg-emerald-500/5" : "bg-transparent hover:bg-white/[0.02]"
-                }`}
-              >
-                {ok ? (
-                  <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
-                ) : (
-                  <Circle className="h-4 w-4 shrink-0 text-[var(--text-dim)]" />
-                )}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className={`font-mono text-xs ${ok ? "text-white" : "text-[var(--text-dim)]"}`}>
-                      {r.name}
-                    </span>
-                    {ok && (
-                      <span className="rounded border border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0.5 font-mono text-[7px] uppercase tracking-wider text-emerald-400">
-                        Uploaded
+              <div key={r.name}>
+                <div
+                  className={`flex items-center gap-3 rounded px-3 py-2.5 transition-colors ${
+                    ok ? "bg-emerald-500/5" : "bg-transparent hover:bg-[var(--text)]/[0.04]"
+                  }`}
+                >
+                  {ok ? (
+                    <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
+                  ) : (
+                    <Circle className="h-4 w-4 shrink-0 text-[var(--text-dim)]" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className={`font-mono text-xs ${ok ? "" : "text-[var(--text-dim)]"}`}>
+                        {r.name}
                       </span>
-                    )}
+                      {ok && (
+                        <span className="rounded border border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0.5 font-mono text-[7px] uppercase tracking-wider text-emerald-400 flex items-center gap-1">
+                          {source === "db" ? (
+                            <><Database className="h-2 w-2" /> Uploaded</>
+                          ) : (
+                            <><HardDrive className="h-2 w-2" /> On disk</>
+                          )}
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-[10px] text-[var(--text-dim)] mt-0.5">{r.desc}</div>
                   </div>
-                  <div className="text-[10px] text-[var(--text-dim)] mt-0.5">{r.desc}</div>
+
+                  {/* How to export button */}
+                  <ExportGuide guide={r.guide} isUploaded={ok} />
                 </div>
               </div>
             );
@@ -176,11 +280,11 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ s
             Uploaded files
           </div>
           <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--text-dim)]">
-            {csvs.length} file{csvs.length !== 1 ? "s" : ""}
+            {csvs.length} file{csvs.length !== 1 ? "s" : ""}{fsFiles.size > 0 ? ` + ${fsFiles.size} on disk` : ""}
           </span>
         </div>
 
-        {csvs.length === 0 ? (
+        {csvs.length === 0 && fsFiles.size === 0 ? (
           <div className="flex flex-col items-center justify-center py-8 text-center">
             <FileSpreadsheet className="h-8 w-8 text-[var(--text-dim)] mb-2" />
             <div className="text-sm text-[var(--text-dim)]">No files uploaded yet</div>
@@ -190,15 +294,21 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ s
           </div>
         ) : (
           <div className="space-y-1">
+            {/* DB-uploaded files */}
             {csvs.map((c) => (
               <div
                 key={c.id}
-                className="flex items-center justify-between rounded px-3 py-2.5 hover:bg-white/[0.02] transition-colors"
+                className="flex items-center justify-between rounded px-3 py-2.5 hover:bg-[var(--text)]/[0.04] transition-colors"
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <FileSpreadsheet className="h-4 w-4 shrink-0 text-[var(--red)]" />
                   <div className="min-w-0">
-                    <div className="font-mono text-xs truncate">{c.filename}</div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-xs truncate">{c.filename}</span>
+                      <span className="rounded border border-blue-500/30 bg-blue-500/10 px-1.5 py-0.5 font-mono text-[7px] uppercase tracking-wider text-blue-400 flex items-center gap-1">
+                        <Database className="h-2 w-2" /> DB
+                      </span>
+                    </div>
                     <div className="flex items-center gap-1.5 mt-0.5">
                       <Clock className="h-2.5 w-2.5 text-[var(--text-dim)]" />
                       <span className="font-mono text-[9px] text-[var(--text-dim)]">
@@ -210,6 +320,31 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ s
                 <DeleteCsvButton slug={client.slug} filename={c.filename} />
               </div>
             ))}
+
+            {/* Filesystem files (demo/legacy) */}
+            {[...fsFiles]
+              .filter((f) => !dbFiles.has(f))
+              .map((filename) => (
+                <div
+                  key={`fs-${filename}`}
+                  className="flex items-center justify-between rounded px-3 py-2.5 hover:bg-[var(--text)]/[0.04] transition-colors"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <FileSpreadsheet className="h-4 w-4 shrink-0 text-emerald-500" />
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-xs truncate">{filename}</span>
+                        <span className="rounded border border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0.5 font-mono text-[7px] uppercase tracking-wider text-emerald-400 flex items-center gap-1">
+                          <HardDrive className="h-2 w-2" /> Demo data
+                        </span>
+                      </div>
+                      <div className="font-mono text-[9px] text-[var(--text-dim)] mt-0.5">
+                        Bundled with app · public/csvs/{slug}/
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
           </div>
         )}
       </div>

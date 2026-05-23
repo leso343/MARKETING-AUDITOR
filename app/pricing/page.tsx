@@ -353,7 +353,7 @@ export default function PricingPage() {
               </thead>
               <tbody>
                 {COMPARISON.map((row) => (
-                  <tr key={row.feature} className="hover:bg-white/[0.02] transition-colors">
+                  <tr key={row.feature} className="hover:bg-[var(--text)]/[0.04] transition-colors">
                     <td className="text-sm">{row.feature}</td>
                     <td className="text-center">
                       <ComparisonCell value={row.free} />
@@ -418,7 +418,7 @@ export default function PricingPage() {
 
           <div className="mt-8 font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)]">
             Already have an account?{" "}
-            <Link href="/login" className="text-white hover:text-[var(--red)]">
+            <Link href="/login" className="text-[var(--text)] hover:text-[var(--red)]">
               Sign in &rarr;
             </Link>
           </div>

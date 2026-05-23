@@ -183,7 +183,7 @@ export default function TimeSeriesScrubber({
                 fontFamily: "var(--font-mono)",
                 fontSize: 11,
               }}
-              labelStyle={{ color: "#fff" }}
+              labelStyle={{ color: "var(--text)" }}
               formatter={(value: number) => [`$${Number(value).toFixed(2)}`, t("CPL", "Cost per lead")]}
             />
             {median > 0 && (

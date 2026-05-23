@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { auth } from "@/auth";
 
 const CONFIG_PATH = path.join(process.cwd(), "config", "meta.json");
 
 export async function POST(req: NextRequest) {
   try {
+    const session = await auth();
+    if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (session.user.role !== "admin") return NextResponse.json({ error: "Admin only" }, { status: 403 });
     const body = await req.json();
     const { appId, appSecret, accessToken, adAccountId } = body;
 

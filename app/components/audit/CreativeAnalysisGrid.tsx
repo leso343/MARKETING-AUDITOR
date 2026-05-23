@@ -86,7 +86,7 @@ function AdCard({ ad, tone, liveCpl }: { ad: AdScore; tone: "ok" | "critical"; l
 
   return (
     <div
-      className="flex items-start gap-3 border border-[var(--border)] bg-black p-3 transition-colors duration-200"
+      className="flex items-start gap-3 border border-[var(--border)] bg-[var(--card)] p-3 transition-colors duration-200"
       style={{ borderLeft: `3px solid ${border}` }}
     >
       <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center border border-[var(--border)] bg-[var(--card)]">

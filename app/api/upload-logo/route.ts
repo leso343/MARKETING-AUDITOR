@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { auth } from "@/auth";
 
 const ALLOWED_TYPES: Record<string, string> = {
   "image/png": "png",
@@ -13,6 +14,8 @@ const MAX_BYTES = 2 * 1024 * 1024; // 2 MB
 
 export async function POST(req: NextRequest) {
   try {
+    const session = await auth();
+    if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
     const target = formData.get("target") as string | null;

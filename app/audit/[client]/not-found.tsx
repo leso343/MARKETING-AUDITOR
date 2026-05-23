@@ -21,7 +21,7 @@ export default function NotFound() {
       </p>
       <Link
         href="/"
-        className="mt-6 border border-[var(--border)] bg-black px-5 py-2.5 font-mono text-[10px] uppercase tracking-wider text-white transition-colors hover:border-[var(--red)] hover:text-[var(--red)]"
+        className="mt-6 border border-[var(--border)] bg-[var(--card)] px-5 py-2.5 font-mono text-[10px] uppercase tracking-wider text-[var(--text)] transition-colors hover:border-[var(--red)] hover:text-[var(--red)]"
       >
         ← All clients
       </Link>

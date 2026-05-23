@@ -21,8 +21,8 @@ export const dynamic = "force-dynamic";
 
 const PLAN_CONFIG: Record<string, { label: string; price: string; color: string; icon: typeof Zap }> = {
   free: { label: "Free", price: "$0/mo", color: "#64748b", icon: Zap },
-  pro: { label: "Pro", price: "$99/mo", color: "#f59e0b", icon: Sparkles },
-  agency: { label: "Agency", price: "$299/mo", color: "#8b5cf6", icon: ShieldCheck },
+  pro: { label: "Pro", price: "$49/mo", color: "#f59e0b", icon: Sparkles },
+  agency: { label: "Agency", price: "$199/mo", color: "#8b5cf6", icon: ShieldCheck },
 };
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: typeof ShieldCheck }> = {

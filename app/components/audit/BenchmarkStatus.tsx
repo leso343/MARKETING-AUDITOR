@@ -107,7 +107,7 @@ function Metric({
   const barPct = Math.min(lowerIsBetter ? (actual / target) * 100 : (target / actual) * 100, 100);
 
   return (
-    <div className="flex-1 min-w-[160px] border border-[var(--border)] bg-black p-4">
+    <div className="flex-1 min-w-[160px] border border-[var(--border)] bg-[var(--card)] p-4">
       <div className="mb-2 flex items-center justify-between">
         <span className="font-mono text-[9px] uppercase tracking-widest text-[var(--text-dim)]">{label}</span>
         <span
@@ -144,7 +144,7 @@ function InsightCard({
 }) {
   if (!summary) return null;
   return (
-    <div className="border border-[var(--border)] bg-black p-4" style={{ borderLeft: `3px solid ${accent}` }}>
+    <div className="border border-[var(--border)] bg-[var(--card)] p-4" style={{ borderLeft: `3px solid ${accent}` }}>
       <div className="mb-2 flex items-center gap-2">
         <Lightbulb className="h-3.5 w-3.5 shrink-0" style={{ color: accent }} />
         <span className="font-mono text-[9px] uppercase tracking-widest" style={{ color: accent }}>{title}</span>
@@ -230,7 +230,7 @@ export default function BenchmarkStatus({
           formatTarget={(v) => `${v.toFixed(1)}%`}
           lowerIsBetter={false}
         />
-        <div className="flex-1 min-w-[160px] border border-[var(--border)] bg-black p-4">
+        <div className="flex-1 min-w-[160px] border border-[var(--border)] bg-[var(--card)] p-4">
           <div className="mb-2 font-mono text-[9px] uppercase tracking-widest text-[var(--text-dim)]">
             {t("Industry", "Industry averages")}
           </div>

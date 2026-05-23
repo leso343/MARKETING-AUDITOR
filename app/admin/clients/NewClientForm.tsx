@@ -88,7 +88,7 @@ export default function NewClientForm() {
             value={slug}
             onChange={(e) => setSlug(e.target.value)}
             placeholder="auto-generated from name"
-            className="w-full bg-black border border-[var(--border)] rounded px-3 py-2 text-sm font-mono focus:border-[var(--red)] outline-none"
+            className="w-full bg-[var(--bg)] border border-[var(--border)] rounded px-3 py-2 text-sm font-mono focus:border-[var(--red)] outline-none"
           />
         </div>
         <div>

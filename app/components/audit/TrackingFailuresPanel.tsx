@@ -29,7 +29,7 @@ export default function TrackingFailuresPanel({ tracking }: Props) {
         {t("Sentinel_Tracking_Audit", "Is your tracking working?")}
       </div>
 
-      <div className="border border-[#222] bg-black p-6 text-center">
+      <div className="border border-[#222] bg-[var(--card)] p-6 text-center">
         <div className="mb-2 font-mono text-[10px] uppercase tracking-wider text-[var(--red)]">
           {t("Anomaly_Detected", "Something is broken")}
         </div>

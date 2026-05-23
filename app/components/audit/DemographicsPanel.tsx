@@ -54,7 +54,7 @@ function CplTooltip({ active, payload }: any) {
         padding: "6px 10px",
         fontFamily: "monospace",
         fontSize: 11,
-        color: "#fff",
+        color: "var(--text)",
       }}
     >
       <div style={{ color: "#888", marginBottom: 2 }}>Age {d.bracket}</div>

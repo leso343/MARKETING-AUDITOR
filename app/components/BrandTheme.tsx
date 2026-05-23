@@ -88,7 +88,7 @@ export default function BrandTheme({
     }
 
     /* ── scrollbar branding ── */
-    * { scrollbar-color: ${primary} #040404; }
+    * { scrollbar-color: ${primary} var(--bg); }
     *::-webkit-scrollbar-thumb { background: ${primary} !important; }
     html.is-scrolling *::-webkit-scrollbar-thumb:vertical {
       background: ${primary} !important;

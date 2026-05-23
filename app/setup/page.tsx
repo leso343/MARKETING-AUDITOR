@@ -103,7 +103,7 @@ function LogoDropzone({
           </div>
           <div
             className="flex items-center gap-5 rounded border border-[var(--border)] p-5"
-            style={{ background: "#060606" }}
+            style={{ background: "var(--sidebar)" }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -206,7 +206,7 @@ function SecretInput({
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder ?? ""}
           autoComplete="off"
-          className="w-full rounded border border-[var(--border)] bg-[var(--bg)] px-3 py-2.5 pr-9 font-mono text-[12px] text-white placeholder-[#333] outline-none transition-colors focus:border-[var(--red)]"
+          className="w-full rounded border border-[var(--border)] bg-[var(--bg)] px-3 py-2.5 pr-9 font-mono text-[12px] text-[var(--text)] outline-none transition-colors focus:border-[var(--red)]"
         />
         <button
           type="button"
@@ -246,7 +246,7 @@ function PlainInput({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder ?? ""}
         autoComplete="off"
-        className="w-full rounded border border-[var(--border)] bg-[var(--bg)] px-3 py-2.5 font-mono text-[12px] text-white placeholder-[#333] outline-none transition-colors focus:border-[var(--red)]"
+        className="w-full rounded border border-[var(--border)] bg-[var(--bg)] px-3 py-2.5 font-mono text-[12px] text-[var(--text)] outline-none transition-colors focus:border-[var(--red)]"
       />
       <p className="font-mono text-[10px] text-[var(--text-dim)] opacity-70">{helper}</p>
     </div>

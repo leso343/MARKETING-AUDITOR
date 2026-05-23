@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { auth } from "@/auth";
 
 const CONFIG_PATH = path.join(process.cwd(), "config", "meta.json");
 
@@ -17,6 +18,9 @@ function mask(val: string | undefined): string {
 
 export async function GET() {
   try {
+    const session = await auth();
+    if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (session.user.role !== "admin") return NextResponse.json({ error: "Admin only" }, { status: 403 });
     if (!fs.existsSync(CONFIG_PATH)) {
       return NextResponse.json({ appId: "", appSecret: "", accessToken: "", adAccountId: "", configured: false });
     }

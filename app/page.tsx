@@ -217,10 +217,12 @@ export default async function Home() {
               Admin
             </Link>
           )}
-          <Link href="/admin/clients" className="flex items-center gap-1.5 rounded border border-[var(--border)] px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)] transition-all hover:border-[var(--red)] hover:text-[var(--red)]">
-            <Plus className="h-3 w-3" />
-            Clients
-          </Link>
+          {!isAdmin && session.user.role === "agency" && (
+            <Link href="/admin/clients" className="flex items-center gap-1.5 rounded border border-[var(--border)] px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)] transition-all hover:border-[var(--red)] hover:text-[var(--red)]">
+              <Plus className="h-3 w-3" />
+              Clients
+            </Link>
+          )}
           <Link href="/pricing" className="flex items-center gap-1.5 rounded border border-[var(--border)] px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)] transition-all hover:border-[var(--red)] hover:text-[var(--red)]">
             Pricing
           </Link>

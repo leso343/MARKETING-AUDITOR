@@ -118,7 +118,7 @@ export default function ExecutiveSummary({ audit }: Props) {
           return (
             <div
               key={idx}
-              className="relative border border-[var(--border)] bg-black p-5"
+              className="relative border border-[var(--border)] bg-[var(--card)] p-5"
               style={{ borderLeft: "3px solid var(--red)" }}
             >
               <div className="mb-3 flex items-start justify-between">

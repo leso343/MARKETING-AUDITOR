@@ -188,7 +188,7 @@ export default function Sidebar({ clientName, clientSubtitle, primaryLeak, clien
       {/* Mobile top bar — visible below lg */}
       <div
         className="fixed left-0 right-0 top-0 z-40 flex items-center justify-between border-b border-[var(--border)] px-4 py-3 lg:hidden"
-        style={{ background: "rgba(6,6,6,0.97)", backdropFilter: "blur(8px)" }}
+        style={{ background: "var(--sidebar)", backdropFilter: "blur(8px)" }}
       >
         <div className="flex items-center">
           {agencyLogo ? (
@@ -227,7 +227,7 @@ export default function Sidebar({ clientName, clientSubtitle, primaryLeak, clien
       {/* Desktop sidebar — hidden on mobile, scrollable */}
       <aside
         className="hidden w-[260px] flex-shrink-0 border-r border-[var(--border)] bg-[var(--sidebar)] px-6 py-9 lg:flex lg:flex-col overflow-y-auto"
-        style={{ height: "100vh", position: "sticky", top: 0, scrollbarWidth: "thin", scrollbarColor: "var(--red) #040404" }}
+        style={{ height: "100vh", position: "sticky", top: 0, scrollbarWidth: "thin", scrollbarColor: "var(--red) var(--bg)" }}
       >
         {navContent}
       </aside>

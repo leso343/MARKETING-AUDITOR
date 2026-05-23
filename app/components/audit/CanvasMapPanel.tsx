@@ -197,7 +197,7 @@ export default function CanvasMapPanel() {
       <div ref={mapRef} style={{ height: 360, width: "100%", background: "#030303" }} />
 
       {/* Legend */}
-      <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 border border-[var(--border)] bg-black p-3">
+      <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 border border-[var(--border)] bg-[var(--card)] p-3">
         <div className="flex items-center gap-2">
           <div style={{ width: 44, height: 10, background: "linear-gradient(90deg,#7c0000,#dc2626,#f59e0b,#fef08a)", borderRadius: 2 }} />
           <span className="font-mono text-[10px] text-[var(--text-dim)]">Lead density</span>

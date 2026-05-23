@@ -6,7 +6,9 @@ import { signIn } from "next-auth/react";
 export default function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
-  const from = params.get("from") ?? "/";
+  // Sanitize redirect target — only allow internal paths (prevents open redirect)
+  const rawFrom = params.get("from") ?? "/";
+  const from = rawFrom.startsWith("/") && !rawFrom.startsWith("//") ? rawFrom : "/";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
