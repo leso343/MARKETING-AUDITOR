@@ -11,6 +11,8 @@ export interface CampaignRow {
   kind: 'campaign';
   campaignName: string;
   status: string;
+  /** true when status is "Active" (case-insensitive); use with flatRows(activeOnly) to exclude paused/completed campaigns. */
+  isActive: boolean;
   objective: string;
   bidStrategy: string;
   budget: number | null;
@@ -25,6 +27,8 @@ export interface CampaignRow {
   cpc: number | null;
   ctr: number | null;
   amountSpent: number;
+  /** Meta "Landing page views" column; 0 when absent. */
+  landingPageViews: number;
   ends: string;
   qualityRanking: string;
   engagementRateRanking: string;
@@ -37,6 +41,8 @@ export interface AdSetRow {
   adsetName: string;
   campaignName: string;
   status: string;
+  /** true when status is "Active" (case-insensitive). */
+  isActive: boolean;
   objective: string;
   results: number | null;
   costPerResult: number | null;
@@ -58,6 +64,8 @@ export interface AdRow {
   adsetName: string;
   campaignName: string;
   status: string;
+  /** true when status is "Active" (case-insensitive). */
+  isActive: boolean;
   headline: string;
   body: string;
   creative: string;
@@ -69,6 +77,8 @@ export interface AdRow {
   ctr: number | null;
   cpc: number | null;
   amountSpent: number;
+  /** Meta "Landing page views" column; 0 when absent. */
+  landingPageViews: number;
   qualityRanking: string;
   engagementRateRanking: string;
   conversionRateRanking: string;

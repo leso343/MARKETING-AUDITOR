@@ -37,16 +37,23 @@ export interface GeographicWasteResult {
   zonesMapped: number;
   coreHotSpend: number;
   recommendation: string;
+  usedLeadsColumn: boolean;
 }
 
 export function analyzeGeographicWaste(rows: BreakdownRow[]): GeographicWasteResult {
   const dmaRows = rows.filter((r) => r.breakdownKind === 'dma');
+
+  // Prefer the dedicated "Leads" column over the generic "Results" column.
+  // Results conflates link clicks with actual leads depending on objective;
+  // the Leads column (when present) is always true lead-form submissions.
+  const hasLeadsData = dmaRows.some((r) => r.leads != null && r.leads > 0);
+
   // Aggregate by bucket.
   const agg = new Map<string, { spend: number; conversions: number }>();
   for (const r of dmaRows) {
     const cur = agg.get(r.bucket) ?? { spend: 0, conversions: 0 };
     cur.spend += r.amountSpent ?? 0;
-    cur.conversions += r.results ?? 0;
+    cur.conversions += hasLeadsData ? (r.leads ?? 0) : (r.results ?? 0);
     agg.set(r.bucket, cur);
   }
 
@@ -118,6 +125,7 @@ export function analyzeGeographicWaste(rows: BreakdownRow[]): GeographicWasteRes
     zonesMapped: regions.length,
     coreHotSpend,
     recommendation,
+    usedLeadsColumn: hasLeadsData,
   };
 }
 

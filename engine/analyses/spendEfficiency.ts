@@ -116,6 +116,11 @@ export function analyzeSpendEfficiency(
   }
   const averageFrequency = totalReach > 0 ? freqAcc / totalReach : 0;
 
+  // ── Budget utilization: total spent vs total budget. ─────────────────────
+  const campaignsWithBudget = campaigns.filter((c) => c.budget != null && c.budget > 0);
+  const totalBudget = sum(campaignsWithBudget.map((c) => c.budget));
+  const budgetUtilization = totalBudget > 0 ? (totalSpend / totalBudget) * 100 : 0;
+
   const leadCampaignCount = leadCampaigns.length;
   const campaignsWithAttribIssues = campaigns.filter((c) => !c.attributionSetting).length;
 
@@ -146,6 +151,15 @@ export function analyzeSpendEfficiency(
       : campaignsWithAttribIssues / campaigns.length > 0.5
       ? 'critical'
       : campaignsWithAttribIssues > 0
+      ? 'warn'
+      : 'ok';
+
+  const budgetUtilStatus: StatusLevel =
+    totalBudget === 0
+      ? 'ok' // no budget data — skip judgment
+      : budgetUtilization < 50 || budgetUtilization > 120
+      ? 'critical'
+      : budgetUtilization < 70 || budgetUtilization > 100
       ? 'warn'
       : 'ok';
 
@@ -210,6 +224,17 @@ export function analyzeSpendEfficiency(
       status: attribStatus,
       benchmark: 'Want 100% set',
     },
+    ...(totalBudget > 0
+      ? [
+          {
+            label: 'Budget_Utilization',
+            value: Math.round(budgetUtilization) + '%',
+            unit: 'Budget Utilization',
+            status: budgetUtilStatus,
+            benchmark: `$${fmt(totalSpend)} of $${fmt(totalBudget)} budget deployed`,
+          },
+        ]
+      : []),
   ];
 
   return {

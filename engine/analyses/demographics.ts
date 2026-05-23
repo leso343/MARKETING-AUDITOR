@@ -35,8 +35,19 @@ export interface AgeBracketStat {
   outcome: 'SCALABLE' | 'MIXED' | 'REDUCE' | 'NO_DATA';
 }
 
+export interface GenderBracketStat {
+  bracket: string;
+  spend: number;
+  leads: number;
+  cpl: number;
+  status: StatusLevel;
+  outcome: 'SCALABLE' | 'MIXED' | 'REDUCE' | 'NO_DATA';
+}
+
 export interface DemographicsResult {
   brackets: AgeBracketStat[];
+  genderBrackets: GenderBracketStat[];
+  genderRecommendation: string;
   /** Series for the chart (Chart.js line). Indexed by AGE_BUCKETS. */
   chartLabels: string[];
   chartData: number[]; // CPL per bracket (0 = missing)
@@ -120,8 +131,71 @@ export function analyzeDemographics(rows: BreakdownRow[]): DemographicsResult {
     }
   }
 
+  // ── Gender breakdown ──────────────────────────────────────────────────
+  const genderRows = rows.filter((r) => r.breakdownKind === 'age_gender' && r.gender);
+  const useLeadsColGender = leadsColumnPresent(genderRows);
+  const genderAgg = new Map<string, { spend: number; leads: number }>();
+
+  for (const r of genderRows) {
+    const g = (r.gender ?? '').trim().toLowerCase();
+    if (!g) continue;
+    const cur = genderAgg.get(g) ?? { spend: 0, leads: 0 };
+    cur.spend += r.amountSpent ?? 0;
+    cur.leads += leadsFor(r, useLeadsColGender);
+    genderAgg.set(g, cur);
+  }
+
+  const genderBrackets: GenderBracketStat[] = Array.from(genderAgg.entries()).map(([g, v]) => {
+    const cpl = v.leads > 0 ? round(v.spend / v.leads, 2) : 0;
+    return { bracket: g, spend: round(v.spend, 2), leads: v.leads, cpl, status: 'ok' as StatusLevel, outcome: 'NO_DATA' as const };
+  });
+
+  const genderCpls = genderBrackets.filter((b) => b.cpl > 0).map((b) => b.cpl);
+  const genderMedian = genderCpls.length ? genderCpls.sort((a, b) => a - b)[Math.floor(genderCpls.length / 2)] : 0;
+
+  for (const b of genderBrackets) {
+    if (b.spend === 0) {
+      b.outcome = 'NO_DATA';
+      b.status = 'ok';
+    } else if (b.cpl === 0) {
+      b.outcome = 'REDUCE';
+      b.status = 'critical';
+    } else if (genderMedian > 0 && b.cpl > genderMedian * 1.8) {
+      b.outcome = 'REDUCE';
+      b.status = 'critical';
+    } else if (genderMedian > 0 && b.cpl > genderMedian * 1.2) {
+      b.outcome = 'MIXED';
+      b.status = 'warn';
+    } else {
+      b.outcome = 'SCALABLE';
+      b.status = 'ok';
+    }
+  }
+
+  // Build a human-readable gender recommendation.
+  let genderRecommendation = '';
+  const scalableGenders = genderBrackets.filter((b) => b.outcome === 'SCALABLE' && b.leads > 0);
+  const reduceGenders = genderBrackets.filter((b) => b.outcome === 'REDUCE');
+  if (scalableGenders.length > 0 && reduceGenders.length > 0) {
+    const best = scalableGenders.sort((a, b) => a.cpl - b.cpl)[0];
+    const worst = reduceGenders.sort((a, b) => b.cpl - a.cpl)[0];
+    genderRecommendation =
+      `${best.bracket.charAt(0).toUpperCase() + best.bracket.slice(1)} audience converts at $${best.cpl}/lead vs ` +
+      `${worst.bracket.charAt(0).toUpperCase() + worst.bracket.slice(1)} at $${worst.cpl}. ` +
+      `Consider increasing ${best.bracket}-targeted creative.`;
+  } else if (scalableGenders.length > 0) {
+    const best = scalableGenders.sort((a, b) => a.cpl - b.cpl)[0];
+    genderRecommendation = `${best.bracket.charAt(0).toUpperCase() + best.bracket.slice(1)} audience is the most efficient at $${best.cpl}/lead. All genders within healthy range.`;
+  } else if (genderBrackets.length === 0) {
+    genderRecommendation = 'No gender breakdown data available.';
+  } else {
+    genderRecommendation = 'Insufficient lead data to compare gender performance.';
+  }
+
   return {
     brackets,
+    genderBrackets,
+    genderRecommendation,
     chartLabels: AGE_BUCKETS,
     chartData: brackets.map((b) => b.cpl),
   };

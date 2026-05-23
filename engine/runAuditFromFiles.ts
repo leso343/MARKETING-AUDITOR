@@ -11,7 +11,7 @@
  * doesn't know or care which loader ran.
  */
 import { parseUploadedCsvs, type UploadedCsv } from "./parsers/uploadedCsv";
-import type { AdRow, BreakdownRow, CampaignRow, ParsedFile, ParsedRow } from "./types";
+import type { AdRow, AdSetRow, BreakdownRow, CampaignRow, ParsedFile, ParsedRow } from "./types";
 import { analyzeFunnelLeakage } from "./analyses/funnelLeakage";
 import { analyzeTrackingFailures } from "./analyses/trackingFailures";
 import { analyzeGeographicWaste } from "./analyses/geographicWaste";
@@ -19,15 +19,30 @@ import { analyzeCreatives } from "./analyses/creativeAnalysis";
 import { analyzeSpendEfficiency } from "./analyses/spendEfficiency";
 import { analyzeDemographics } from "./analyses/demographics";
 import { buildWeeklySeries } from "./analyses/weeklySeries";
+import { analyzePlacements } from "./analyses/placementAnalysis";
+import { analyzeDevices } from "./analyses/deviceAnalysis";
+import { analyzeTimeOfDay } from "./analyses/timeAnalysis";
 import type { AuditResult, ReportingPeriod, RunAuditOpts } from "./runAudit";
 
 export interface RunAuditFromFilesOpts extends Omit<RunAuditOpts, "csvDir"> {
   files: UploadedCsv[];
 }
 
-function flatRows<T extends ParsedRow>(files: ParsedFile[], kind: T["kind"]): T[] {
+/**
+ * Extract rows of a given kind from parsed files.
+ * @param activeOnly  When true, exclude rows where isActive === false
+ *                    (paused/completed campaigns that skew averages).
+ */
+function flatRows<T extends ParsedRow>(files: ParsedFile[], kind: T["kind"], activeOnly?: boolean): T[] {
   const out: T[] = [];
-  for (const f of files) if (f.kind === kind) out.push(...(f.rows as T[]));
+  for (const f of files) {
+    if (f.kind === kind) {
+      for (const row of f.rows as T[]) {
+        if (activeOnly && 'isActive' in row && !(row as any).isActive) continue;
+        out.push(row);
+      }
+    }
+  }
   return out;
 }
 
@@ -77,6 +92,7 @@ function scaleBreakdowns(rows: BreakdownRow[], factor: number): BreakdownRow[] {
 export function runAuditFromFiles(opts: RunAuditFromFilesOpts): AuditResult {
   const files = parseUploadedCsvs(opts.files);
   const rawCampaigns  = flatRows<CampaignRow>(files, "campaign");
+  const rawAdsets     = flatRows<AdSetRow>(files, "adset");
   const rawAds        = flatRows<AdRow>(files, "ad");
   const rawBreakdowns = flatRows<BreakdownRow>(files, "breakdown");
 
@@ -120,5 +136,8 @@ export function runAuditFromFiles(opts: RunAuditFromFilesOpts): AuditResult {
     spend:        analyzeSpendEfficiency(campaigns, ads, breakdowns, benchmarks),
     demographics: analyzeDemographics(breakdowns),
     weeklySeries: buildWeeklySeries(campaigns, ads),
+    placements:   analyzePlacements(breakdowns),
+    devices:      analyzeDevices(breakdowns),
+    timeOfDay:    analyzeTimeOfDay(breakdowns),
   };
 }

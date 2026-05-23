@@ -28,6 +28,9 @@ export interface FunnelLeakageResult {
   totalLeads: number;
   estimatedSessions: number;
   clickToSessionLossPct: number;
+  /** True when the CSV contained a "Landing page views" column with data,
+   *  meaning the USER_ARRIVAL stage uses real numbers instead of a heuristic. */
+  landingPageViewsAvailable: boolean;
 }
 
 
@@ -72,17 +75,29 @@ export function analyzeFunnelLeakage(
     totalLeads = sum(ads.map((a) => a.results));
   }
 
-  // Heuristic: estimated sessions = clicks * realistic landing arrival rate.
-  // For traffic objectives the gap is large (accidental clicks). We use 0.45 as
-  // a conservative default; if a real "Landing page views" column exists in raw,
-  // a future revision should swap it in.
-  const trafficShare =
-    totalImpressions > 0
-      ? sum(campaigns.filter((c) => isTrafficObjective(c.objective)).map((c) => c.impressions)) /
-        totalImpressions
-      : 0;
-  const arrivalRate = 0.85 - 0.4 * trafficShare; // 0.45 if 100% traffic, 0.85 if 0% traffic
-  const estimatedSessions = Math.round(totalClicks * Math.max(0.4, Math.min(0.92, arrivalRate)));
+  // Landing page views: prefer the real "Landing page views" column from the CSV
+  // when available (parsed as `landingPageViews` on CampaignRow). Fall back to
+  // the heuristic arrival-rate estimate when the column is absent or all-zero.
+  const realLandingPageViews = sum(
+    campaigns.map((c) => (c as any).landingPageViews ?? 0),
+  );
+  const landingPageViewsAvailable = realLandingPageViews > 0;
+
+  let estimatedSessions: number;
+  if (landingPageViewsAvailable) {
+    estimatedSessions = realLandingPageViews;
+  } else {
+    // Heuristic: estimated sessions = clicks * realistic landing arrival rate.
+    // For traffic objectives the gap is large (accidental clicks). We use 0.45 as
+    // a conservative default.
+    const trafficShare =
+      totalImpressions > 0
+        ? sum(campaigns.filter((c) => isTrafficObjective(c.objective)).map((c) => c.impressions)) /
+          totalImpressions
+        : 0;
+    const arrivalRate = 0.85 - 0.4 * trafficShare; // 0.45 if 100% traffic, 0.85 if 0% traffic
+    estimatedSessions = Math.round(totalClicks * Math.max(0.4, Math.min(0.92, arrivalRate)));
+  }
 
   const ctrPct = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
   const clickToSession = totalClicks > 0 ? (estimatedSessions / totalClicks) * 100 : 0;
@@ -109,7 +124,9 @@ export function analyzeFunnelLeakage(
           : 'CTR healthy.',
     },
     {
-      name: 'USER_ARRIVAL (VERIFIED SESSIONS)',
+      name: landingPageViewsAvailable
+        ? 'LANDING_PAGE_VIEWS (Verified)'
+        : 'USER_ARRIVAL (Estimated)',
       count: estimatedSessions,
       retentionPct: round(clickToSession, 1),
       status: clickToSession < 30 ? 'critical' : clickToSession < 50 ? 'warn' : 'ok',
@@ -166,6 +183,7 @@ export function analyzeFunnelLeakage(
     totalLeads,
     estimatedSessions,
     clickToSessionLossPct,
+    landingPageViewsAvailable,
   };
 }
 

@@ -33,6 +33,8 @@ function isLeadIndicator(ri: string | undefined): boolean {
   return /lead|leadgen|fb_pixel_lead|onsite_conversion/i.test(ri);
 }
 
+export type FatigueStatus = 'fresh' | 'warming' | 'fatigued' | 'burned';
+
 export interface AdScore {
   adName: string;
   campaignName: string;
@@ -44,6 +46,7 @@ export interface AdScore {
   cpc: number;
   ctr: number;
   frequency: number;
+  fatigueStatus: FatigueStatus | null;
   status: StatusLevel;
   reason: string;
 }
@@ -55,6 +58,8 @@ export interface CreativeAnalysisResult {
   totalSpend: number;
   blendedCpl: number;
   blendedCpc: number;
+  frequencyFatigueCount: number;
+  fatigueWarning: string | null;
 }
 
 export function analyzeCreatives(ads: AdRow[]): CreativeAnalysisResult {
@@ -137,6 +142,14 @@ export function analyzeCreatives(ads: AdRow[]): CreativeAnalysisResult {
     }
   }
 
+  function classifyFatigue(freq: number): FatigueStatus | null {
+    if (freq <= 0) return null; // no frequency data
+    if (freq < 2) return 'fresh';
+    if (freq <= 3.5) return 'warming';
+    if (freq <= 5) return 'fatigued';
+    return 'burned';
+  }
+
   const scored: AdScore[] = Array.from(aggMap.values()).map((a) => {
     const spend = a.spend;
     const results = a.results;
@@ -162,6 +175,7 @@ export function analyzeCreatives(ads: AdRow[]): CreativeAnalysisResult {
       cpc,
       ctr,
       frequency,
+      fatigueStatus: classifyFatigue(frequency),
       status: 'ok',
       reason: '',
     };
@@ -219,6 +233,16 @@ export function analyzeCreatives(ads: AdRow[]): CreativeAnalysisResult {
   }
   const blendedCpc = totalDerivedClicks > 0 ? round(totalSpend / totalDerivedClicks, 2) : 0;
 
+  // ── Frequency fatigue counts ──────────────────────────────────────────────
+  const frequencyFatigueCount = scored.filter(
+    (s) => s.fatigueStatus === 'fatigued' || s.fatigueStatus === 'burned',
+  ).length;
+  const adsWithFrequency = scored.filter((s) => s.fatigueStatus !== null).length;
+  const fatigueWarning =
+    adsWithFrequency > 0 && frequencyFatigueCount / adsWithFrequency > 0.3
+      ? `${frequencyFatigueCount} of ${adsWithFrequency} ads show frequency fatigue (>3.5). Rotate creative to prevent audience burnout.`
+      : null;
+
   return {
     winners,
     wasters,
@@ -226,6 +250,8 @@ export function analyzeCreatives(ads: AdRow[]): CreativeAnalysisResult {
     totalSpend: round(totalSpend, 2),
     blendedCpl,
     blendedCpc,
+    frequencyFatigueCount,
+    fatigueWarning,
   };
 }
 

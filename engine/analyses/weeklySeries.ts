@@ -21,8 +21,22 @@ export interface WeeklySeriesPoint {
   weekStart: string;
   cpl: number;
   spend: number;
+  /** All results (leads + clicks). Kept for backward compatibility. */
   leads: number;
+  /** Results filtered to lead-indicator rows only. Falls back to `leads`
+   *  when no result-indicator data is available in the export. */
+  verifiedLeads: number;
   activeAdSets: string[];
+}
+
+/**
+ * Whether a Meta "Result indicator" string corresponds to a lead-form
+ * submission (as opposed to link clicks, video views, etc.).
+ */
+function isLeadIndicator(ri: string | undefined): boolean {
+  if (!ri) return false;
+  if (/link_click|landing_page_view|profile_visit|video_view|post_engagement/i.test(ri)) return false;
+  return /lead|leadgen|fb_pixel_lead|onsite_conversion/i.test(ri);
 }
 
 const MS_PER_DAY = 86_400_000;
@@ -57,21 +71,37 @@ export function buildWeeklySeries(
   let windowStart: Date | null = null;
   let windowEnd: Date | null = null;
   const all = [
-    ...campaigns.map((c) => ({
-      start: parseDate(c.raw["Reporting starts"]),
-      end: parseDate(c.raw["Reporting ends"]),
-      spend: c.amountSpent ?? 0,
-      leads: c.results ?? 0,
-      adsetName: c.campaignName,
-    })),
-    ...ads.map((a) => ({
-      start: parseDate(a.raw["Reporting starts"]),
-      end: parseDate(a.raw["Reporting ends"]),
-      spend: a.amountSpent ?? 0,
-      leads: a.results ?? 0,
-      adsetName: a.adsetName || a.adName,
-    })),
+    ...campaigns.map((c) => {
+      const ri = c.resultIndicator || (c.raw && (c.raw['Result indicator'] || c.raw['Result Indicator'])) || '';
+      return {
+        start: parseDate(c.raw["Reporting starts"]),
+        end: parseDate(c.raw["Reporting ends"]),
+        spend: c.amountSpent ?? 0,
+        leads: c.results ?? 0,
+        verifiedLeads: isLeadIndicator(ri) ? (c.results ?? 0) : 0,
+        hasIndicator: ri !== '',
+        adsetName: c.campaignName,
+      };
+    }),
+    ...ads.map((a) => {
+      const ri = (a.raw && (a.raw['Result indicator'] || a.raw['Result Indicator'])) || '';
+      return {
+        start: parseDate(a.raw["Reporting starts"]),
+        end: parseDate(a.raw["Reporting ends"]),
+        spend: a.amountSpent ?? 0,
+        leads: a.results ?? 0,
+        verifiedLeads: isLeadIndicator(ri) ? (a.results ?? 0) : 0,
+        hasIndicator: ri !== '',
+        adsetName: a.adsetName || a.adName,
+      };
+    }),
   ].filter((r) => r.start && r.end && (r.spend > 0 || r.leads > 0));
+
+  // If no rows have result-indicator data, fall back: verifiedLeads = leads
+  const hasAnyIndicator = all.some((r) => r.hasIndicator);
+  if (!hasAnyIndicator) {
+    for (const r of all) r.verifiedLeads = r.leads;
+  }
 
   if (!all.length) return [];
 
@@ -83,7 +113,7 @@ export function buildWeeklySeries(
 
   // Build week buckets (Mon-aligned) covering the window
   const first = startOfWeek(windowStart);
-  const buckets: Map<string, WeeklySeriesPoint & { _names: Set<string> }> = new Map();
+  const buckets: Map<string, WeeklySeriesPoint & { _names: Set<string>; _verifiedLeads: number }> = new Map();
   let cursor = new Date(first);
   while (cursor <= windowEnd) {
     const wkStart = new Date(cursor);
@@ -96,8 +126,10 @@ export function buildWeeklySeries(
       cpl: 0,
       spend: 0,
       leads: 0,
+      verifiedLeads: 0,
       activeAdSets: [],
       _names: new Set<string>(),
+      _verifiedLeads: 0,
     });
     cursor.setUTCDate(cursor.getUTCDate() + 7);
   }
@@ -118,6 +150,7 @@ export function buildWeeklySeries(
       const share = overlapDays / totalDays;
       b.spend += r.spend * share;
       b.leads += r.leads * share;
+      b._verifiedLeads += r.verifiedLeads * share;
       if (r.adsetName) b._names.add(r.adsetName);
     }
   }
@@ -127,11 +160,13 @@ export function buildWeeklySeries(
   for (const [, b] of buckets) {
     if (b.spend <= 0 && b.leads <= 0) continue; // drop empty weeks
     const leadsRounded = Math.round(b.leads);
+    const verifiedLeadsRounded = Math.round(b._verifiedLeads);
     out.push({
       weekLabel: b.weekLabel,
       weekStart: b.weekStart,
       spend: Math.round(b.spend * 100) / 100,
       leads: leadsRounded,
+      verifiedLeads: verifiedLeadsRounded,
       cpl: leadsRounded > 0 ? Math.round((b.spend / leadsRounded) * 100) / 100 : 0,
       activeAdSets: Array.from(b._names).sort(),
     });

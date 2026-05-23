@@ -124,10 +124,13 @@ export function classify(headers: string[]): ClassifiedHeaders {
 function mapCampaign(r: Record<string, string>): CampaignRow | null {
   const name = toString(field(r, ['Campaign name', 'Campaign Name']));
   if (isTotalsRow(name)) return null;
+  const status = toString(field(r, ['Status', 'Delivery status']));
   return {
     kind: 'campaign',
     campaignName: name,
-    status: toString(field(r, ['Status', 'Delivery status'])),
+    status,
+    /** true when the campaign is currently delivering (case-insensitive "active" check). */
+    isActive: status.toLowerCase() === 'active',
     objective: toString(field(r, ['Objective', 'Campaign objective'])),
     bidStrategy: toString(field(r, ['Bid strategy', 'Bid Strategy'])),
     budget: toNumber(field(r, ['Budget', 'Campaign budget', 'Daily budget'])),
@@ -142,6 +145,7 @@ function mapCampaign(r: Record<string, string>): CampaignRow | null {
     cpc: toNumber(field(r, ['CPC (cost per link click)', 'CPC (all)', 'CPC'])),
     ctr: toNumber(field(r, ['CTR (link click-through rate)', 'CTR (all)', 'CTR'])),
     amountSpent: toNumber(field(r, ['Amount spent (USD)', 'Amount Spent (USD)', 'Amount spent'])) ?? 0,
+    landingPageViews: toNumber(field(r, ['Landing page views', 'Landing Page Views', 'landing_page_views'])) ?? 0,
     ends: toString(field(r, ['Ends', 'End date', 'End'])),
     qualityRanking: toString(field(r, ['Quality ranking'])),
     engagementRateRanking: toString(field(r, ['Engagement rate ranking'])),
@@ -153,11 +157,14 @@ function mapCampaign(r: Record<string, string>): CampaignRow | null {
 function mapAdSet(r: Record<string, string>): AdSetRow | null {
   const name = toString(field(r, ['Ad set name', 'Ad Set Name', 'Adset name']));
   if (isTotalsRow(name)) return null;
+  const status = toString(field(r, ['Status', 'Delivery status']));
   return {
     kind: 'adset',
     adsetName: name,
     campaignName: toString(field(r, ['Campaign name', 'Campaign Name'])),
-    status: toString(field(r, ['Status', 'Delivery status'])),
+    status,
+    /** true when the ad set is currently delivering (case-insensitive "active" check). */
+    isActive: status.toLowerCase() === 'active',
     objective: toString(field(r, ['Objective', 'Campaign objective'])),
     results: toNumber(field(r, ['Results', 'Result'])),
     costPerResult: toNumber(field(r, ['Cost per result', 'Cost per Result'])),
@@ -177,12 +184,15 @@ function mapAdSet(r: Record<string, string>): AdSetRow | null {
 function mapAd(r: Record<string, string>): AdRow | null {
   const name = toString(field(r, ['Ad name', 'Ad Name']));
   if (isTotalsRow(name)) return null;
+  const status = toString(field(r, ['Status', 'Delivery status']));
   return {
     kind: 'ad',
     adName: name,
     adsetName: toString(field(r, ['Ad set name', 'Ad Set Name'])),
     campaignName: toString(field(r, ['Campaign name', 'Campaign Name'])),
-    status: toString(field(r, ['Status', 'Delivery status'])),
+    status,
+    /** true when the ad is currently delivering (case-insensitive "active" check). */
+    isActive: status.toLowerCase() === 'active',
     headline: toString(field(r, ['Headline', 'Title'])),
     body: toString(field(r, ['Body', 'Body text', 'Primary text'])),
     creative: toString(field(r, ['Creative', 'Image name', 'Video title'])),
@@ -194,6 +204,7 @@ function mapAd(r: Record<string, string>): AdRow | null {
     ctr: toNumber(field(r, ['CTR (link click-through rate)', 'CTR (all)', 'CTR'])),
     cpc: toNumber(field(r, ['CPC (cost per link click)', 'CPC (all)', 'CPC'])),
     amountSpent: toNumber(field(r, ['Amount spent (USD)', 'Amount Spent (USD)', 'Amount spent'])) ?? 0,
+    landingPageViews: toNumber(field(r, ['Landing page views', 'Landing Page Views', 'landing_page_views'])) ?? 0,
     qualityRanking: toString(field(r, ['Quality ranking'])),
     engagementRateRanking: toString(field(r, ['Engagement rate ranking'])),
     conversionRateRanking: toString(field(r, ['Conversion rate ranking'])),

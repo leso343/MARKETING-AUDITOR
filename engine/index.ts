@@ -14,6 +14,7 @@ import { Command } from 'commander';
 import { parseCsvDir } from './parsers/metaAdsCsv';
 import {
   AdRow,
+  AdSetRow,
   BreakdownRow,
   CampaignRow,
   ParsedFile,
@@ -25,6 +26,9 @@ import { analyzeGeographicWaste } from './analyses/geographicWaste';
 import { analyzeCreatives } from './analyses/creativeAnalysis';
 import { analyzeSpendEfficiency } from './analyses/spendEfficiency';
 import { analyzeDemographics } from './analyses/demographics';
+import { analyzePlacements } from './analyses/placementAnalysis';
+import { analyzeDevices } from './analyses/deviceAnalysis';
+import { analyzeTimeOfDay } from './analyses/timeAnalysis';
 import { generateReport } from './report/generator';
 
 interface CliOpts {
@@ -35,11 +39,25 @@ interface CliOpts {
   targetCtr?: string;
 }
 
-function flatRows<T extends ParsedRow>(files: ParsedFile[], kind: T['kind']): T[] {
+/**
+ * Extract rows of a given kind from parsed files.
+ *
+ * @param activeOnly  When true, exclude rows where `isActive === false`.
+ *                    This lets callers ignore paused/completed campaigns
+ *                    that would otherwise skew averages. Defaults to false
+ *                    so existing call-sites continue to see all rows.
+ *
+ * Note: adset-level files are handled here too (kind === 'adset') so
+ * that AdSetRow data (targeting, audiences, locations) is no longer lost.
+ */
+function flatRows<T extends ParsedRow>(files: ParsedFile[], kind: T['kind'], activeOnly?: boolean): T[] {
   const out: T[] = [];
   for (const f of files) {
     if (f.kind === kind) {
-      out.push(...(f.rows as T[]));
+      for (const row of f.rows as T[]) {
+        if (activeOnly && 'isActive' in row && !(row as any).isActive) continue;
+        out.push(row);
+      }
     }
   }
   return out;
@@ -81,10 +99,11 @@ function main(): void {
   }
 
   const campaigns = flatRows<CampaignRow>(files, 'campaign');
+  const adsets = flatRows<AdSetRow>(files, 'adset');
   const ads = flatRows<AdRow>(files, 'ad');
   const breakdowns = flatRows<BreakdownRow>(files, 'breakdown');
 
-  if (campaigns.length === 0 && ads.length === 0 && breakdowns.length === 0) {
+  if (campaigns.length === 0 && adsets.length === 0 && ads.length === 0 && breakdowns.length === 0) {
     console.error('[engine] No analysable rows after parsing. Check CSV headers.');
     process.exit(1);
   }
@@ -101,6 +120,9 @@ function main(): void {
   const creative = analyzeCreatives(ads);
   const spend = analyzeSpendEfficiency(campaigns, ads, breakdowns, benchmarks);
   const demographics = analyzeDemographics(breakdowns);
+  const placements = analyzePlacements(breakdowns);
+  const devices = analyzeDevices(breakdowns);
+  const timeOfDay = analyzeTimeOfDay(breakdowns);
 
   console.log('[engine] Generating HTML report...');
   const outputPath = path.resolve(opts.output);
