@@ -21,10 +21,20 @@ const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD ?? "changeme";
 
 async function upsertAgency(slug: string, name: string, primaryColor = "#ff0000") {
   const found = await db.select().from(schema.agencies).where(eq(schema.agencies.slug, slug)).limit(1);
-  if (found[0]) return found[0];
+  if (found[0]) {
+    await db.update(schema.agencies).set({ name, primaryColor }).where(eq(schema.agencies.id, found[0].id));
+    return found[0];
+  }
+  // Also check for legacy slug and rename it
+  const legacy = await db.select().from(schema.agencies).where(eq(schema.agencies.slug, "sna-marketing")).limit(1);
+  if (legacy[0]) {
+    await db.update(schema.agencies).set({ slug, name, primaryColor }).where(eq(schema.agencies.id, legacy[0].id));
+    return legacy[0];
+  }
   const id = randomUUID();
   await db.insert(schema.agencies).values({ id, slug, name, primaryColor });
-  return (await db.select().from(schema.agencies).where(eq(schema.agencies.id, id)).limit(1))[0]!;
+  // Return the known values directly (avoids Turso replication lag on select-after-insert)
+  return { id, slug, name, primaryColor } as typeof schema.agencies.$inferSelect;
 }
 
 async function upsertUser(email: string, password: string, role: "admin" | "agency", agencyId?: string, name?: string) {
@@ -36,7 +46,7 @@ async function upsertUser(email: string, password: string, role: "admin" | "agen
   }
   const id = randomUUID();
   await db.insert(schema.users).values({ id, email, passwordHash, role, agencyId: agencyId ?? null, name });
-  return (await db.select().from(schema.users).where(eq(schema.users.id, id)).limit(1))[0]!;
+  return { id, email, passwordHash, role, agencyId: agencyId ?? null, name } as typeof schema.users.$inferSelect;
 }
 
 async function upsertClient(slug: string, name: string, agencyId: string, opts: { subtitle?: string; industry?: string } = {}) {
@@ -47,7 +57,7 @@ async function upsertClient(slug: string, name: string, agencyId: string, opts: 
   }
   const id = randomUUID();
   await db.insert(schema.clients).values({ id, slug, name, agencyId, ...opts });
-  return (await db.select().from(schema.clients).where(eq(schema.clients.id, id)).limit(1))[0]!;
+  return { id, slug, name, agencyId, ...opts } as typeof schema.clients.$inferSelect;
 }
 
 async function ensureSubscription(agencyId: string) {
@@ -55,7 +65,7 @@ async function ensureSubscription(agencyId: string) {
   if (found[0]) return found[0];
   const id = randomUUID();
   await db.insert(schema.subscriptions).values({ id, agencyId, plan: "free", status: "trialing" });
-  return (await db.select().from(schema.subscriptions).where(eq(schema.subscriptions.id, id)).limit(1))[0]!;
+  return { id, agencyId, plan: "free", status: "trialing" } as typeof schema.subscriptions.$inferSelect;
 }
 
 async function main() {
@@ -71,7 +81,7 @@ async function main() {
     industry: "roofing",
   });
 
-  console.log("[seed] subscription: SNA → free / trialing");
+  console.log("[seed] subscription: BPA → free / trialing");
   await ensureSubscription(sna.id);
 
   console.log("[seed] done ✓");

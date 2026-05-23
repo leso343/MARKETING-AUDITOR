@@ -18,6 +18,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { Activity, Building2, Plus, Settings2, LogOut } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
+import Logo from "@/components/Logo";
 import { auth, authEnabled, signOut } from "@/auth";
 import { redirect } from "next/navigation";
 import { dbAvailable } from "@/lib/db";
@@ -79,7 +80,6 @@ export default async function Home() {
   // ── Deploy-safe legacy mode: no auth, no DB ───────────────────────────
   if (!authEnabled || !dbAvailable) {
     const clients: ClientTile[] = scanFsClients();
-    const headerLabel = "Blank Page Audits";
     const headerAccent = "var(--red)";
 
     return (
@@ -89,12 +89,7 @@ export default async function Home() {
             <div className="mb-3 font-mono text-[10px] uppercase tracking-[3px] text-[var(--text-dim)]">
               &gt; Blank Page Audits / Active Audits
             </div>
-            <h1
-              className="text-3xl font-bold tracking-tight lg:text-4xl"
-              style={{ fontFamily: "var(--font-head)" }}
-            >
-              {headerLabel}
-            </h1>
+            <Logo size="lg" />
             <p className="mt-2 max-w-xl text-sm text-[var(--text-dim)]">
               Drop a folder of Meta Ads Manager CSVs. The engine surfaces tracking
               failures, funnel leaks, geographic waste, and creative dead weight —
@@ -167,7 +162,6 @@ export default async function Home() {
   const agency = await getCurrentAgency();
   const isAdmin = session.user.role === "admin";
 
-  const headerLabel = agency?.name ?? "Blank Page Audits";
   const headerAccent = agency?.primaryColor ?? "var(--red)";
 
   // Dynamic import to avoid pulling BrandTheme into the legacy FS path
@@ -188,18 +182,20 @@ export default async function Home() {
           <div className="mb-3 font-mono text-[10px] uppercase tracking-[3px] text-[var(--text-dim)]">
             &gt; Blank Page Audits / Active Audits
           </div>
-          <div className="flex items-center gap-4">
-            {agency?.logoUrl && (
-              // eslint-disable-next-line @next/next/no-img-element
+          {agency?.logoUrl ? (
+            <div className="flex items-center gap-4">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={agency.logoUrl} alt={agency.name} className="h-12 w-auto" />
-            )}
-            <h1
-              className="text-3xl font-bold tracking-tight lg:text-4xl"
-              style={{ fontFamily: "var(--font-head)", color: agency ? undefined : undefined }}
-            >
-              {headerLabel}
-            </h1>
-          </div>
+              <h1
+                className="text-3xl font-bold tracking-tight lg:text-4xl"
+                style={{ fontFamily: "var(--font-head)" }}
+              >
+                {agency.name}
+              </h1>
+            </div>
+          ) : (
+            <Logo size="lg" />
+          )}
           <p className="mt-2 max-w-xl text-sm text-[var(--text-dim)]">
             Drop a folder of Meta Ads Manager CSVs. The engine surfaces tracking
             failures, funnel leaks, geographic waste, and creative dead weight —

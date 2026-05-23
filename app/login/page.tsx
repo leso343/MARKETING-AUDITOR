@@ -12,6 +12,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import LoginForm from "./LoginForm";
 import { authEnabled } from "@/auth";
+import Logo from "@/components/Logo";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +20,8 @@ export default function LoginPage() {
   return (
     <main className="min-h-screen flex items-center justify-center p-6">
       <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
+        <div className="mb-8 flex flex-col items-center">
+          <Logo size="lg" className="mb-6" />
           <div className="font-mono text-[10px] uppercase tracking-[3px] text-[var(--text-dim)] mb-2">
             &gt; Blank Page Audits / Login
           </div>
