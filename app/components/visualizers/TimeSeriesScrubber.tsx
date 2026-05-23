@@ -178,7 +178,7 @@ export default function TimeSeriesScrubber({
             />
             <Tooltip
               contentStyle={{
-                background: "#0a0a0a",
+                background: "var(--card)",
                 border: "1px solid var(--border)",
                 fontFamily: "var(--font-mono)",
                 fontSize: 11,
@@ -220,13 +220,13 @@ export default function TimeSeriesScrubber({
                     cx={cx}
                     cy={cy}
                     r={r}
-                    fill={payload.anomaly ? RED : isActive ? "#fff" : "transparent"}
-                    stroke={payload.anomaly ? "#fff" : RED}
+                    fill={payload.anomaly ? RED : isActive ? "var(--card)" : "transparent"}
+                    stroke={payload.anomaly ? "var(--card)" : RED}
                     strokeWidth={payload.anomaly ? 1 : 2}
                   />
                 );
               }}
-              activeDot={{ r: 5, fill: "#fff", stroke: RED, strokeWidth: 2 }}
+              activeDot={{ r: 5, fill: "var(--card)", stroke: RED, strokeWidth: 2 }}
             />
           </LineChart>
         </ResponsiveContainer>
@@ -299,8 +299,8 @@ export default function TimeSeriesScrubber({
               top: "50%",
               width: 16,
               height: 28,
-              background: isAnomaly ? RED : "#fff",
-              border: `2px solid ${isAnomaly ? "#fff" : RED}`,
+              background: isAnomaly ? RED : "var(--card)",
+              border: `2px solid ${isAnomaly ? "var(--card)" : RED}`,
               transform: "translate(-50%, -50%)",
               transition: reducedMotion ? "none" : "left 80ms ease-out",
               boxShadow: "0 0 8px rgba(255,0,0,0.4)",

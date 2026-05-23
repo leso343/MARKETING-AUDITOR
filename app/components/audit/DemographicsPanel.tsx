@@ -49,15 +49,15 @@ function CplTooltip({ active, payload }: any) {
   return (
     <div
       style={{
-        background: "#111",
-        border: "1px solid #333",
+        background: "var(--card)",
+        border: "1px solid var(--border)",
         padding: "6px 10px",
         fontFamily: "monospace",
         fontSize: 11,
         color: "var(--text)",
       }}
     >
-      <div style={{ color: "#888", marginBottom: 2 }}>Age {d.bracket}</div>
+      <div style={{ color: "var(--text-dim)", marginBottom: 2 }}>Age {d.bracket}</div>
       <div>${d.cpl.toFixed(2)} / lead</div>
     </div>
   );

@@ -211,7 +211,7 @@ function SecretInput({
         <button
           type="button"
           onClick={() => setShow((s) => !s)}
-          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-dim)] hover:text-white transition-colors"
+          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-dim)] hover:text-[var(--text)] transition-colors"
           tabIndex={-1}
         >
           {show ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
@@ -293,7 +293,7 @@ function NavItem({
       <span
         className={[
           "font-mono text-[11px] uppercase tracking-wider",
-          active ? "text-white" : "text-[var(--text-dim)]",
+          active ? "text-[var(--text)]" : "text-[var(--text-dim)]",
         ].join(" ")}
       >
         {title}
@@ -487,8 +487,8 @@ export default function SetupPage() {
 
               <div className="border-t border-[var(--border)] pt-4">
                 <p className="font-mono text-[10px] text-[var(--text-dim)]">
-                  Client logos are managed per-client via <code className="text-white">/admin/clients/&lt;slug&gt;</code>.
-                  The legacy <code className="text-white">public/csvs/&lt;slug&gt;/logo.png</code> path is still honored as a fallback.
+                  Client logos are managed per-client via <code className="text-[var(--text)]">/admin/clients/&lt;slug&gt;</code>.
+                  The legacy <code className="text-[var(--text)]">public/csvs/&lt;slug&gt;/logo.png</code> path is still honored as a fallback.
                 </p>
               </div>
             </div>
@@ -590,8 +590,8 @@ export default function SetupPage() {
 
               <div className="border-t border-[var(--border)] pt-4">
                 <p className="font-mono text-[10px] text-[var(--text-dim)]">
-                  Credentials are stored in <code className="text-white">config/meta.json</code> at the project root —
-                  outside <code className="text-white">public/</code> and excluded from git.
+                  Credentials are stored in <code className="text-[var(--text)]">config/meta.json</code> at the project root —
+                  outside <code className="text-[var(--text)]">public/</code> and excluded from git.
                 </p>
               </div>
             </div>

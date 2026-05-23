@@ -113,7 +113,7 @@ export default function AgencyCard({ agency, clientCount, userCount }: Props) {
           </div>
           <button
             onClick={() => { setConfirming(false); setTyped(""); setError(null); }}
-            className="text-[var(--text-dim)] hover:text-white transition-colors"
+            className="text-[var(--text-dim)] hover:text-[var(--text)] transition-colors"
           >
             <X className="h-4 w-4" />
           </button>
@@ -150,7 +150,7 @@ export default function AgencyCard({ agency, clientCount, userCount }: Props) {
           <button
             onClick={() => { setConfirming(false); setTyped(""); }}
             disabled={pendingDelete}
-            className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)] hover:text-white transition-colors"
+            className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)] hover:text-[var(--text)] transition-colors"
           >
             Cancel
           </button>
@@ -170,7 +170,7 @@ export default function AgencyCard({ agency, clientCount, userCount }: Props) {
           </div>
           <button
             onClick={() => { setEditing(false); setName(agency.name); setLogoUrl(agency.logoUrl ?? ""); setError(null); }}
-            className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)] hover:text-white transition-colors"
+            className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)] hover:text-[var(--text)] transition-colors"
           >
             <X className="h-3 w-3" /> Cancel
           </button>
@@ -219,7 +219,7 @@ export default function AgencyCard({ agency, clientCount, userCount }: Props) {
           <button
             onClick={() => setEditing(false)}
             disabled={pendingSave}
-            className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)] hover:text-white transition-colors"
+            className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)] hover:text-[var(--text)] transition-colors"
           >
             Cancel
           </button>

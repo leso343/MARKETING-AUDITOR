@@ -140,7 +140,7 @@ export default function ExecutiveSummary({ audit }: Props) {
                 <div className="font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)]">
                   {t("Impact", "What it costs you")}
                 </div>
-                <div className="font-mono text-lg font-extrabold text-white">
+                <div className="font-mono text-lg font-extrabold text-[var(--text)]">
                   ${f.impactUSD.toLocaleString()}
                 </div>
               </div>

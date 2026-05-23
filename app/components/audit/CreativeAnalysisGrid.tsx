@@ -94,7 +94,7 @@ function AdCard({ ad, tone, liveCpl }: { ad: AdScore; tone: "ok" | "critical"; l
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-start justify-between gap-2">
-          <div className="truncate text-xs font-bold text-white" title={ad.headline || ad.adName}>
+          <div className="truncate text-xs font-bold text-[var(--text)]" title={ad.headline || ad.adName}>
             {ad.headline || ad.adName || t("(no name)", "(ad has no name)")}
           </div>
           {liveTag && (
@@ -133,8 +133,8 @@ function AdCard({ ad, tone, liveCpl }: { ad: AdScore; tone: "ok" | "critical"; l
 function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-[8px] uppercase tracking-wider text-[#888]">{label}</div>
-      <div className="font-bold text-white">{value}</div>
+      <div className="text-[8px] uppercase tracking-wider text-[var(--text-dim)]">{label}</div>
+      <div className="font-bold text-[var(--text)]">{value}</div>
     </div>
   );
 }

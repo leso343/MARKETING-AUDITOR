@@ -144,15 +144,15 @@ function DarkTooltip({ active, payload, label }: any) {
   return (
     <div
       style={{
-        background: "#111",
-        border: "1px solid #333",
+        background: "var(--card)",
+        border: "1px solid var(--border)",
         padding: "6px 10px",
         fontFamily: "monospace",
         fontSize: 11,
         color: "var(--text)",
       }}
     >
-      <div style={{ color: "#888", marginBottom: 4 }}>{label}</div>
+      <div style={{ color: "var(--text-dim)", marginBottom: 4 }}>{label}</div>
       {payload.map(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (p: any) => (
@@ -274,7 +274,7 @@ export default function RecommendationCards({ audit, targetCpl }: Props) {
           <div className="font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)]">
             {t("Total Issues", "Problems found")}
           </div>
-          <div className="font-mono text-2xl font-extrabold text-white">{recos.length}</div>
+          <div className="font-mono text-2xl font-extrabold text-[var(--text)]">{recos.length}</div>
         </div>
       </div>
 
@@ -304,7 +304,7 @@ export default function RecommendationCards({ audit, targetCpl }: Props) {
                     {r.severity.toUpperCase()}
                   </span>
                   {r.impactUSD > 0 && (
-                    <span className="font-mono text-xs font-bold text-white">
+                    <span className="font-mono text-xs font-bold text-[var(--text)]">
                       ${r.impactUSD.toLocaleString()}
                     </span>
                   )}
@@ -321,7 +321,7 @@ export default function RecommendationCards({ audit, targetCpl }: Props) {
               </div>
               <ol className="mb-3 space-y-1.5 pl-1">
                 {r.fixSteps.map((step, idx) => (
-                  <li key={idx} className="flex gap-2 text-[11px] text-white">
+                  <li key={idx} className="flex gap-2 text-[11px] text-[var(--text)]">
                     <span className="font-mono text-[10px]" style={{ color: accent }}>
                       {String(idx + 1).padStart(2, "0")}
                     </span>
@@ -470,7 +470,7 @@ export default function RecommendationCards({ audit, targetCpl }: Props) {
 
                 {/* Dollar amount */}
                 <div
-                  className="font-mono text-2xl font-extrabold text-white"
+                  className="font-mono text-2xl font-extrabold text-[var(--text)]"
                   style={{ animation: `rca-num-in 0.5s ease ${i * 0.1 + 0.2}s both` }}
                 >
                   ${seg.value.toLocaleString(undefined, { maximumFractionDigits: 0 })}
@@ -525,7 +525,7 @@ export default function RecommendationCards({ audit, targetCpl }: Props) {
               </PieChart>
               <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
                 <div className="font-mono text-[7px] uppercase tracking-wider text-[var(--text-dim)]">actual</div>
-                <div className="font-mono text-[11px] font-extrabold text-white">${totalBudget.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
+                <div className="font-mono text-[11px] font-extrabold text-[var(--text)]">${totalBudget.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
               </div>
             </div>
             <div className="flex flex-col gap-1">
@@ -593,10 +593,10 @@ export default function RecommendationCards({ audit, targetCpl }: Props) {
               <div className="font-mono text-[8px] uppercase tracking-widest" style={{ color: "#4ade80" }}>Projected CPL after cuts</div>
               <div className="font-mono text-3xl font-extrabold" style={{ color: "#4ade80" }}>${projCplAfterCuts.toFixed(2)}</div>
               <div className="flex items-center gap-1.5">
-                <span className="font-mono text-[9px] line-through opacity-40 text-white">${cur.toFixed(2)}</span>
+                <span className="font-mono text-[9px] line-through opacity-40 text-[var(--text)]">${cur.toFixed(2)}</span>
                 <span className="font-mono text-[9px] font-bold" style={{ color: "#4ade80" }}>↓ {((1 - projCplAfterCuts / cur) * 100).toFixed(1)}% cheaper</span>
               </div>
-              <div className="mt-1 border border-[#1a2a1a] bg-[rgba(74,222,128,0.05)] px-2 py-1">
+              <div className="mt-1 border border-emerald-500/20 bg-emerald-500/5 px-2 py-1">
                 <div className="font-mono text-[8px] text-[#4ade80] opacity-80">LOWER CPL = BETTER</div>
                 <div className="font-mono text-[8px] text-[var(--text-dim)] mt-0.5">Cut ${Math.round(totalWaste).toLocaleString()} waste → same {audit.spend.totalLeads} leads, less spend</div>
               </div>
@@ -631,7 +631,7 @@ export default function RecommendationCards({ audit, targetCpl }: Props) {
             <div key={i} className="flex gap-3 border border-[var(--border)] bg-[var(--card)] p-4">
               <div className="shrink-0 font-mono text-2xl font-extrabold tabular-nums" style={{ color: row.color, lineHeight: 1 }}>{row.pct}</div>
               <div>
-                <div className="font-mono text-[11px] font-extrabold uppercase tracking-wider text-white">{row.label}</div>
+                <div className="font-mono text-[11px] font-extrabold uppercase tracking-wider text-[var(--text)]">{row.label}</div>
                 <div className="font-mono text-[11px] font-bold" style={{ color: row.color }}>${row.amount.toLocaleString()}/mo</div>
                 <div className="mt-1.5 text-[10px] leading-relaxed text-[var(--text-dim)]">{row.desc}</div>
               </div>
@@ -661,7 +661,7 @@ export default function RecommendationCards({ audit, targetCpl }: Props) {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="mb-1.5 flex flex-wrap items-center gap-2">
-                        <div className="font-mono text-[13px] font-extrabold uppercase tracking-tight text-white">{r.title}</div>
+                        <div className="font-mono text-[13px] font-extrabold uppercase tracking-tight text-[var(--text)]">{r.title}</div>
                         {r.impactUSD > 0 && (
                           <div className="border px-2 py-0.5 font-mono text-[10px] font-bold" style={{ color: accent, borderColor: accent, background: `color-mix(in srgb, ${accent} 8%, transparent)` }}>
                             ${r.impactUSD.toLocaleString()} AT RISK
@@ -673,7 +673,7 @@ export default function RecommendationCards({ audit, targetCpl }: Props) {
                   </div>
                   <div className="flex gap-2 border-t border-[var(--border)] px-4 py-2.5">
                     <span className="shrink-0 mt-0.5 font-mono text-[9px] uppercase tracking-widest text-[var(--text-dim)]">OUTCOME →</span>
-                    <span className="text-[11px] text-white">{outcome}</span>
+                    <span className="text-[11px] text-[var(--text)]">{outcome}</span>
                   </div>
                 </div>
               );

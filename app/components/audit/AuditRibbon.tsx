@@ -68,7 +68,7 @@ function Chip({ label, value, status, anchor }: ChipProps) {
 
 function Divider() {
   return (
-    <span className="shrink-0 font-mono text-[10px] text-[#555]" aria-hidden>
+    <span className="shrink-0 font-mono text-[10px] text-[var(--text-dim)] opacity-50" aria-hidden>
       |
     </span>
   );
@@ -116,10 +116,10 @@ export default function AuditRibbon({ audit }: Props) {
     <div
       className="flex items-center gap-2 overflow-x-auto px-4 py-2 sm:px-10"
       style={{
-        background: "#070707",
+        background: "var(--sidebar)",
         borderBottom: "1px solid var(--border)",
         scrollbarWidth: "thin",
-        scrollbarColor: "var(--red) #0a0a0a",
+        scrollbarColor: "var(--red) var(--bg)",
         WebkitOverflowScrolling: "touch",
         whiteSpace: "nowrap",
       }}

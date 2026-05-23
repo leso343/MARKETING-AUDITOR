@@ -42,7 +42,7 @@ export default function NewClientForm() {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="panel flex w-full items-center justify-center gap-2 py-4 text-[var(--text-dim)] transition-all hover:border-[var(--red)] hover:text-white"
+        className="panel flex w-full items-center justify-center gap-2 py-4 text-[var(--text-dim)] transition-all hover:border-[var(--red)] hover:text-[var(--text)]"
       >
         <Plus className="h-4 w-4" />
         <span className="font-mono text-[10px] uppercase tracking-widest">
@@ -59,7 +59,7 @@ export default function NewClientForm() {
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)] hover:text-white"
+          className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)] hover:text-[var(--text)]"
         >
           Cancel
         </button>

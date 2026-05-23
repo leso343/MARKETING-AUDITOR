@@ -52,7 +52,7 @@ html.light body {
 html.light .panel {
   background: var(--card);
   border-color: var(--border);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
 }
 
 html.light .panel-label {
@@ -76,8 +76,6 @@ html.light .insight-box {
   background: #fafafa;
   border-color: var(--border);
 }
-html.light .insight-box b { color: #111827; }
-
 html.light .status-ok    { color: #16a34a; }
 html.light .status-warn  { color: #b45309; }
 html.light .status-critical { color: var(--red); }
@@ -125,10 +123,6 @@ html.light .dark-select:hover { border-color: #d1d5db; }
 /* Light-mode funnel */
 html.light .funnel-stage { border-color: var(--border); }
 html.light .funnel-stage:hover { background: rgba(0,0,0,0.02); border-color: #d1d5db; }
-html.light .stage-val { color: #111827; }
-
-/* Light-mode waste meter */
-html.light .waste-meter { background: #e5e7eb; }
 
 /* Light-mode stat values */
 html.light .stat-val { color: #111827; }
@@ -138,18 +132,18 @@ html.light .stat-val { color: #111827; }
 /* ─── global custom scrollbar ─── */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--red) #040404;
+  scrollbar-color: var(--red) var(--bg);
 }
 /* inner panel scrollbars: ultra-thin, unobtrusive */
 *::-webkit-scrollbar { width: 3px; height: 3px; }
-*::-webkit-scrollbar-track { background: #080808; }
+*::-webkit-scrollbar-track { background: var(--bg); }
 *::-webkit-scrollbar-thumb { background: var(--red); border-radius: 0; }
-*::-webkit-scrollbar-corner { background: #040404; }
+*::-webkit-scrollbar-corner { background: var(--bg); }
 
 /* main page scrollbar: 6px laser — sharp edges, gradient flame, red glow */
 html::-webkit-scrollbar { width: 6px; }
 html::-webkit-scrollbar-track {
-  background: #040404;
+  background: var(--bg);
   box-shadow: inset -1px 0 0 rgba(255, 0, 0, 0.12);
 }
 html::-webkit-scrollbar-thumb {
@@ -207,7 +201,7 @@ html.is-scrolling *::-webkit-scrollbar-thumb:vertical {
   box-shadow: none !important;
 }
 html.is-scrolling *::-webkit-scrollbar-track:vertical {
-  background: #080808 !important;
+  background: var(--bg) !important;
 }
 html.is-scrolling::-webkit-scrollbar-thumb {
   background: linear-gradient(180deg,
@@ -234,7 +228,7 @@ html.is-scrolling::-webkit-scrollbar-thumb:hover {
     inset 0 0 5px rgba(255, 140, 0, 0.55) !important;
 }
 html.is-scrolling::-webkit-scrollbar-track {
-  background: #040404 !important;
+  background: var(--bg) !important;
   box-shadow: inset -1px 0 0 rgba(255, 0, 0, 0.12) !important;
 }
 
@@ -260,7 +254,7 @@ body {
 .panel-label {
   font-family: var(--font-mono);
   font-size: 11px;
-  color: #c0c0c0;
+  color: var(--text-dim);
   text-transform: uppercase;
   letter-spacing: 2.5px;
   margin-bottom: 20px;
@@ -302,14 +296,14 @@ body {
 .insight-box {
   margin-top: 20px;
   padding: 15px;
-  background: #000;
+  background: var(--card);
   border: 1px solid var(--border);
   border-left: 3px solid var(--red);
   font-size: 13px;
   line-height: 1.6;
   color: var(--text-dim);
 }
-.insight-box b { color: #fff; }
+.insight-box b { color: var(--text); }
 
 /* ─── funnel ─── */
 .funnel-stage {
@@ -323,7 +317,7 @@ body {
   transition: all 0.3s;
   overflow: hidden;
 }
-.funnel-stage:hover { background: rgba(255,255,255,0.02); border-color: #333; }
+.funnel-stage:hover { background: var(--red-dim); border-color: var(--text-dim); }
 .funnel-fill {
   position: absolute; left: 0; top: 0;
   height: 100%; background: var(--red-dim);
@@ -335,7 +329,7 @@ body {
   width: 100%; align-items: center;
 }
 .stage-label { font-size: 12px; font-weight: 800; font-family: var(--font-mono); }
-.stage-val { font-family: var(--font-mono); font-size: 13px; color: #fff; }
+.stage-val { font-family: var(--font-mono); font-size: 13px; color: var(--text); }
 
 /* ─── data tables ─── */
 .data-table { width: 100%; border-collapse: collapse; }
@@ -353,13 +347,13 @@ body {
 .data-table td {
   padding: 15px 12px;
   font-size: 13px;
-  border-bottom: 1px solid #111;
+  border-bottom: 1px solid var(--border);
 }
 
 /* ─── waste meter (tracking panel) ─── */
 .waste-meter {
   height: 4px; width: 100%;
-  background: #111; border-radius: 10px;
+  background: var(--border); border-radius: 10px;
   margin: 15px 0; overflow: hidden;
 }
 .waste-fill {
@@ -373,7 +367,7 @@ body {
   appearance: none;
   width: 100%;
   height: 2px;
-  background: #1f1f1f;
+  background: var(--border);
   border-radius: 2px;
   outline: none;
 }
@@ -384,7 +378,7 @@ body {
   border-radius: 50%;
   background: var(--red);
   cursor: pointer;
-  border: 2px solid #000;
+  border: 2px solid var(--bg);
   box-shadow: 0 0 8px rgba(255,0,0,0.5);
 }
 .range-input::-moz-range-thumb {
@@ -392,14 +386,14 @@ body {
   border-radius: 50%;
   background: var(--red);
   cursor: pointer;
-  border: 2px solid #000;
+  border: 2px solid var(--bg);
 }
 
 /* ─── selects ─── */
 .dark-select {
   width: 100%;
-  background: #060606;
-  color: #fff;
+  background: var(--card);
+  color: var(--text);
   border: 1px solid var(--border);
   border-radius: 3px;
   padding: 8px 10px;
@@ -409,7 +403,7 @@ body {
   outline: none;
   cursor: pointer;
 }
-.dark-select:hover { border-color: #333; }
+.dark-select:hover { border-color: var(--text-dim); }
 .dark-select:focus { border-color: var(--red); }
 
 

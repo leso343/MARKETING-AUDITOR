@@ -71,7 +71,7 @@ export default function UploadCsvForm({ slug }: { slug: string }) {
         className={`relative cursor-pointer rounded-lg border-2 border-dashed p-8 text-center transition-all ${
           dragOver
             ? "border-[var(--red)] bg-[var(--red)]/5"
-            : "border-[var(--border)] hover:border-[var(--text-dim)] hover:bg-white/[0.01]"
+            : "border-[var(--border)] hover:border-[var(--text-dim)] hover:bg-[var(--text)]/[0.02]"
         } ${pending ? "pointer-events-none opacity-50" : ""}`}
       >
         <input

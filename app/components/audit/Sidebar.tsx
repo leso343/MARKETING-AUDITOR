@@ -32,7 +32,7 @@ function AgencyLogoSVG({ compact }: { compact?: boolean }) {
   if (compact) {
     return (
       <div className="flex items-center gap-1.5">
-        <span className="text-lg font-black text-white leading-none" style={{ fontFamily: "var(--font-head)", letterSpacing: -1 }}>SNA</span>
+        <span className="text-lg font-black text-[var(--text)] leading-none" style={{ fontFamily: "var(--font-head)", letterSpacing: -1 }}>SNA</span>
         <span className="inline-block w-[4px] h-[4px] bg-[var(--red)] flex-shrink-0" />
         <span className="font-black text-[var(--red)] uppercase" style={{ fontFamily: "var(--font-head)", fontSize: 9, letterSpacing: 1.5 }}>Forensic</span>
       </div>
@@ -40,10 +40,10 @@ function AgencyLogoSVG({ compact }: { compact?: boolean }) {
   }
   return (
     <div className="flex items-end gap-2">
-      <span className="text-2xl font-black text-white leading-none" style={{ fontFamily: "var(--font-head)", letterSpacing: -1.5 }}>SNA</span>
+      <span className="text-2xl font-black text-[var(--text)] leading-none" style={{ fontFamily: "var(--font-head)", letterSpacing: -1.5 }}>SNA</span>
       <span className="inline-block w-[5px] h-[5px] bg-[var(--red)] mb-[3px] flex-shrink-0" />
       <div className="flex flex-col leading-tight">
-        <span className="font-black text-white uppercase" style={{ fontFamily: "var(--font-head)", fontSize: 8, letterSpacing: 2 }}>FORENSIC</span>
+        <span className="font-black text-[var(--text)] uppercase" style={{ fontFamily: "var(--font-head)", fontSize: 8, letterSpacing: 2 }}>FORENSIC</span>
         <span className="text-[#9CA3AF] uppercase" style={{ fontFamily: "var(--font-mono)", fontSize: 6, letterSpacing: 1.5 }}>MARKETING ENGINE</span>
       </div>
     </div>
@@ -61,7 +61,7 @@ function ClientLogoSVG({ name, subtitle }: { name: string; subtitle?: string }) 
           CLIENT
         </span>
       </div>
-      <div className="font-black text-white leading-tight" style={{ fontFamily: "var(--font-head)", fontSize: 14, letterSpacing: 0.2 }}>
+      <div className="font-black text-[var(--text)] leading-tight" style={{ fontFamily: "var(--font-head)", fontSize: 14, letterSpacing: 0.2 }}>
         {name.toUpperCase()}
       </div>
       {subtitle && (
@@ -114,7 +114,7 @@ export default function Sidebar({ clientName, clientSubtitle, primaryLeak, clien
     <>
       <Link
         href="/"
-        className="mb-10 flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-[var(--text-dim)] transition-colors hover:text-white"
+        className="mb-10 flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-[var(--text-dim)] transition-colors hover:text-[var(--text)]"
         onClick={() => setMobileOpen(false)}
       >
         <ChevronLeft className="h-3 w-3" />
@@ -142,7 +142,7 @@ export default function Sidebar({ clientName, clientSubtitle, primaryLeak, clien
                 key={item.href}
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
-                className="mb-1 flex items-center gap-3 rounded px-3 py-2.5 text-[13px] font-medium text-[var(--text-dim)] transition-colors hover:bg-white/[0.03] hover:text-white"
+                className="mb-1 flex items-center gap-3 rounded px-3 py-2.5 text-[13px] font-medium text-[var(--text-dim)] transition-colors hover:bg-[var(--text)]/[0.04] hover:text-[var(--text)]"
               >
                 <Icon className="h-3.5 w-3.5" />
                 {item.label}
@@ -199,7 +199,7 @@ export default function Sidebar({ clientName, clientSubtitle, primaryLeak, clien
         </div>
         <button
           onClick={() => setMobileOpen((v) => !v)}
-          className="flex items-center gap-1.5 border border-[var(--border)] px-2 py-1.5 font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)] transition-colors hover:text-white"
+          className="flex items-center gap-1.5 border border-[var(--border)] px-2 py-1.5 font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)] transition-colors hover:text-[var(--text)]"
           aria-label="Toggle navigation"
         >
           {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}

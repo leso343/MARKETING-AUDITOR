@@ -14,7 +14,7 @@ export default function NotFound() {
       </h1>
       <p className="mt-3 max-w-md text-sm text-[var(--text-dim)]">
         Drop Meta Ads exports into{" "}
-        <span className="font-mono text-white">
+        <span className="font-mono text-[var(--text)]">
           /public/csvs/&lt;client-slug&gt;/
         </span>{" "}
         and reload.

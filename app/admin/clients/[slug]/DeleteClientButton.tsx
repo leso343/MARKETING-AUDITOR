@@ -64,7 +64,7 @@ export default function DeleteClientButton({ clientId, clientName, clientSlug }:
         </div>
         <button
           onClick={() => { setConfirming(false); setTyped(""); setError(null); }}
-          className="text-[var(--text-dim)] hover:text-white transition-colors"
+          className="text-[var(--text-dim)] hover:text-[var(--text)] transition-colors"
         >
           <X className="h-4 w-4" />
         </button>
@@ -106,7 +106,7 @@ export default function DeleteClientButton({ clientId, clientName, clientSlug }:
         <button
           onClick={() => { setConfirming(false); setTyped(""); setError(null); }}
           disabled={pending}
-          className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)] hover:text-white transition-colors disabled:opacity-50"
+          className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)] hover:text-[var(--text)] transition-colors disabled:opacity-50"
         >
           Cancel
         </button>

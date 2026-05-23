@@ -91,7 +91,7 @@ export default function TrackingFailuresPanel({ tracking }: Props) {
                   className="h-3.5 w-3.5"
                   style={{ color: f.severity === "critical" ? "var(--red)" : "#fbbf24" }}
                 />
-                <span className="font-mono text-[10px] uppercase tracking-wider text-white">
+                <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--text)]">
                   {typeLabel}
                 </span>
                 {f.estimatedImpact > 0 && (
@@ -127,8 +127,8 @@ function Mini({
 }) {
   const color = tone === "ok" ? "#4ade80" : tone === "warn" ? "#fbbf24" : "#ff0000";
   return (
-    <div className="border border-[#111] p-3">
-      <div className="font-mono text-[9px] uppercase tracking-wider text-[#888]">{label}</div>
+    <div className="border border-[var(--border)] p-3">
+      <div className="font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)]">{label}</div>
       <div className="mt-1 text-sm font-extrabold" style={{ color }}>
         {value}
       </div>

@@ -266,7 +266,7 @@ export default function AgencyBrandingForm({ agencyId, defaults }: Props) {
                     ))}
                   </div>
                 </div>
-                <span className="font-mono text-[7px] uppercase tracking-wider text-[var(--text-dim)] group-hover:text-white">
+                <span className="font-mono text-[7px] uppercase tracking-wider text-[var(--text-dim)] group-hover:text-[var(--text)]">
                   {p.name}
                 </span>
                 {active && (
@@ -360,7 +360,7 @@ export default function AgencyBrandingForm({ agencyId, defaults }: Props) {
                   <div className="font-mono text-[7px] uppercase tracking-widest" style={{ color: s.color }}>
                     {s.label}
                   </div>
-                  <div className="mt-0.5 text-sm font-bold tracking-tight text-white">{s.value}</div>
+                  <div className="mt-0.5 text-sm font-bold tracking-tight text-[var(--text)]">{s.value}</div>
                 </div>
               ))}
             </div>
@@ -409,7 +409,7 @@ export default function AgencyBrandingForm({ agencyId, defaults }: Props) {
                       <span className="font-mono text-[7px] font-bold" style={{ color: f.color }}>
                         #{f.rank}
                       </span>
-                      <span className="text-[9px] text-white">{f.title}</span>
+                      <span className="text-[9px] text-[var(--text)]">{f.title}</span>
                     </div>
                     <span className="font-mono text-[8px] font-bold" style={{ color: f.color }}>
                       {f.amount}

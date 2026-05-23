@@ -17,6 +17,7 @@ import Link from "next/link";
 import fs from "node:fs";
 import path from "node:path";
 import { Activity, Building2, Plus, Settings2, LogOut } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
 import { auth, authEnabled, signOut } from "@/auth";
 import { redirect } from "next/navigation";
 import { dbAvailable } from "@/lib/db";
@@ -105,6 +106,7 @@ export default async function Home() {
             </p>
           </div>
           <div className="flex items-center gap-4">
+            <ThemeToggle />
             <div className="hidden items-center gap-2 lg:flex">
               <div className="pulse" style={{ background: headerAccent }} />
               <span
@@ -211,6 +213,7 @@ export default async function Home() {
               Engine: Online
             </span>
           </div>
+          <ThemeToggle />
           {isAdmin && (
             <Link href="/admin/clients" className="flex items-center gap-1.5 rounded border border-[var(--border)] px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)] transition-all hover:border-[var(--red)] hover:text-[var(--red)]">
               <Settings2 className="h-3 w-3" />

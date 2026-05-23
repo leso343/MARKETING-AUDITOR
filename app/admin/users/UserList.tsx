@@ -86,7 +86,7 @@ function CreateUserForm({ agencies, onClose }: { agencies: Agency[]; onClose: ()
         <button
           type="button"
           onClick={onClose}
-          className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)] hover:text-white transition-colors"
+          className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)] hover:text-[var(--text)] transition-colors"
         >
           <X className="h-3 w-3" /> Cancel
         </button>
@@ -134,7 +134,7 @@ function CreateUserForm({ agencies, onClose }: { agencies: Agency[]; onClose: ()
             <button
               type="button"
               onClick={() => setShowPw(!showPw)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--text-dim)] hover:text-white transition-colors"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--text-dim)] hover:text-[var(--text)] transition-colors"
             >
               {showPw ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
             </button>
@@ -275,7 +275,7 @@ function UserRow({ user, agencies }: { user: User; agencies: Agency[] }) {
           </button>
           <button
             onClick={() => setConfirming(false)}
-            className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)] hover:text-white transition-colors"
+            className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)] hover:text-[var(--text)] transition-colors"
           >
             Cancel
           </button>
@@ -291,7 +291,7 @@ function UserRow({ user, agencies }: { user: User; agencies: Agency[] }) {
           <span className="font-mono text-xs text-[var(--text-dim)]">{user.email}</span>
           <button
             onClick={() => { setEditing(false); setError(null); setNewPassword(""); }}
-            className="flex items-center gap-1 font-mono text-[9px] uppercase tracking-widest text-[var(--text-dim)] hover:text-white transition-colors"
+            className="flex items-center gap-1 font-mono text-[9px] uppercase tracking-widest text-[var(--text-dim)] hover:text-[var(--text)] transition-colors"
           >
             <X className="h-3 w-3" /> Cancel
           </button>
@@ -430,7 +430,7 @@ export default function UserList({ users, agencies }: Props) {
       ) : (
         <button
           onClick={() => setCreating(true)}
-          className="panel flex w-full items-center justify-center gap-2 py-4 text-[var(--text-dim)] transition-all hover:border-[var(--red)] hover:text-white"
+          className="panel flex w-full items-center justify-center gap-2 py-4 text-[var(--text-dim)] transition-all hover:border-[var(--red)] hover:text-[var(--text)]"
         >
           <Plus className="h-4 w-4" />
           <span className="font-mono text-[10px] uppercase tracking-widest">

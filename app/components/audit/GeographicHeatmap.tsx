@@ -111,7 +111,7 @@ export default function GeographicHeatmap({ geo, liveCpl, costMetricLabel = "CPL
                 </td>
                 <td className="text-right font-mono" style={{ fontSize: 11, padding: "10px 8px" }}>
                   ${r.spend.toLocaleString()}
-                  <div className="mt-1 h-[2px] w-full bg-[#111]">
+                  <div className="mt-1 h-[2px] w-full bg-[var(--border)]">
                     <div
                       className="h-full bg-[var(--red)]"
                       style={{ width: `${widthPct}%`, opacity: 0.5 }}
@@ -175,14 +175,14 @@ function Mini({
   tone?: "leak";
 }) {
   return (
-    <div className="border border-[var(--border)] bg-[#060606] px-3 py-2.5">
+    <div className="border border-[var(--border)] bg-[var(--sidebar)] px-3 py-2.5">
       <div
         className="font-mono text-base font-extrabold leading-none"
-        style={{ color: tone === "leak" ? "var(--red)" : "#fff" }}
+        style={{ color: tone === "leak" ? "var(--red)" : "var(--text)" }}
       >
         {value}
       </div>
-      <div className="mt-1.5 font-mono text-[8px] uppercase tracking-[1.5px] text-[#888]">
+      <div className="mt-1.5 font-mono text-[8px] uppercase tracking-[1.5px] text-[var(--text-dim)]">
         {label}
       </div>
     </div>

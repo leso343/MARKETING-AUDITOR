@@ -11,6 +11,7 @@ import {
   CreditCard,
   Shield,
 } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
 
 /**
  * Admin shell — polished sidebar-style nav.
@@ -74,7 +75,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <div className="flex items-center">
             <Link
               href="/"
-              className="flex items-center gap-1.5 border-r border-[var(--border)] pr-4 py-3 font-mono text-[10px] uppercase tracking-[2px] text-[var(--text-dim)] transition-colors hover:text-white"
+              className="flex items-center gap-1.5 border-r border-[var(--border)] pr-4 py-3 font-mono text-[10px] uppercase tracking-[2px] text-[var(--text-dim)] transition-colors hover:text-[var(--text)]"
             >
               <ArrowLeft className="h-3 w-3" />
               Dashboard
@@ -84,7 +85,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="group relative flex items-center gap-2 px-4 py-3 text-sm text-[var(--text-dim)] transition-colors hover:text-white"
+                  className="group relative flex items-center gap-2 px-4 py-3 text-sm text-[var(--text-dim)] transition-colors hover:text-[var(--text)]"
                 >
                   <item.icon className="h-3.5 w-3.5 text-[var(--text-dim)] transition-colors group-hover:text-[var(--red)]" />
                   <span className="font-mono text-[10px] uppercase tracking-widest">
@@ -97,8 +98,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             </div>
           </div>
 
-          {/* right: user info */}
+          {/* right: theme toggle + user info */}
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             <div className="flex items-center gap-2">
               <div className="flex h-6 w-6 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--card)]">
                 <Shield className="h-3 w-3 text-[var(--red)]" />

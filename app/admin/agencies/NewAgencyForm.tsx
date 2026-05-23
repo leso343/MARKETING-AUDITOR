@@ -47,7 +47,7 @@ export default function NewAgencyForm() {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="panel flex w-full items-center justify-center gap-2 py-4 text-[var(--text-dim)] transition-all hover:border-[var(--red)] hover:text-white"
+        className="panel flex w-full items-center justify-center gap-2 py-4 text-[var(--text-dim)] transition-all hover:border-[var(--red)] hover:text-[var(--text)]"
       >
         <Plus className="h-4 w-4" />
         <span className="font-mono text-[10px] uppercase tracking-widest">
@@ -64,7 +64,7 @@ export default function NewAgencyForm() {
         <button
           type="button"
           onClick={reset}
-          className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)] hover:text-white transition-colors"
+          className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)] hover:text-[var(--text)] transition-colors"
         >
           <X className="h-3 w-3" />
           Cancel

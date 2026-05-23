@@ -94,7 +94,7 @@ export default function ReportViewer({ open, page, onClose }: Props) {
     <div
       className="fixed inset-0 z-50 flex flex-col"
       style={{
-        background: "#030303",
+        background: "var(--bg)",
         opacity: visible ? 1 : 0,
         transform: visible ? "translateY(0)" : "translateY(20px)",
         transition: "opacity 0.35s ease, transform 0.35s ease",
@@ -110,7 +110,7 @@ export default function ReportViewer({ open, page, onClose }: Props) {
         {/* Back button */}
         <button
           onClick={onClose}
-          className="flex shrink-0 items-center gap-1.5 border border-[var(--border)] px-2 py-1.5 font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)] transition-colors hover:border-[var(--red)] hover:text-white sm:px-3"
+          className="flex shrink-0 items-center gap-1.5 border border-[var(--border)] px-2 py-1.5 font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)] transition-colors hover:border-[var(--red)] hover:text-[var(--text)] sm:px-3"
         >
           <ChevronLeft className="h-3 w-3" />
           <span className="hidden sm:inline">{t("← Back to Dashboard", "← Back to Dashboard")}</span>
@@ -146,7 +146,7 @@ export default function ReportViewer({ open, page, onClose }: Props) {
                 window.print();
               }
             }}
-            className="flex items-center gap-1.5 border border-[var(--border)] px-2 py-1.5 font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)] transition-colors hover:border-[var(--red)] hover:text-white sm:px-3"
+            className="flex items-center gap-1.5 border border-[var(--border)] px-2 py-1.5 font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)] transition-colors hover:border-[var(--red)] hover:text-[var(--text)] sm:px-3"
             title="Print Report"
           >
             <Printer className="h-3 w-3" />
@@ -168,7 +168,7 @@ export default function ReportViewer({ open, page, onClose }: Props) {
       <div className="relative flex-1 overflow-hidden">
         {/* Loading spinner */}
         {!loaded && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-[#030303]">
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-[var(--bg)]">
             <div
               className="h-8 w-8 rounded-full border-2 border-[var(--border)] border-t-[var(--red)]"
               style={{ animation: "spin 0.8s linear infinite" }}

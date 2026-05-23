@@ -309,7 +309,7 @@ export default function ControlsPanel({
           <div className="flex items-center justify-between px-6 pb-3 pt-4">
             <div className="flex items-center gap-2">
               <Settings2 className="h-4 w-4 text-[var(--red)]" />
-              <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-white">
+              <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-[var(--text)]">
                 Live Controls
               </span>
               {isPending && <Loader2 className="h-3.5 w-3.5 animate-spin text-[var(--red)]" />}
@@ -326,7 +326,7 @@ export default function ControlsPanel({
               )}
               <button
                 onClick={() => setMobileOpen(false)}
-                className="border border-[var(--border)] p-1.5 text-[var(--text-dim)] hover:text-white"
+                className="border border-[var(--border)] p-1.5 text-[var(--text-dim)] hover:text-[var(--text)]"
               >
                 <X className="h-4 w-4" />
               </button>

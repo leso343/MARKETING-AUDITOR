@@ -114,7 +114,7 @@ export default function CanvasMapPanel() {
       /* Atlanta label */
       L.marker(ATL, {
         icon: L.divIcon({
-          html: '<div style="background:#0a0a0a;border:1px solid #F59E0B;color:#FCD34D;padding:2px 8px;border-radius:3px;font-family:monospace;font-size:10px;font-weight:900;white-space:nowrap">ATLANTA · 30 LEADS</div>',
+          html: '<div style="background:var(--card);border:1px solid #F59E0B;color:#FCD34D;padding:2px 8px;border-radius:3px;font-family:monospace;font-size:10px;font-weight:900;white-space:nowrap">ATLANTA · 30 LEADS</div>',
           iconSize: [140, 18], iconAnchor: [70, 9], className: "",
         }),
       }).addTo(map);
@@ -129,7 +129,7 @@ export default function CanvasMapPanel() {
       }).addTo(map);
       L.marker(leak, {
         icon: L.divIcon({
-          html: '<div style="background:#0a0a0a;border:1px solid #60A5FA;color:#93C5FD;padding:2px 8px;border-radius:3px;font-family:monospace;font-size:10px;font-weight:900;white-space:nowrap">$21.22 SPENT · 0 LEADS · NC/SC</div>',
+          html: '<div style="background:var(--card);border:1px solid #60A5FA;color:#93C5FD;padding:2px 8px;border-radius:3px;font-family:monospace;font-size:10px;font-weight:900;white-space:nowrap">$21.22 SPENT · 0 LEADS · NC/SC</div>',
           iconSize: [200, 18], iconAnchor: [100, -6], className: "",
         }),
       }).addTo(map);
@@ -177,9 +177,9 @@ export default function CanvasMapPanel() {
           70%  { transform:scale(2.4); opacity:0  }
           100% { transform:scale(1);   opacity:0  }
         }
-        .leaflet-container { background: #030303; }
-        .leaflet-tooltip { background:#111!important; border:1px solid #333!important; color:#fff!important; font-family:monospace; font-size:11px; }
-        .leaflet-tooltip-left::before, .leaflet-tooltip-right::before { border-right-color:#333!important; border-left-color:#333!important; }
+        .leaflet-container { background: var(--bg); }
+        .leaflet-tooltip { background:var(--card)!important; border:1px solid var(--border)!important; color:var(--text)!important; font-family:monospace; font-size:11px; }
+        .leaflet-tooltip-left::before, .leaflet-tooltip-right::before { border-right-color:var(--border)!important; border-left-color:var(--border)!important; }
       `}</style>
 
       <div className="panel-label">{t("Canvas_Priority_Map", "Best neighborhoods to knock")}</div>
@@ -194,7 +194,7 @@ export default function CanvasMapPanel() {
       </p>
 
       {/* Map */}
-      <div ref={mapRef} style={{ height: 360, width: "100%", background: "#030303" }} />
+      <div ref={mapRef} style={{ height: 360, width: "100%", background: "var(--bg)" }} />
 
       {/* Legend */}
       <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 border border-[var(--border)] bg-[var(--card)] p-3">
@@ -236,7 +236,7 @@ export default function CanvasMapPanel() {
             return (
               <li key={i} className="flex flex-wrap items-baseline gap-x-2 text-[12px]">
                 <span className="font-mono text-[10px] text-[var(--red)]">{i + 1}.</span>
-                <span className="font-bold text-white">{z.location}</span>
+                <span className="font-bold text-[var(--text)]">{z.location}</span>
                 <span className="text-[var(--text-dim)]">— {sevLabel} · {z.date}</span>
                 {z.inHeat ? (
                   <span className="font-mono text-[9px] font-extrabold tracking-wider" style={{ color: "#FCD34D" }}>★ HIGH PRIORITY</span>

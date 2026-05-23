@@ -149,7 +149,7 @@ function InsightCard({
         <Lightbulb className="h-3.5 w-3.5 shrink-0" style={{ color: accent }} />
         <span className="font-mono text-[9px] uppercase tracking-widest" style={{ color: accent }}>{title}</span>
       </div>
-      <p className="mb-2 text-[11px] font-semibold text-white leading-relaxed">{summary}</p>
+      <p className="mb-2 text-[11px] font-semibold text-[var(--text)] leading-relaxed">{summary}</p>
       <p className="mb-3 text-[11px] leading-relaxed text-[var(--text-dim)]">{detail}</p>
       <div className="space-y-1.5">
         {actions.map((a, i) => (
@@ -234,12 +234,12 @@ export default function BenchmarkStatus({
           <div className="mb-2 font-mono text-[9px] uppercase tracking-widest text-[var(--text-dim)]">
             {t("Industry", "Industry averages")}
           </div>
-          <div className="font-mono text-sm font-bold capitalize text-white">{industry}</div>
+          <div className="font-mono text-sm font-bold capitalize text-[var(--text)]">{industry}</div>
           <div className="mt-1 font-mono text-[10px] text-[var(--text-dim)]">
-            CPL target: <span className="text-white">${liveCpl}</span>
+            CPL target: <span className="text-[var(--text)]">${liveCpl}</span>
           </div>
           <div className="font-mono text-[10px] text-[var(--text-dim)]">
-            CTR target: <span className="text-white">{liveCtr.toFixed(1)}%</span>
+            CTR target: <span className="text-[var(--text)]">{liveCtr.toFixed(1)}%</span>
           </div>
           <div className="mt-2 font-mono text-[8px] text-[var(--text-dim)] opacity-60">
             {isPreview ? "What-if mode — reset slider to restore original" : "Change industry → auto-sets benchmarks"}

@@ -75,7 +75,7 @@ export default async function AdminBillingPage() {
         </div>
         <h1 className="text-2xl font-bold" style={{ fontFamily: "var(--font-head)" }}>Billing</h1>
         <p className="text-sm text-[var(--text-dim)] mt-1">
-          Subscription for <span className="text-white font-medium">{agency.name}</span>
+          Subscription for <span className="text-[var(--text)] font-medium">{agency.name}</span>
         </p>
       </div>
 
@@ -157,7 +157,7 @@ export default async function AdminBillingPage() {
                 )}
                 <Link
                   href="/pricing"
-                  className="flex items-center gap-1.5 rounded border border-[var(--border)] px-4 py-2 font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)] hover:border-[var(--red)] hover:text-white transition-all"
+                  className="flex items-center gap-1.5 rounded border border-[var(--border)] px-4 py-2 font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)] hover:border-[var(--red)] hover:text-[var(--text)] transition-all"
                 >
                   Change plan
                 </Link>

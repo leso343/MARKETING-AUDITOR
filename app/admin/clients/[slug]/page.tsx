@@ -136,7 +136,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ s
       <div>
         <Link
           href="/admin/clients"
-          className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[2px] text-[var(--text-dim)] hover:text-white transition-colors mb-3"
+          className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[2px] text-[var(--text-dim)] hover:text-[var(--text)] transition-colors mb-3"
         >
           <ArrowLeft className="h-3 w-3" />
           All clients
