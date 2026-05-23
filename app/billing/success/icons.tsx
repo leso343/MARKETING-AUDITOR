@@ -27,16 +27,21 @@ export function IconPlan({ className, color = defaults.color, colorEnd = default
           <stop stopColor={color} />
           <stop offset="1" stopColor={colorEnd} />
         </linearGradient>
-        <filter id="glow-plan">
-          <feGaussianBlur stdDeviation="1.5" result="blur" />
-          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        <filter id="glow-plan" x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="2" result="blur" />
+          <feFlood floodColor={color} floodOpacity="0.35" result="glow-color" />
+          <feComposite in="glow-color" in2="blur" operator="in" result="colored-blur" />
+          <feMerge>
+            <feMergeNode in="colored-blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
         </filter>
       </defs>
       <g filter="url(#glow-plan)">
         <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
-          stroke={`url(#${id})`} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+          stroke={`url(#${id})`} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none" />
         <path d="M12 6L13.545 9.13L17 9.635L14.5 12.07L15.09 15.51L12 13.885L8.91 15.51L9.5 12.07L7 9.635L10.455 9.13L12 6Z"
-          fill={`url(#${id})`} opacity="0.25" />
+          fill={`url(#${id})`} opacity="0.35" />
       </g>
     </svg>
   );
@@ -50,15 +55,20 @@ export function IconStatus({ className }: IconProps) {
           <stop stopColor="#34d399" />
           <stop offset="1" stopColor="#6ee7b7" />
         </linearGradient>
-        <filter id="glow-status">
-          <feGaussianBlur stdDeviation="1.5" result="blur" />
-          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        <filter id="glow-status" x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="2" result="blur" />
+          <feFlood floodColor="#34d399" floodOpacity="0.35" result="glow-color" />
+          <feComposite in="glow-color" in2="blur" operator="in" result="colored-blur" />
+          <feMerge>
+            <feMergeNode in="colored-blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
         </filter>
       </defs>
       <g filter="url(#glow-status)">
-        <path d="M22 11.08V12a10 10 0 11-5.93-9.14" stroke="url(#grad-status)" strokeWidth="1.5" strokeLinecap="round" />
-        <path d="M22 4L12 14.01l-3-3" stroke="url(#grad-status)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        <circle cx="12" cy="12" r="3" fill="url(#grad-status)" opacity="0.15" />
+        <path d="M22 11.08V12a10 10 0 11-5.93-9.14" stroke="url(#grad-status)" strokeWidth="1.8" strokeLinecap="round" />
+        <path d="M22 4L12 14.01l-3-3" stroke="url(#grad-status)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx="12" cy="12" r="3" fill="url(#grad-status)" opacity="0.2" />
       </g>
     </svg>
   );
@@ -73,15 +83,20 @@ export function IconCalendar({ className, color = defaults.color, colorEnd = def
           <stop stopColor={color} />
           <stop offset="1" stopColor={colorEnd} />
         </linearGradient>
-        <filter id="glow-cal">
-          <feGaussianBlur stdDeviation="1" result="blur" />
-          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        <filter id="glow-cal" x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="1.5" result="blur" />
+          <feFlood floodColor={color} floodOpacity="0.3" result="glow-color" />
+          <feComposite in="glow-color" in2="blur" operator="in" result="colored-blur" />
+          <feMerge>
+            <feMergeNode in="colored-blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
         </filter>
       </defs>
       <g filter="url(#glow-cal)">
-        <rect x="3" y="4" width="18" height="18" rx="3" stroke={`url(#${id})`} strokeWidth="1.5" fill="none" />
-        <path d="M16 2v4M8 2v4M3 10h18" stroke={`url(#${id})`} strokeWidth="1.5" strokeLinecap="round" />
-        <rect x="7" y="14" width="4" height="4" rx="1" fill={`url(#${id})`} opacity="0.3" />
+        <rect x="3" y="4" width="18" height="18" rx="3" stroke={`url(#${id})`} strokeWidth="1.8" fill="none" />
+        <path d="M16 2v4M8 2v4M3 10h18" stroke={`url(#${id})`} strokeWidth="1.8" strokeLinecap="round" />
+        <rect x="7" y="14" width="4" height="4" rx="1" fill={`url(#${id})`} opacity="0.35" />
       </g>
     </svg>
   );
@@ -93,56 +108,56 @@ export function IconCalendar({ className, color = defaults.color, colorEnd = def
 
 export function IconClients({ className }: IconProps) {
   return (
-    <Image src="/icons/clients.png?v=6" alt="Client Accounts" width={160} height={160}
+    <Image src="/icons/clients.png?v=7" alt="Client Accounts" width={512} height={512}
       className={className} style={{ objectFit: "contain" }} />
   );
 }
 
 export function IconAnalytics({ className }: IconProps) {
   return (
-    <Image src="/icons/analytics.png?v=6" alt="Analytics" width={160} height={160}
+    <Image src="/icons/analytics.png?v=7" alt="Analytics" width={512} height={512}
       className={className} style={{ objectFit: "contain" }} />
   );
 }
 
 export function IconGeo({ className }: IconProps) {
   return (
-    <Image src="/icons/geo.png?v=6" alt="Geographic Intelligence" width={160} height={160}
+    <Image src="/icons/geo.png?v=7" alt="Geographic Intelligence" width={512} height={512}
       className={className} style={{ objectFit: "contain" }} />
   );
 }
 
 export function IconChatSupport({ className }: IconProps) {
   return (
-    <Image src="/icons/chat.png?v=6" alt="Chat Support" width={160} height={160}
+    <Image src="/icons/chat.png?v=7" alt="Chat Support" width={512} height={512}
       className={className} style={{ objectFit: "contain" }} />
   );
 }
 
 export function IconUnlimited({ className }: IconProps) {
   return (
-    <Image src="/icons/unlimited.png?v=6" alt="Unlimited" width={160} height={160}
+    <Image src="/icons/unlimited.png?v=7" alt="Unlimited" width={512} height={512}
       className={className} style={{ objectFit: "contain" }} />
   );
 }
 
 export function IconBranding({ className }: IconProps) {
   return (
-    <Image src="/icons/branding.png?v=6" alt="Branding" width={160} height={160}
+    <Image src="/icons/branding.png?v=7" alt="Branding" width={512} height={512}
       className={className} style={{ objectFit: "contain", filter: "hue-rotate(270deg) saturate(1.4) brightness(1.1)" }} />
   );
 }
 
 export function IconSupport({ className }: IconProps) {
   return (
-    <Image src="/icons/support.png?v=6" alt="Priority Support" width={160} height={160}
+    <Image src="/icons/support.png?v=7" alt="Priority Support" width={512} height={512}
       className={className} style={{ objectFit: "contain", filter: "hue-rotate(180deg) saturate(1.5) brightness(1.2)" }} />
   );
 }
 
 export function IconDashboard({ className }: IconProps) {
   return (
-    <Image src="/icons/dashboard.png?v=6" alt="Dashboard" width={160} height={160}
+    <Image src="/icons/dashboard.png?v=7" alt="Dashboard" width={512} height={512}
       className={className} style={{ objectFit: "contain", filter: "hue-rotate(60deg) saturate(1.3)" }} />
   );
 }
@@ -153,7 +168,7 @@ export function IconDashboard({ className }: IconProps) {
 
 export function IconRocket({ className }: IconProps) {
   return (
-    <Image src="/icons/rocket.png?v=6" alt="Launch" width={160} height={160}
+    <Image src="/icons/rocket.png?v=7" alt="Launch" width={512} height={512}
       className={className} style={{ objectFit: "contain" }} />
   );
 }

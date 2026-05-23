@@ -433,8 +433,8 @@ export default function BillingSuccessPage() {
                             : "none",
                         }}
                       >
-                        <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center transition-transform group-hover:scale-110">
-                          <Icon className="h-20 w-20" />
+                        <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:drop-shadow-[0_0_12px_rgba(99,102,241,0.4)]">
+                          <Icon className="h-20 w-20 drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]" />
                         </div>
                         <div>
                           <div className="text-sm font-semibold leading-tight">{f.label}</div>
@@ -458,8 +458,8 @@ export default function BillingSuccessPage() {
                     animation: "s-pulse-subtle 3s ease-in-out infinite 2s",
                   }}
                 >
-                  <span style={{ animation: "s-rocket-float 3s ease-in-out infinite", display: "inline-flex" }}>
-                    <IconRocket className="h-10 w-10" />
+                  <span style={{ animation: "s-rocket-float 3s ease-in-out infinite", display: "inline-flex", filter: "drop-shadow(0 0 8px rgba(251,146,60,0.6))" }}>
+                    <IconRocket className="h-12 w-12" />
                   </span>
                   <span>Launch Dashboard</span>
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
