@@ -24,7 +24,7 @@ export const dynamic = "force-dynamic";
 
 export default function LoginPage() {
   return (
-    <main className="min-h-screen flex items-center justify-center p-6">
+    <main id="main-content" className="min-h-screen flex items-center justify-center p-6">
       <div className="w-full max-w-md">
         <div className="mb-8 flex flex-col items-center">
           <Logo size="lg" className="mb-6" />

@@ -10,6 +10,7 @@ import { db, schema, dbAvailable } from "@/lib/db";
 import { eq } from "drizzle-orm";
 import { auth, authEnabled } from "@/auth";
 import { randomUUID } from "node:crypto";
+import { log } from "@/lib/logger";
 
 function slugify(name: string): string {
   return name
@@ -56,7 +57,7 @@ export async function GET() {
     const agencies = await db.select().from(schema.agencies);
     return NextResponse.json(agencies);
   } catch (error) {
-    console.error("GET /api/agencies error:", error);
+    log.error("GET /api/agencies failed", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -101,7 +102,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ id, slug, name: body.name.trim() }, { status: 201 });
   } catch (error) {
-    console.error("POST /api/agencies error:", error);
+    log.error("POST /api/agencies failed", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -165,7 +166,7 @@ export async function PATCH(req: Request) {
     const fresh = await db.select().from(schema.agencies).where(eq(schema.agencies.id, body.agencyId)).limit(1);
     return NextResponse.json(fresh[0] ?? { ok: true });
   } catch (error) {
-    console.error("PATCH /api/agencies error:", error);
+    log.error("PATCH /api/agencies failed", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -192,7 +193,7 @@ export async function DELETE(req: Request) {
     await db.delete(schema.agencies).where(eq(schema.agencies.id, agencyId));
     return NextResponse.json({ ok: true, deleted: rows[0].slug });
   } catch (error) {
-    console.error("DELETE /api/agencies error:", error);
+    log.error("DELETE /api/agencies failed", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

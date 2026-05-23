@@ -31,6 +31,8 @@ import {
   appUrl,
   priceIdForTier,
 } from "@/lib/stripe";
+import { rateLimit, getClientIp, rateLimitHeaders } from "@/lib/rate-limit";
+import { log } from "@/lib/logger";
 
 const ALLOWED_TIERS = new Set(["pro", "agency"]);
 
@@ -38,6 +40,16 @@ export async function POST(req: Request) {
   if (!stripeEnabled || !stripe) {
     return stripeNotConfiguredResponse();
   }
+
+  // Rate limit: 10 requests per minute per IP
+  const rl = rateLimit(`checkout:${getClientIp(req)}`, { max: 10, windowMs: 60_000 });
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: "Too many requests — please wait a moment." },
+      { status: 429, headers: rateLimitHeaders(rl) },
+    );
+  }
+
   if (!authEnabled || !dbAvailable) {
     return NextResponse.json(
       {
@@ -137,8 +149,7 @@ export async function POST(req: Request) {
       },
     });
   } catch (err) {
-    // eslint-disable-next-line no-console
-    console.error("[/api/billing/checkout] Stripe error:", err);
+    log.error("Stripe checkout session creation failed", err);
     const msg = err instanceof Error ? err.message : "Stripe error";
     return NextResponse.json({ error: msg }, { status: 502 });
   }

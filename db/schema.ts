@@ -112,6 +112,21 @@ export const subscriptions = sqliteTable("subscriptions", {
   updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull().default(sql`(unixepoch() * 1000)`),
 });
 
+/**
+ * Password reset tokens — hashed for security.
+ * Raw token sent via email; only SHA-256 hash stored in DB.
+ */
+export const passwordResets = sqliteTable("password_resets", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  /** SHA-256 hash of the raw token */
+  tokenHash: text("token_hash").notNull(),
+  expiresAt: integer("expires_at", { mode: "timestamp_ms" }).notNull(),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().default(sql`(unixepoch() * 1000)`),
+});
+
 // ─── Relations (for Drizzle's relational queries) ──────────────────────
 
 export const agenciesRelations = relations(agencies, ({ many, one }) => ({

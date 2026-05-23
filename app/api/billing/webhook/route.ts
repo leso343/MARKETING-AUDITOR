@@ -28,6 +28,8 @@ import { db, schema, dbAvailable } from "@/lib/db";
 import { eq } from "drizzle-orm";
 import { stripe, stripeEnabled, stripeNotConfiguredResponse } from "@/lib/stripe";
 import type Stripe from "stripe";
+import { rateLimit, getClientIp, rateLimitHeaders } from "@/lib/rate-limit";
+import { log } from "@/lib/logger";
 
 // Stripe webhooks require the raw body — disable Next's caching/JSON parsing.
 export const runtime = "nodejs";
@@ -105,8 +107,7 @@ async function updateByAgencyId(
       });
     }
   } catch (err) {
-    // eslint-disable-next-line no-console
-    console.warn("[/api/billing/webhook] DB write failed (event still ack'd):", err);
+    log.warn("Webhook DB write failed (event still ack'd)", { error: String(err) });
   }
 }
 
@@ -132,8 +133,7 @@ async function updateByCustomerId(
       .set({ ...patch, updatedAt: new Date() })
       .where(eq(schema.subscriptions.id, rows[0].id));
   } catch (err) {
-    // eslint-disable-next-line no-console
-    console.warn("[/api/billing/webhook] DB write failed (event still ack'd):", err);
+    log.warn("Webhook DB write failed (event still ack'd)", { error: String(err) });
   }
 }
 
@@ -141,6 +141,16 @@ export async function POST(req: Request) {
   if (!stripeEnabled || !stripe) {
     return stripeNotConfiguredResponse();
   }
+
+  // Rate limit: 100 requests per minute per IP (Stripe sends bursts)
+  const rl = rateLimit(`webhook:${getClientIp(req)}`, { max: 100, windowMs: 60_000 });
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: "Too many requests." },
+      { status: 429, headers: rateLimitHeaders(rl) },
+    );
+  }
+
   const whSecret = process.env.STRIPE_WEBHOOK_SECRET;
   if (!whSecret) {
     return NextResponse.json(
@@ -250,8 +260,7 @@ export async function POST(req: Request) {
         break;
     }
   } catch (err) {
-    // eslint-disable-next-line no-console
-    console.error("[/api/billing/webhook] handler error:", err);
+    log.error("Webhook handler error", err);
     // Still 200 — Stripe retries on 5xx and we already verified the signature.
   }
 

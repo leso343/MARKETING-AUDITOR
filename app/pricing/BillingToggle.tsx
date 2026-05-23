@@ -34,9 +34,11 @@ export default function BillingToggle() {
       </span>
       <button
         type="button"
+        role="switch"
+        aria-checked={period === "annual"}
+        aria-label="Toggle annual billing"
         onClick={toggle}
         className="relative h-7 w-12 rounded-full border border-[var(--border)] bg-[var(--card)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--red)]"
-        aria-label="Toggle billing period"
       >
         <span
           className={`absolute top-[3px] left-[3px] h-[22px] w-[22px] rounded-full bg-[var(--red)] transition-transform duration-200 ${

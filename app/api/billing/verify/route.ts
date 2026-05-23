@@ -16,6 +16,7 @@ import { NextResponse } from "next/server";
 import { db, schema, dbAvailable } from "@/lib/db";
 import { eq } from "drizzle-orm";
 import { stripe, stripeEnabled, stripeNotConfiguredResponse } from "@/lib/stripe";
+import { log } from "@/lib/logger";
 
 export async function GET(req: Request) {
   if (!stripeEnabled || !stripe) {
@@ -107,8 +108,7 @@ export async function GET(req: Request) {
         });
       }
     } catch (err) {
-      // eslint-disable-next-line no-console
-      console.warn("[/api/billing/verify] DB update failed (continuing):", err);
+      log.warn("Billing verify DB update failed (continuing)", { error: String(err) });
     }
   }
 

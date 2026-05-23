@@ -12,6 +12,7 @@ import {
   Shield,
 } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
+import SubscriptionBanner from "@/components/SubscriptionBanner";
 
 /**
  * Admin shell — polished sidebar-style nav.
@@ -68,6 +69,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <div className="min-h-screen">
+      {/* ── subscription warning banner ────────────────────────── */}
+      <SubscriptionBanner />
+
       {/* ── top nav bar ─────────────────────────────────────────── */}
       <nav className="sticky top-0 z-40 border-b border-[var(--border)] bg-[var(--bg)]/95 backdrop-blur-sm">
         <div className="mx-auto flex items-center justify-between px-4 sm:px-6">

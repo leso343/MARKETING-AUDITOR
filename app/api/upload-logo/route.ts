@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import { auth } from "@/auth";
+import { log } from "@/lib/logger";
 
 const ALLOWED_TYPES: Record<string, string> = {
   "image/png": "png",
@@ -71,7 +72,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ ok: true, url: publicUrl });
   } catch (err) {
-    console.error("[upload-logo]", err);
+    log.error("Logo upload failed", err);
     return NextResponse.json({ error: "Upload failed" }, { status: 500 });
   }
 }

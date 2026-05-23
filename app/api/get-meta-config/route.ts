@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import { auth } from "@/auth";
+import { log } from "@/lib/logger";
 
 const CONFIG_PATH = path.join(process.cwd(), "config", "meta.json");
 
@@ -36,7 +37,7 @@ export async function GET() {
       configured: !!(config.appId && config.appSecret && config.accessToken && config.adAccountId),
     });
   } catch (err) {
-    console.error("[get-meta-config]", err);
+    log.error("Failed to read Meta config", err);
     return NextResponse.json({ error: "Failed to read config" }, { status: 500 });
   }
 }

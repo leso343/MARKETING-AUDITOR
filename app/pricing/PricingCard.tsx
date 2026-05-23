@@ -124,6 +124,7 @@ export default function PricingCard(props: Props) {
         type="button"
         onClick={onSubscribe}
         disabled={pending}
+        aria-label={`Subscribe to ${props.name} plan`}
         className={`mt-6 w-full font-mono text-xs uppercase tracking-widest py-3 transition-colors ${
           props.highlighted
             ? "bg-[var(--red)] text-white hover:opacity-90"

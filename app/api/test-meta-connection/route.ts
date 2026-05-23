@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import { auth } from "@/auth";
+import { log } from "@/lib/logger";
 
 const CONFIG_PATH = path.join(process.cwd(), "config", "meta.json");
 
@@ -31,7 +32,7 @@ export async function GET() {
 
     return NextResponse.json({ ok: true, name: data.name ?? "Unknown" });
   } catch (err) {
-    console.error("[test-meta-connection]", err);
+    log.error("Meta connection test failed", err);
     return NextResponse.json({ ok: false, error: "Internal error testing connection." });
   }
 }

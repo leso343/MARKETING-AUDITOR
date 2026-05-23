@@ -12,6 +12,7 @@ import { db, schema, dbAvailable } from "@/lib/db";
 import { eq, and, count } from "drizzle-orm";
 import { auth, authEnabled } from "@/auth";
 import { randomUUID } from "node:crypto";
+import { log } from "@/lib/logger";
 
 /** Max clients per plan. Agency plan = unlimited (Infinity). */
 const PLAN_CLIENT_LIMITS: Record<string, number> = {
@@ -118,7 +119,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ id, slug, name: body.name, agencyId }, { status: 201 });
   } catch (error) {
-    console.error("POST /api/clients error:", error);
+    log.error("POST /api/clients failed", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -168,7 +169,7 @@ export async function PATCH(req: Request) {
     const fresh = await db.select().from(schema.clients).where(eq(schema.clients.id, body.clientId)).limit(1);
     return NextResponse.json(fresh[0] ?? { ok: true });
   } catch (error) {
-    console.error("PATCH /api/clients error:", error);
+    log.error("PATCH /api/clients failed", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -202,7 +203,7 @@ export async function DELETE(req: Request) {
 
     return NextResponse.json({ ok: true, deleted: client.slug });
   } catch (error) {
-    console.error("DELETE /api/clients error:", error);
+    log.error("DELETE /api/clients failed", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

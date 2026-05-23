@@ -2,6 +2,7 @@
 import { useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
+import ForgotPasswordModal from "./ForgotPasswordModal";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -14,6 +15,7 @@ export default function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [showForgot, setShowForgot] = useState(false);
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,9 +75,23 @@ export default function LoginForm() {
       >
         {pending ? "Signing in…" : "Sign in"}
       </button>
-      <p className="text-[10px] font-mono text-[var(--text-dim)] text-center pt-2">
-        No account yet? Contact your agency admin.
-      </p>
+      <div className="flex items-center justify-between pt-2">
+        <button
+          type="button"
+          onClick={() => setShowForgot(true)}
+          className="text-[10px] font-mono text-[var(--text-dim)] hover:text-[var(--red)] transition-colors uppercase tracking-widest"
+        >
+          Forgot password?
+        </button>
+        <span className="text-[10px] font-mono text-[var(--text-dim)]">
+          No account? Contact admin.
+        </span>
+      </div>
+
+      <ForgotPasswordModal
+        open={showForgot}
+        onClose={() => setShowForgot(false)}
+      />
     </form>
   );
 }

@@ -18,6 +18,8 @@ import { eq, and } from "drizzle-orm";
 import { getVisibleClientBySlug } from "@/lib/access";
 import { authEnabled } from "@/auth";
 import { randomUUID } from "node:crypto";
+import { rateLimit, getClientIp, rateLimitHeaders } from "@/lib/rate-limit";
+import { log } from "@/lib/logger";
 
 const MAX_BYTES = 10 * 1024 * 1024; // 10 MB per file
 
@@ -33,6 +35,15 @@ function gatedOff() {
 
 export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   if (!authEnabled || !dbAvailable) return gatedOff();
+
+  // Rate limit: 20 uploads per minute per IP
+  const rl = rateLimit(`upload:${getClientIp(req)}`, { max: 20, windowMs: 60_000 });
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: "Too many uploads — please wait a moment." },
+      { status: 429, headers: rateLimitHeaders(rl) },
+    );
+  }
 
   try {
     const { slug } = await params;
@@ -76,7 +87,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
 
     return NextResponse.json({ clientSlug: slug, results });
   } catch (error) {
-    console.error("POST /api/clients/[slug]/csvs error:", error);
+    log.error("POST /api/clients/[slug]/csvs failed", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -98,7 +109,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ slug:
     );
     return NextResponse.json({ ok: true });
   } catch (error) {
-    console.error("DELETE /api/clients/[slug]/csvs error:", error);
+    log.error("DELETE /api/clients/[slug]/csvs failed", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -119,7 +130,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
 
     return NextResponse.json({ clientSlug: slug, files });
   } catch (error) {
-    console.error("GET /api/clients/[slug]/csvs error:", error);
+    log.error("GET /api/clients/[slug]/csvs failed", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

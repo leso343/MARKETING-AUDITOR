@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { db, schema, dbAvailable } from "@/lib/db";
 import { auth } from "@/auth";
+import { log } from "@/lib/logger";
 
 export async function POST(req: Request) {
   if (!dbAvailable) {
@@ -57,7 +58,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ ok: true });
   } catch (error) {
-    console.error("POST /api/change-password error:", error);
+    log.error("POST /api/change-password failed", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

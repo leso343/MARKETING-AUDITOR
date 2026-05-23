@@ -11,6 +11,7 @@ import { eq } from "drizzle-orm";
 import { auth, authEnabled } from "@/auth";
 import { randomUUID } from "node:crypto";
 import { hash } from "bcryptjs";
+import { log } from "@/lib/logger";
 
 function guard() {
   if (!authEnabled || !dbAvailable) {
@@ -61,7 +62,7 @@ export async function GET() {
 
     return NextResponse.json(rows);
   } catch (error) {
-    console.error("GET /api/users error:", error);
+    log.error("GET /api/users failed", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -113,7 +114,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ id, email, role, agencyId: body.agencyId || null }, { status: 201 });
   } catch (error) {
-    console.error("POST /api/users error:", error);
+    log.error("POST /api/users failed", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -173,7 +174,7 @@ export async function PATCH(req: Request) {
 
     return NextResponse.json(fresh[0] ?? { ok: true });
   } catch (error) {
-    console.error("PATCH /api/users error:", error);
+    log.error("PATCH /api/users failed", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -205,7 +206,7 @@ export async function DELETE(req: Request) {
     await db.delete(schema.users).where(eq(schema.users.id, userId));
     return NextResponse.json({ ok: true, deleted: rows[0].email });
   } catch (error) {
-    console.error("DELETE /api/users error:", error);
+    log.error("DELETE /api/users failed", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

@@ -257,7 +257,7 @@ export const metadata: Metadata = {
 
 export default function PricingPage() {
   return (
-    <main className="min-h-screen p-6 sm:p-12 lg:p-16">
+    <main id="main-content" className="min-h-screen p-6 sm:p-12 lg:p-16">
       <div className="max-w-7xl mx-auto">
 
         {/* ── Hero ────────────────────────────────────────────────── */}
@@ -372,6 +372,7 @@ export default function PricingPage() {
 
           <div className="panel overflow-x-auto">
             <table className="data-table w-full min-w-[640px]">
+              <caption className="sr-only">Feature comparison across all plans</caption>
               <thead>
                 <tr>
                   <th className="text-left w-[40%]">Feature</th>

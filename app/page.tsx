@@ -83,7 +83,7 @@ export default async function Home() {
     const headerAccent = "var(--red)";
 
     return (
-      <main className="min-h-screen p-5 sm:p-8 lg:p-16">
+      <main id="main-content" className="min-h-screen p-5 sm:p-8 lg:p-16">
         <div className="mb-10 flex flex-col gap-4 sm:mb-14 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <div className="mb-3 font-mono text-[10px] uppercase tracking-[3px] text-[var(--text-dim)]">
@@ -168,7 +168,7 @@ export default async function Home() {
   const BrandTheme = (await import("@/components/BrandTheme")).default;
 
   return (
-    <main className="min-h-screen p-5 sm:p-8 lg:p-16">
+    <main id="main-content" className="min-h-screen p-5 sm:p-8 lg:p-16">
       <BrandTheme
         primaryColor={agency?.primaryColor}
         secondaryColor={agency?.secondaryColor}

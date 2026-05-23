@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import { auth } from "@/auth";
+import { log } from "@/lib/logger";
 
 const CONFIG_PATH = path.join(process.cwd(), "config", "meta.json");
 
@@ -22,7 +23,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ ok: true });
   } catch (err) {
-    console.error("[save-meta-config]", err);
+    log.error("Failed to save Meta config", err);
     return NextResponse.json({ error: "Failed to save config" }, { status: 500 });
   }
 }

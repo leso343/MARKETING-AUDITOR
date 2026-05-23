@@ -11,6 +11,7 @@ import { NextResponse } from "next/server";
 import { db, schema, dbAvailable } from "@/lib/db";
 import { eq } from "drizzle-orm";
 import { auth, authEnabled } from "@/auth";
+import { log } from "@/lib/logger";
 
 export async function PATCH(req: Request) {
   if (!authEnabled || !dbAvailable) {
@@ -75,7 +76,7 @@ export async function PATCH(req: Request) {
     const fresh = await db.select().from(schema.agencies).where(eq(schema.agencies.id, targetId)).limit(1);
     return NextResponse.json(fresh[0] ?? { ok: true });
   } catch (error) {
-    console.error("PATCH /api/agency error:", error);
+    log.error("PATCH /api/agency failed", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

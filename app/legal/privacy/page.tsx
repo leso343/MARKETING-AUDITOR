@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <main className="min-h-screen p-6 sm:p-12 lg:p-16">
+    <main id="main-content" className="min-h-screen p-6 sm:p-12 lg:p-16">
       <div className="mx-auto max-w-3xl">
         <div className="mb-3 font-mono text-[10px] uppercase tracking-[3px] text-[var(--text-dim)]">
           <Link href="/" className="hover:text-[var(--red)] transition-colors">&gt; Blank Page Audits</Link>
