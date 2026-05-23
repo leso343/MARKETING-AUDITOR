@@ -710,3 +710,88 @@ All originally listed mediums/lows remain **🔄 STILL OPEN** except:
 - **What's wrong** — Inconsistent with the rest of the schema (no booleans elsewhere either, so consistent within the repo — leave it).
 - **Suggested fix** — Skip; cosmetic.
 
+
+---
+
+# Phase 2 fix status (claude/launch-audit-fixes)
+
+Each finding below was either fixed in code (commit hash linked), already
+addressed by Lester's cd04aac push, intentionally deferred, or requires
+action outside the repo (Lester ↗).
+
+## 🔴 Critical
+
+- **C-1 (no signup endpoint)** — ✅ FIXED in `04077ff`. New `/signup` page + `/api/auth/signup` route creates agency + user + free-trialing subscription (14-day window), rate-limited 5/hr/IP, sends welcome email via Resend, rolls back on partial failure. Login form & pricing-card free CTA repointed.
+- **C-2 (logo overwrite cross-tenant)** — ✅ FIXED in `75c8cce`. `/api/upload-logo` now scopes `target=agency` to the caller's own agency, and `target=client` resolves the slug via `getVisibleClientBySlug`.
+- **C-3 (CSV-filename path traversal)** — ✅ FIXED in `75c8cce`. Filenames forced through `path.basename` + strict `SAFE_NAME_RE` in both the multipart and JSON upload branches AND in `engine/parsers/uploadedCsv.ts`.
+- **C-4 (plan-limit race)** — ✅ FIXED in `96b348c`. POST `/api/clients` now post-insert re-counts via `countAgencyClients`; if a concurrent insert busted the cap, the later request deletes its own row and 403s with code `CLIENT_LIMIT_RACE`.
+- **C-5 (FS writes broken on Vercel)** — ✅ FIXED in `75c8cce` + `1c8dd07`. Logos move to `agency_logos`/`client_logos` blob tables served by new `/api/logos/{agency|client}/[id]` routes. Meta credentials move to `meta_configs` table.
+- **C-6 (no subscription-status enforcement)** — ✅ FIXED in `b626031` + `96b348c` + `75c8cce`. `lib/billing-access.getBillingState()` enforces status (trial-expired, past-due, canceled, incomplete) and is called by `/api/clients` POST, `/api/clients/[slug]/csvs` POST, and the audit page server component.
+- **C-7 (no caps)** — ✅ FIXED in `b626031` + `96b348c` + `75c8cce` + `1c8dd07`. Per-plan limits live in `lib/plans.ts` (client / seat / audit-per-month / CSVs-per-client). Enforced by: client creation, CSV upload, audit page (with new `audit_runs` log table), user creation.
+- **C-8 (`/reset-password` auth-gated)** — ✅ FIXED in `671287e`. `/reset-password`, `/forgot-password`, `/legal`, `/signup` added to PUBLIC_PATHS; `/api/auth` covers all auth sub-routes by prefix.
+- **C-9 (no password-reset emails)** — ✅ ALREADY FIXED in `cd04aac` (Lester wired Resend). Followed up in `a83d998` to stop the dev-mode log-leak of the reset-URL body (NEW-M-27).
+- **C-10 (Stripe webhook no dedup/ordering)** — ✅ FIXED in `96b348c`. New `stripe_events` table dedups by `event.id`; `subscriptions.lastEventTs` ignores stale events (`event.created * 1000 < lastEventTs`); `customer.subscription.deleted` also clears `currentPeriodEnd`.
+
+## 🟠 High
+
+- **H-1 (rate-limit before sig)** — ✅ FIXED in `96b348c`. Rate-limit moved AFTER signature verification; only failed-sig calls count.
+- **H-2 (slug path traversal)** — ✅ FIXED in `75c8cce`. `SLUG_RE` applied in `/audit/[client]/page.tsx`, `/api/upload-logo`, `/api/fetch-logo`, CSV-upload route. Belt-and-suspenders `csvsRoot` prefix check in audit page.
+- **H-3 (admin self-demote + last-admin)** — ✅ FIXED in `1c8dd07`. Both PATCH and DELETE on `/api/users` refuse the move with explicit error codes.
+- **H-4 (JWT revocation)** — ✅ FIXED in `671287e` + `1c8dd07`. `users.token_version` column + `bumpTokenVersion()` helper; jwt callback re-reads on every request; bumped on role/agency/password change and on delete.
+- **H-5 (slug regex `/gi`)** — ✅ FIXED in `75c8cce`. `safeSlug()` in `lib/billing-access` enforces lowercase + strict regex. Wired into `/api/upload-logo` and `/api/fetch-logo`.
+- **H-6 (`/setup` not admin-gated)** — ✅ FIXED in `1c8dd07`. Page is now a server component calling `requireAdmin()`; UI moved to `SetupClient.tsx`.
+- **H-7 (webhook doesn't reset plan)** — ✅ FIXED in `96b348c`. `customer.subscription.deleted` now also sets `plan: 'free'` and `currentPeriodEnd: null`.
+- **H-8 (pricing $49/$199 vs $99/$299)** — ✅ FIXED in `f5ae87a`. Canonical `lib/plans.ts` imported by both pricing page and admin/billing page. `$99/$299` (matches `.env.example`).
+- **H-9 (annualPrice fallback label)** — ✅ FIXED in `f5ae87a`. Period label only flips to "billed annually" when `annualPrice` actually exists.
+- **H-10 (legal pages auth-gated)** — ✅ FIXED in `671287e`. `/legal/*` added to PUBLIC_PATHS.
+- **H-11 (`trustHost: true` in prod)** — ✅ FIXED in `671287e`. `trustHost: process.env.NODE_ENV !== "production"` — 🤝 LESTER must set `NEXTAUTH_URL=https://blankpageaudits.com` in Vercel.
+- **H-12 (CSV no sniff/UTF-8/rowcap)** — ✅ FIXED in `75c8cce`. `validateCsvText()` enforces fatal UTF-8 decode, ≤ 50,000 lines, header sniff for Meta-shaped CSVs. Applied to both upload branches.
+- **H-13 (Stripe duplicate customers)** — ✅ FIXED in `96b348c`. Checkout now creates a Stripe Customer once per agency, stores `stripeCustomerId`, reuses it.
+- **H-14 (db stub lies)** — ⏭️ DEFERRED. Documented in `lib/db.ts` comments via the existing banner; the stub remains permissive in legacy mode. Replacing it would require rewriting every caller; medium-impact, low likelihood of triggering in prod where DB is required.
+- **H-15 (session `as any`)** — ✅ FIXED in `671287e`. Module-augmented JWT type used in `auth.config.ts`; no `any` casts in the session callback.
+- **H-16 (PUBLIC_PATHS `startsWith(p)` bypass)** — ✅ FIXED in `671287e`. Strict `=== p || startsWith(p + "/")`.
+- **H-17 ("Coming Soon" sold as available)** — ✅ FIXED in `f5ae87a`. All "Coming Soon" feature bullets removed from `PLANS` arrays; matrix rows containing `"Soon"` cells deleted.
+- **H-18 (CSV upsert no transaction)** — ✅ FIXED in `75c8cce`. `upsertCsv()` uses `db.transaction` when the driver supports it; safe two-step fallback otherwise.
+
+## 🟡 Medium
+
+- **M-1 (no CSRF)** — 🟡 PARTIAL. `lib/api-helpers.isSameOriginRequest()` added (commit `09bdd2c`) but not yet wired into every mutation route — left as a follow-up since `SameSite=Lax` plus the new auth changes already cover the realistic attack window. 🤝 LESTER: add `if (!isSameOriginRequest(req)) return csrfRejection();` to /api/clients, /api/agencies, /api/users, etc., when convenient.
+- **M-2 (in-memory rate limiter useless on Vercel)** — 🤝 LESTER. `09bdd2c` adds a prominent doc banner pointing at `@upstash/ratelimit`. Behavior unchanged; Lester picks the KV provider before relying on the limiter for hard quotas.
+- **M-3 (bcrypt cost inconsistent)** — ✅ FIXED in `09bdd2c`. Seed now uses cost 12 (was 10).
+- **M-4 (seed logs password)** — ✅ FIXED in `09bdd2c`. Password no longer echoed.
+- **M-5 (sync CSV parse on audit page)** — ⏭️ DEFERRED (architectural — needs an `audit_results` cache table + async runner). Mitigated by the monthly audit-cap (free=1/month) so the request budget is bounded.
+- **M-6 (migration drift)** — ✅ FIXED in `954cec1`. `db/migrations/0001_launch_audit_fixes.sql` adds all missing columns + tables; `MIGRATION-NEEDED.md` documents the run. 🤝 LESTER must run it.
+- **M-7 (test-meta leaks Meta error)** — ✅ FIXED in `1c8dd07`. Generic client error; full detail logged server-side.
+- **M-8 (no security headers)** — ✅ FIXED in `09bdd2c`. CSP, XFO, HSTS, Referrer-Policy, X-Content-Type-Options, Permissions-Policy on every route.
+- **M-9 (no JSON body cap)** — ✅ FIXED in `09bdd2c` (helper added); wired into `/api/notifications`. 🤝 LESTER: also wire into other JSON routes opportunistically.
+- **M-10 (no signin lockout)** — ⏭️ DEFERRED. Bcrypt cost + the (still in-memory) rate limit are the existing controls; proper lockout needs a `failed_signins` ring buffer + scheduled cleanup, which is medium-impact follow-up.
+- **M-11 (PricingCard logged-in 401 bounce)** — ✅ FIXED in `f5ae87a`. Error messages surfaced instead of swallowed; 401 still bounces to /login.
+- **M-12 (engine `as any` for isActive)** — ✅ FIXED in `09bdd2c`.
+- **M-13 (forgot-password timing leak)** — ✅ FIXED in `a83d998`. No-user branch now does dummy sha256 + 80ms sleep.
+- **M-14 (SVG XSS via logo upload)** — ✅ FIXED in `75c8cce`. SVG removed from `/api/upload-logo` and `/api/fetch-logo` allowlists; `ClientLogoUpload.tsx` accept list updated.
+- **M-15 (parser swallows errors)** — ✅ FIXED in `75c8cce`. `parseUploadedCsvsWithWarnings()` returns parse errors; existing parser keeps the old API.
+- **M-16 (skip-to-content broken on admin)** — ⏭️ DEFERRED (cosmetic — separate a11y pass).
+- **M-17 (no focus trap in dialogs)** — ⏭️ DEFERRED (needs @radix-ui or similar; separate a11y pass).
+- **M-18 (audit dashboard bundle weight)** — ⏭️ DEFERRED (perf optimization; doesn't affect correctness).
+- **M-19 (error.message pass-through)** — ✅ PARTIAL in `96b348c` (checkout) + `1c8dd07` (test-meta). 🤝 LESTER: similar pattern applies to `app/api/billing/portal/route.ts:72-74` and `app/api/agency/route.ts:91-92` — straight `genericError("Billing error", 502)` swap when convenient.
+- **M-20 (client console.error in prod)** — ✅ FIXED in `09bdd2c`. All three error.tsx files gate on NODE_ENV.
+- **M-21 (/setup useEffect 403 noise)** — ✅ FIXED by H-6 in `1c8dd07` (page no longer renders for non-admins).
+- **M-22 (UTC/local-time mixing)** — ⏭️ DEFERRED (audit-engine timezone polish).
+- **M-23 (FS reads without path-prefix check)** — ✅ FIXED in `75c8cce`.
+- **M-24 (webhook 200 on DB error)** — ✅ FIXED in `96b348c`. Now returns 500 on DB error (dedup + ordering make Stripe retries safe).
+- **M-25 (no cookie banner)** — 🤝 LESTER. Pure UI / legal work; if Plausible-only (cookieless) is the chosen analytics, banner is not strictly required.
+
+## Phase 2 NEW findings (introduced or surfaced by cd04aac)
+
+- **NEW-C-11 (SSRF in /api/fetch-logo)** — ✅ FIXED in `75c8cce`. `validateOutboundUrl()` + `safeFetch()` validate every hop. Private IPs, metadata hosts, and redirect-rebinding all blocked.
+- **NEW-C-12 (no agency scope in /api/fetch-logo)** — ✅ FIXED in `75c8cce`. Caller's `clientSlug` resolved via `getVisibleClientBySlug`; their `clientId` is ignored.
+- **NEW-C-13 (fetch-logo writes attacker bytes to public/)** — ✅ FIXED in `75c8cce`. Stored in `client_logos` blob (no SVG allowed); URL is `/api/logos/client/<id>`.
+- **NEW-H-19 (unvalidated logoUrl/websiteUrl on /api/clients PATCH)** — ✅ FIXED in `96b348c`. `sanitizeStoredUrl()` rejects non-https / non-internal URLs.
+- **NEW-H-20 (weaker JSON branch of CSV upload)** — ✅ FIXED in `75c8cce`. Same `safeFilename` + UTF-8 + line-cap + header-sniff validation as multipart.
+- **NEW-H-21 (no rate-limit / no ids cap on /api/notifications)** — ✅ FIXED in `09bdd2c`.
+- **NEW-M-26 (NotificationBell polling)** — ⏭️ DEFERRED (perf polish; the rate-limit cap from NEW-H-21 prevents abuse).
+- **NEW-M-27 (email dev-log leaks token)** — ✅ FIXED in `a83d998`.
+- **NEW-M-28 (notifications PATCH N+1)** — ✅ FIXED by NEW-H-21 (single IN-list UPDATE).
+- **NEW-M-29 (Onboarding name as filename)** — ✅ FIXED in `75c8cce` (server-side `safeFilename`). 🤝 LESTER: the OnboardingWizard could also be updated to upload via multipart for cleaner UX; left for a follow-up.
+- **NEW-M-30 (notifications never expire)** — ⏭️ DEFERRED (cron/cleanup pattern; medium impact).
+- **NEW-L-15 (committed test logos)** — ✅ FIXED in `09bdd2c`.
