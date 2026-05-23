@@ -19,10 +19,14 @@ import ManageSubscriptionButton from "./ManageSubscriptionButton";
 
 export const dynamic = "force-dynamic";
 
+// H-8 fix: pull from canonical lib/plans instead of hardcoded values
+// (was \$49/\$199; pricing page + Stripe env both expect \$99/\$299).
+import { PLANS } from "@/lib/plans";
+
 const PLAN_CONFIG: Record<string, { label: string; price: string; color: string; icon: typeof Zap }> = {
-  free: { label: "Free", price: "$0/mo", color: "#64748b", icon: Zap },
-  pro: { label: "Pro", price: "$49/mo", color: "#f59e0b", icon: Sparkles },
-  agency: { label: "Agency", price: "$199/mo", color: "#8b5cf6", icon: ShieldCheck },
+  free: { label: PLANS.free.label, price: "$0/mo", color: "#64748b", icon: Zap },
+  pro: { label: PLANS.pro.label, price: `$${PLANS.pro.monthlyPrice}/mo`, color: "#f59e0b", icon: Sparkles },
+  agency: { label: PLANS.agency.label, price: `$${PLANS.agency.monthlyPrice}/mo`, color: "#8b5cf6", icon: ShieldCheck },
 };
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: typeof ShieldCheck }> = {
