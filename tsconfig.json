@@ -53,7 +53,6 @@
   "exclude": [
     ".next",
     "dist",
-    "node_modules",
-    "scripts/**/*"
+    "node_modules"
   ]
 }

@@ -12,7 +12,7 @@ export default function AdminError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("[admin-error]", error);
+    if (process.env.NODE_ENV !== "production") console.error("[admin-error]", error);
   }, [error]);
 
   return (

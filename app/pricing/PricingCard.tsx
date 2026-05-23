@@ -50,7 +50,7 @@ export default function PricingCard(props: Props) {
           })}
         </ul>
         <Link
-          href="/login"
+          href="/signup"
           className="mt-6 w-full inline-block text-center border border-[var(--border)] hover:border-[var(--red)] hover:text-[var(--red)] font-mono text-xs uppercase tracking-widest py-3"
         >
           {props.cta}
@@ -59,8 +59,12 @@ export default function PricingCard(props: Props) {
     );
   }
 
-  const displayPrice = billingPeriod === "annual" && props.annualPrice ? props.annualPrice : props.price;
-  const displayPeriod = billingPeriod === "annual" ? "per month, billed annually" : props.period;
+  // H-9 fix: only show the annual-period label when annualPrice
+  // actually exists. Otherwise we'd show the monthly figure with
+  // "billed annually" under it.
+  const showAnnual = billingPeriod === "annual" && !!props.annualPrice;
+  const displayPrice = showAnnual ? (props.annualPrice as string) : props.price;
+  const displayPeriod = showAnnual ? "per month, billed annually" : props.period;
 
   const onSubscribe = () => {
     setError(null);
@@ -77,11 +81,13 @@ export default function PricingCard(props: Props) {
           return;
         }
         if (res.status === 401) {
-          // Bounce to login, then back to pricing.
+          // Not signed in — bounce to login (then back to /pricing).
           window.location.href = `/login?from=${encodeURIComponent("/pricing")}`;
           return;
         }
-        setError(j.error ?? j.message ?? `Checkout failed (HTTP ${res.status}).`);
+        // M-11 fix: surface the API's message when set rather than
+        // hiding it behind a generic 'Checkout failed'.
+        setError(j.error ?? j.message ?? `Checkout failed (HTTP ${res.status}). Try again or contact support.`);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Network error.");
       }

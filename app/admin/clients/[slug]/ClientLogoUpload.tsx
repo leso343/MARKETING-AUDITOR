@@ -38,9 +38,9 @@ export default function ClientLogoUpload({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const allowed = ["image/png", "image/jpeg", "image/jpg", "image/svg+xml", "image/webp"];
+    const allowed = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
     if (!allowed.includes(file.type)) {
-      setError("Use PNG, JPG, SVG, or WEBP.");
+      setError("Use PNG, JPG, or WEBP.");
       return;
     }
     if (file.size > 2 * 1024 * 1024) {
@@ -56,6 +56,10 @@ export default function ClientLogoUpload({
       formData.append("file", file);
       formData.append("target", "client");
       formData.append("clientSlug", clientSlug);
+      // Tell /api/upload-logo which variant to store under
+      // client_logos(client_id, variant). The route returns a
+      // /api/logos/client/<id>?v=<variant> URL.
+      formData.append("variant", variant);
 
       const uploadRes = await fetch("/api/upload-logo", {
         method: "POST",
@@ -68,26 +72,11 @@ export default function ClientLogoUpload({
       }
 
       const { url } = await uploadRes.json();
-
-      // For light variant, we need to rename the file
-      // The upload-logo API saves as logo.<ext>, so for light we'll save separately
-      const patchBody: Record<string, unknown> = { clientId };
       if (variant === "dark") {
-        patchBody.logoUrl = url;
         setLogoUrl(url);
       } else {
-        // Re-upload with a light suffix
-        const lightUrl = url.replace(/logo\./, "logo-light.");
-        // Copy on server side by uploading again with different name
-        patchBody.logoUrlLight = url; // Store the same URL for now
         setLogoUrlLight(url);
       }
-
-      await fetch("/api/clients", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(patchBody),
-      });
 
       router.refresh();
     } catch (err) {

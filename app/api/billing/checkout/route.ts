@@ -122,6 +122,34 @@ export async function POST(req: Request) {
     });
   }
 
+  // H-13 fix: reuse the Stripe customer for this agency if we already
+  // have one. If not, create one BEFORE the checkout session and store
+  // its id. Setting `customer_email` instead causes Stripe to create a
+  // new Customer on every checkout — leading to duplicate Customer
+  // records with the same email, and webhook events that match no row.
+  let stripeCustomerId: string | null = existing[0]?.stripeCustomerId ?? null;
+  if (!stripeCustomerId) {
+    try {
+      const customer = await stripe.customers.create({
+        email: session.user.email ?? undefined,
+        name: session.user.name ?? undefined,
+        metadata: { agencyId },
+      });
+      stripeCustomerId = customer.id;
+      // Persist so the next checkout call reuses it.
+      await db
+        .update(schema.subscriptions)
+        .set({ stripeCustomerId, updatedAt: new Date() })
+        .where(eq(schema.subscriptions.agencyId, agencyId));
+    } catch (err) {
+      log.error("Stripe customer creation failed", err);
+      return NextResponse.json(
+        { error: "Could not create billing customer — please retry." },
+        { status: 502 },
+      );
+    }
+  }
+
   // Create the Checkout session.
   const base = appUrl();
   let checkoutSession;
@@ -131,7 +159,7 @@ export async function POST(req: Request) {
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${base}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${base}/pricing`,
-      customer_email: session.user.email ?? undefined,
+      customer: stripeCustomerId,
       client_reference_id: agencyId,
       metadata: {
         agencyId,
@@ -150,8 +178,13 @@ export async function POST(req: Request) {
     });
   } catch (err) {
     log.error("Stripe checkout session creation failed", err);
-    const msg = err instanceof Error ? err.message : "Stripe error";
-    return NextResponse.json({ error: msg }, { status: 502 });
+    // M-19 fix: don't leak Stripe SDK error messages verbatim (can
+    // include 'No such customer: cus_X' etc.). Generic message to
+    // the client; full detail in server logs.
+    return NextResponse.json(
+      { error: "Could not start checkout — please try again or contact support." },
+      { status: 502 },
+    );
   }
 
   if (!checkoutSession.url) {
