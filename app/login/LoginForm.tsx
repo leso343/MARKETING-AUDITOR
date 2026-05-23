@@ -100,9 +100,12 @@ export default function LoginForm() {
         >
           Forgot password?
         </button>
-        <span className="text-[10px] font-mono text-[var(--text-dim)]">
-          No account? Contact admin.
-        </span>
+        <a
+          href="/signup"
+          className="text-[10px] font-mono text-[var(--text-dim)] hover:text-[var(--red)] transition-colors uppercase tracking-widest"
+        >
+          No account? Sign up &rarr;
+        </a>
       </div>
 
       <ForgotPasswordModal
