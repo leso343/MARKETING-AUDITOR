@@ -4,11 +4,14 @@
  * Uses the lighter auth.config (no bcrypt / drizzle) so it can run on the edge.
  * Unauthenticated users hitting / or /audit/* or /admin/* land on /login.
  *
- * ─── Deploy-safe guard (Tier 3-deploy-safe) ────────────────────────────────
- * When AUTH_SECRET is unset we DO NOT initialize NextAuth (it would throw on
- * the edge). The middleware becomes a pass-through, and the app runs in
- * single-tenant / no-auth (legacy filesystem) mode. Set AUTH_SECRET to
- * re-enable the auth gate.
+ * Audit fixes:
+ *   - C-8 / H-10: /reset-password, /forgot-password, /legal must be
+ *     reachable without a session (password-reset email link; public
+ *     privacy/TOS pages required for GDPR + Stripe).
+ *   - C-1: /signup is the new public account-creation flow.
+ *   - H-16: the previous `pathname.startsWith(p)` matcher made
+ *     `/login-anything` inherit `/login`'s public status. Tightened to
+ *     `=== p || startsWith(p + "/")`.
  */
 import NextAuth from "next-auth";
 import { authConfig } from "@/auth.config";
@@ -18,31 +21,36 @@ const AUTH_ENABLED = !!process.env.AUTH_SECRET;
 
 const PUBLIC_PATHS = [
   "/login",
+  "/signup",
+  "/forgot-password",
+  "/reset-password",
   "/pricing",
+  "/legal",
   "/api/auth",
   "/api/billing/webhook",
+  "/api/logos",
   "/_next",
   "/favicon",
 ];
+
+function isPublic(pathname: string): boolean {
+  for (const p of PUBLIC_PATHS) {
+    if (pathname === p) return true;
+    if (pathname.startsWith(p + "/")) return true;
+  }
+  // Static assets served under /logos/* and /csvs/* — open for legacy
+  // filesystem-served logos and the public bundled CSVs.
+  if (pathname.startsWith("/logos/") || pathname.startsWith("/csvs/")) return true;
+  return false;
+}
 
 type AuthedRequest = NextRequest & { auth: unknown };
 
 const gatedHandler = (req: AuthedRequest) => {
   const { pathname } = req.nextUrl;
 
-  if (
-    PUBLIC_PATHS.some(
-      (p) =>
-        pathname === p ||
-        pathname.startsWith(p + "/") ||
-        pathname.startsWith(p),
-    )
-  ) {
-    return NextResponse.next();
-  }
-  if (pathname.startsWith("/logos") || pathname.startsWith("/csvs")) {
-    return NextResponse.next();
-  }
+  if (isPublic(pathname)) return NextResponse.next();
+
   if (!req.auth) {
     const url = new URL("/login", req.nextUrl.origin);
     url.searchParams.set("from", pathname);
@@ -51,8 +59,6 @@ const gatedHandler = (req: AuthedRequest) => {
   return NextResponse.next();
 };
 
-// When AUTH_SECRET is unset, export a no-op middleware so the deployment
-// boots cleanly (no NextAuth init, no thrown "missing secret" error).
 const passThrough = () => NextResponse.next();
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
