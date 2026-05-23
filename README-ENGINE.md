@@ -1,7 +1,7 @@
-# SNA Marketing Auditor — Dynamic Engine
+# Blank Page Audits — Dynamic Engine
 
 A real audit engine: ingests Meta Ads Manager CSV exports and renders the
-SNA Forensic dashboard (`interactive_audit.html` aesthetic) with the client's
+Blank Page Audits dashboard (`interactive_audit.html` aesthetic) with the client's
 actual numbers. Replaces hand-typed reports.
 
 ---

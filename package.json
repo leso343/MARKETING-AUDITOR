@@ -1,7 +1,7 @@
 {
-  "name": "sna-marketing-auditor",
+  "name": "blank-page-audits",
   "version": "2.0.0",
-  "description": "SNA Forensic Marketing Auditor — Next.js live shell with dynamic audit engine.",
+  "description": "Blank Page Audits — forensic Meta Ads intelligence. Upload CSVs, surface budget leaks.",
   "private": true,
   "scripts": {
     "dev": "next dev",

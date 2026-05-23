@@ -79,7 +79,7 @@ export default async function Home() {
   // ── Deploy-safe legacy mode: no auth, no DB ───────────────────────────
   if (!authEnabled || !dbAvailable) {
     const clients: ClientTile[] = scanFsClients();
-    const headerLabel = "SNA Forensic — Marketing Auditor";
+    const headerLabel = "Blank Page Audits";
     const headerAccent = "var(--red)";
 
     return (
@@ -87,7 +87,7 @@ export default async function Home() {
         <div className="mb-10 flex flex-col gap-4 sm:mb-14 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <div className="mb-3 font-mono text-[10px] uppercase tracking-[3px] text-[var(--text-dim)]">
-              &gt; SNA Forensic / Active Audits
+              &gt; Blank Page Audits / Active Audits
             </div>
             <h1
               className="text-3xl font-bold tracking-tight lg:text-4xl"
@@ -167,7 +167,7 @@ export default async function Home() {
   const agency = await getCurrentAgency();
   const isAdmin = session.user.role === "admin";
 
-  const headerLabel = agency?.name ?? "SNA Forensic — Marketing Auditor";
+  const headerLabel = agency?.name ?? "Blank Page Audits";
   const headerAccent = agency?.primaryColor ?? "var(--red)";
 
   // Dynamic import to avoid pulling BrandTheme into the legacy FS path
@@ -186,7 +186,7 @@ export default async function Home() {
       <div className="mb-10 flex flex-col gap-4 sm:mb-14 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="mb-3 font-mono text-[10px] uppercase tracking-[3px] text-[var(--text-dim)]">
-            &gt; SNA Forensic / Active Audits
+            &gt; Blank Page Audits / Active Audits
           </div>
           <div className="flex items-center gap-4">
             {agency?.logoUrl && (

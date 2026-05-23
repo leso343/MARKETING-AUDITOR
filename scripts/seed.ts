@@ -1,12 +1,12 @@
 /**
- * Seed admin + SNA Marketing + Take Charge Roofing.
+ * Seed admin + Blank Page Audits + Take Charge Roofing.
  *
  * Idempotent — running twice is safe; it upserts by email/slug.
  *
  * Run: `npm run db:seed`
  *
  * Note: This seeds the *client record* for take-charge-roofing so it shows
- * up in the dashboard list under SNA Marketing. The actual CSV data still
+ * up in the dashboard list under Blank Page Audits. The actual CSV data still
  * lives on disk at public/csvs/take-charge-roofing/ — the audit page falls
  * back to filesystem when a client has no rows in csv_files. This preserves
  * the $3,137.11 / 31 leads baseline reconciliation without re-uploading.
@@ -59,13 +59,13 @@ async function ensureSubscription(agencyId: string) {
 }
 
 async function main() {
-  console.log("[seed] agency: SNA Marketing");
-  const sna = await upsertAgency("sna-marketing", "SNA Marketing", "#ff0000");
+  console.log("[seed] agency: Blank Page Audits");
+  const sna = await upsertAgency("blank-page-audits", "Blank Page Audits", "#ff0000");
 
   console.log(`[seed] admin user: ${ADMIN_EMAIL}`);
   await upsertUser(ADMIN_EMAIL, ADMIN_PASSWORD, "admin", sna.id, "Lester Ortiz");
 
-  console.log("[seed] client: Take Charge Roofing under SNA Marketing");
+  console.log("[seed] client: Take Charge Roofing under Blank Page Audits");
   await upsertClient("take-charge-roofing", "Take Charge Roofing", sna.id, {
     subtitle: "Roofing · Atlanta",
     industry: "roofing",

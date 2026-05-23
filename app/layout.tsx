@@ -4,9 +4,9 @@ import ScrollbarFade from "@/components/ScrollbarFade";
 import SessionProviderWrapper from "./SessionProviderWrapper";
 
 export const metadata: Metadata = {
-  title: "SNA Forensic — Marketing Auditor",
+  title: "Blank Page Audits — Forensic Ad Intelligence",
   description:
-    "Forensic Meta Ads audits with live-tuneable benchmarks. Drop a folder of CSVs, get a dashboard.",
+    "Forensic Meta Ads audits that surface budget leaks, funnel gaps, and wasted spend. Upload CSVs, get answers.",
 };
 
 const FONTS_HREF =

@@ -432,7 +432,7 @@ export default function SetupPage() {
           <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)]">Setup</span>
         </div>
         <div className="mb-2 font-mono text-[10px] uppercase tracking-[3px] text-[var(--text-dim)]">
-          &gt; SNA Forensic / Setup
+          &gt; Blank Page Audits / Setup
         </div>
         <h1
           className="text-3xl font-bold tracking-tight lg:text-4xl"

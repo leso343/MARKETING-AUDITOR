@@ -1,4 +1,4 @@
-# SNA Forensic Marketing Auditor
+# Blank Page Audits
 
 Forensic Meta Ads audits with a live-tuneable dashboard. Drop the five Meta Ads Manager CSV exports, get a forensic breakdown of funnel leakage, tracking failures, geographic waste, creative deadweight, and dollar-quantified opportunities.
 
@@ -18,7 +18,7 @@ cp .env.example .env
 
 # 3. Initialize SQLite dev DB
 npm run db:push        # apply schema
-npm run db:seed        # seed Lester admin + SNA Marketing + Take Charge Roofing
+npm run db:seed        # seed Lester admin + Blank Page Audits + Take Charge Roofing
 
 # 4. Dev server
 npm run dev            # http://localhost:3000
@@ -74,7 +74,7 @@ The parser identifies file type by inspecting headers, not filename — but usin
 | `npm run db:generate` | Generate a new Drizzle migration from `db/schema.ts` |
 | `npm run db:push` | Apply schema to the configured DB |
 | `npm run db:studio` | Open Drizzle Studio |
-| `npm run db:seed` | Seed admin + SNA Marketing + Take Charge Roofing |
+| `npm run db:seed` | Seed admin + Blank Page Audits + Take Charge Roofing |
 
 ## Deploy
 
@@ -138,7 +138,7 @@ When any Stripe env var is missing, `/api/billing/*` returns **HTTP 503** with a
 
 ## License
 
-Private — internal SNA Marketing tool.
+Private — internal Blank Page Audits tool.
 
 ## Deploying without DB/auth (legacy single-tenant mode)
 

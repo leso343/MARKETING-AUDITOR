@@ -22,7 +22,7 @@ Tier 3 makes **no engine-internals changes** — it adds only sibling files (`en
 - `db/migrations/0000_glorious_ulik.sql`: initial schema.
 - `lib/db.ts`: single Drizzle client. `DATABASE_URL=file:./data/dev.db` for dev, `DATABASE_URL=libsql://<turso-host>` + `DATABASE_AUTH_TOKEN=…` for prod (Turso). Postgres deploy: swap libsql driver to `drizzle-orm/postgres-js`.
 - `drizzle.config.ts`: turso dialect.
-- `scripts/seed.ts`: idempotent seed — Lester admin (`lesterortiz39@gmail.com`) + SNA Marketing agency + Take Charge Roofing client + free/trialing subscription.
+- `scripts/seed.ts`: idempotent seed — Lester admin (`lesterortiz39@gmail.com`) + Blank Page Audits agency + Take Charge Roofing client + free/trialing subscription.
 
 ### Authentication (NextAuth v5 / auth.js beta)
 - `auth.config.ts`: edge-safe (no bcrypt) — used by `middleware.ts`.
@@ -61,7 +61,7 @@ Tier 3 makes **no engine-internals changes** — it adds only sibling files (`en
 - `npm run db:generate` — generate Drizzle migrations from `db/schema.ts`.
 - `npm run db:push` — apply schema to the configured DB.
 - `npm run db:studio` — Drizzle Studio.
-- `npm run db:seed` — seed Lester admin + SNA Marketing + Take Charge Roofing.
+- `npm run db:seed` — seed Lester admin + Blank Page Audits + Take Charge Roofing.
 
 ## Reconciliation
 
@@ -83,7 +83,7 @@ The dashboard for `take-charge-roofing` produces the same numbers via both code 
 `grep -rn "Take Charge\|take-charge-roofing"` across the diff returns:
 - `public/csvs/take-charge-roofing/` — the dataset itself (kept; powers the filesystem-fallback reconciliation).
 - `scripts/verify-audit-reconcile.ts` — the dev verification script.
-- `scripts/seed.ts` — seeds it as a Client record under SNA Marketing.
+- `scripts/seed.ts` — seeds it as a Client record under Blank Page Audits.
 - `engine:test` npm script — runs the engine CLI against the same on-disk dataset for parity checking.
 
 No UI references remain. The home tile, the audit page, and the setup page all read the slug dynamically.

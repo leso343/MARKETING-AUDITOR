@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * SNA Forensic — Marketing Auditor CLI entry point.
+ * Blank Page Audits — CLI entry point.
  *
  * Usage:
  *   node dist/engine/index.js --csv-dir ./csvs/client --client "Client Name" --output ./reports/client.html
@@ -66,8 +66,8 @@ function flatRows<T extends ParsedRow>(files: ParsedFile[], kind: T['kind'], act
 function main(): void {
   const program = new Command();
   program
-    .name('sna-audit')
-    .description('SNA Forensic — Marketing Auditor: Meta Ads CSV → forensic dashboard.')
+    .name('bpa-audit')
+    .description('Blank Page Audits: Meta Ads CSV → forensic dashboard.')
     .requiredOption('--csv-dir <path>', 'Directory of Meta Ads Manager CSV exports')
     .requiredOption('--client <name>', 'Client name for the report header')
     .requiredOption('--output <path>', 'Output HTML path')

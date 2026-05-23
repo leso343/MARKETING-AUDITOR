@@ -164,7 +164,7 @@ const FAQ = [
   },
   {
     q: "What's included in white-label branding?",
-    a: "White-label lets you replace all SNA Forensic branding with your own. Upload your agency logo, set your brand colors and fonts, and generate client-facing PDF reports and dashboards that look entirely like your product.",
+    a: "White-label lets you replace all Blank Page Audits branding with your own. Upload your agency logo, set your brand colors and fonts, and generate client-facing PDF reports and dashboards that look entirely like your product.",
   },
   {
     q: "Do you offer annual billing?",
@@ -256,7 +256,7 @@ export default function PricingPage() {
         {/* ── Hero ────────────────────────────────────────────────── */}
         <div className="text-center mb-16">
           <div className="font-mono text-[10px] uppercase tracking-[3px] text-[var(--text-dim)] mb-4">
-            &gt; SNA Forensic / Pricing
+            &gt; Blank Page Audits / Pricing
           </div>
           <h1
             className="text-4xl sm:text-5xl font-bold tracking-tight mb-4"
@@ -332,7 +332,7 @@ export default function PricingPage() {
                 ))}
               </ul>
               <a
-                href="mailto:sales@snaforensic.com?subject=Enterprise%20inquiry"
+                href="mailto:sales@blankpageaudits.com?subject=Enterprise%20inquiry"
                 className="mt-6 w-full inline-block text-center border border-[var(--border)] hover:border-[var(--red)] hover:text-[var(--red)] font-mono text-xs uppercase tracking-widest py-3 transition-colors"
               >
                 Contact sales

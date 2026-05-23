@@ -1,4 +1,4 @@
-# SNA Forensic — Next.js Live Shell
+# Blank Page Audits — Next.js Live Shell
 
 Phase 2 SaaS shell. Drop a folder of Meta Ads CSVs, get a live forensic
 dashboard with tuneable benchmarks.

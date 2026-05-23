@@ -1,5 +1,5 @@
 /**
- * Shared types for SNA Forensic — Marketing Auditor engine.
+ * Shared types for Blank Page Audits engine.
  *
  * Meta Ads Manager CSV exports come in several flavours; we normalise them to
  * the discriminated union below so downstream analyses can stay flat.
