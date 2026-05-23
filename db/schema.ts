@@ -9,7 +9,7 @@
  *   - Agency owns Clients. Client owns CsvFiles (the uploaded Meta exports).
  *   - Subscription is per-Agency (Tier 4 — wired to Stripe).
  */
-import { sqliteTable, text, integer, index, uniqueIndex } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, blob, index, uniqueIndex } from "drizzle-orm/sqlite-core";
 import { sql, relations } from "drizzle-orm";
 
 export const agencies = sqliteTable("agencies", {
@@ -35,6 +35,13 @@ export const users = sqliteTable(
     /** "admin" or "agency" */
     role: text("role").notNull().default("agency"),
     agencyId: text("agency_id").references(() => agencies.id, { onDelete: "set null" }),
+    /**
+     * H-4 fix: bumped whenever the user must be force-signed-out
+     * (account deleted, agency reassigned, role changed). JWTs encode
+     * this value at issue time; the `jwt` callback rejects tokens with
+     * a stale tokenVersion.
+     */
+    tokenVersion: integer("token_version").notNull().default(0),
     createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().default(sql`(unixepoch() * 1000)`),
   },
   (t) => ({
@@ -112,6 +119,14 @@ export const subscriptions = sqliteTable("subscriptions", {
   stripeCustomerId: text("stripe_customer_id").unique(),
   stripeSubscriptionId: text("stripe_subscription_id").unique(),
   currentPeriodEnd: integer("current_period_end", { mode: "timestamp_ms" }),
+  /** Trial start (used to compute the 14-day window without a Stripe customer). */
+  trialStartedAt: integer("trial_started_at", { mode: "timestamp_ms" }),
+  /**
+   * C-10 fix: last Stripe `event.created` ms timestamp we applied. The
+   * webhook handler ignores patches whose `event.created * 1000 <
+   * lastEventTs` to defeat out-of-order delivery.
+   */
+  lastEventTs: integer("last_event_ts"),
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().default(sql`(unixepoch() * 1000)`),
   updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull().default(sql`(unixepoch() * 1000)`),
 });
@@ -159,12 +174,103 @@ export const passwordResets = sqliteTable("password_resets", {
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().default(sql`(unixepoch() * 1000)`),
 });
 
+/**
+ * C-10 fix: Stripe webhook event log for idempotent processing.
+ * The webhook handler inserts on receive; ON CONFLICT means the event
+ * has already been applied, so the handler short-circuits with 200.
+ */
+export const stripeEvents = sqliteTable("stripe_events", {
+  id: text("id").primaryKey(),
+  type: text("type").notNull(),
+  /** Stripe's `event.created` (seconds since epoch) — used for ordering. */
+  eventCreated: integer("event_created").notNull(),
+  receivedAt: integer("received_at", { mode: "timestamp_ms" }).notNull().default(sql`(unixepoch() * 1000)`),
+});
+
+/**
+ * C-7 fix: audit run log for monthly audit-cap enforcement.
+ * A row is inserted each time `runAudit*` runs from a request handler.
+ */
+export const auditRuns = sqliteTable(
+  "audit_runs",
+  {
+    id: text("id").primaryKey(),
+    agencyId: text("agency_id")
+      .notNull()
+      .references(() => agencies.id, { onDelete: "cascade" }),
+    clientId: text("client_id")
+      .notNull()
+      .references(() => clients.id, { onDelete: "cascade" }),
+    ranAt: integer("ran_at", { mode: "timestamp_ms" }).notNull().default(sql`(unixepoch() * 1000)`),
+  },
+  (t) => ({
+    agencyIdx: index("audit_runs_agency_idx").on(t.agencyId),
+    ranAtIdx: index("audit_runs_ran_at_idx").on(t.ranAt),
+  }),
+);
+
+/**
+ * C-5 fix: agency logo binary storage (replaces public/logos/agency.*).
+ * One row per agency. Served via /api/logos/agency/[agencyId].
+ */
+export const agencyLogos = sqliteTable("agency_logos", {
+  agencyId: text("agency_id")
+    .primaryKey()
+    .references(() => agencies.id, { onDelete: "cascade" }),
+  /** image bytes */
+  data: blob("data", { mode: "buffer" }).notNull(),
+  /** "image/png" | "image/jpeg" | "image/webp" — no SVG (XSS risk). */
+  mime: text("mime").notNull(),
+  size: integer("size").notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull().default(sql`(unixepoch() * 1000)`),
+});
+
+/**
+ * C-5 fix: client logo binary storage (replaces public/csvs/<slug>/logo.*).
+ * One row per client + variant (dark/light).
+ */
+export const clientLogos = sqliteTable(
+  "client_logos",
+  {
+    id: text("id").primaryKey(),
+    clientId: text("client_id")
+      .notNull()
+      .references(() => clients.id, { onDelete: "cascade" }),
+    /** "dark" (default) or "light" theme variant. */
+    variant: text("variant").notNull().default("dark"),
+    data: blob("data", { mode: "buffer" }).notNull(),
+    mime: text("mime").notNull(),
+    size: integer("size").notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull().default(sql`(unixepoch() * 1000)`),
+  },
+  (t) => ({
+    perClientVariant: uniqueIndex("client_logos_per_client_variant").on(t.clientId, t.variant),
+  }),
+);
+
+/**
+ * C-5 fix: Meta Marketing API credentials (replaces config/meta.json).
+ * One row per agency.
+ */
+export const metaConfigs = sqliteTable("meta_configs", {
+  agencyId: text("agency_id")
+    .primaryKey()
+    .references(() => agencies.id, { onDelete: "cascade" }),
+  appId: text("app_id").notNull(),
+  appSecret: text("app_secret").notNull(),
+  accessToken: text("access_token").notNull(),
+  adAccountId: text("ad_account_id").notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull().default(sql`(unixepoch() * 1000)`),
+});
+
 // ─── Relations (for Drizzle's relational queries) ──────────────────────
 
 export const agenciesRelations = relations(agencies, ({ many, one }) => ({
   users: many(users),
   clients: many(clients),
   subscription: one(subscriptions),
+  logo: one(agencyLogos),
+  metaConfig: one(metaConfigs),
 }));
 
 export const usersRelations = relations(users, ({ one, many }) => ({
@@ -175,6 +281,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
 export const clientsRelations = relations(clients, ({ one, many }) => ({
   agency: one(agencies, { fields: [clients.agencyId], references: [agencies.id] }),
   csvFiles: many(csvFiles),
+  logos: many(clientLogos),
 }));
 
 export const csvFilesRelations = relations(csvFiles, ({ one }) => ({
@@ -201,9 +308,16 @@ export type CsvFile = typeof csvFiles.$inferSelect;
 export type NewCsvFile = typeof csvFiles.$inferInsert;
 export type Subscription = typeof subscriptions.$inferSelect;
 export type NewSubscription = typeof subscriptions.$inferInsert;
-
 export type Notification = typeof notifications.$inferSelect;
 export type NewNotification = typeof notifications.$inferInsert;
+export type StripeEvent = typeof stripeEvents.$inferSelect;
+export type NewStripeEvent = typeof stripeEvents.$inferInsert;
+export type AuditRun = typeof auditRuns.$inferSelect;
+export type NewAuditRun = typeof auditRuns.$inferInsert;
+export type AgencyLogo = typeof agencyLogos.$inferSelect;
+export type ClientLogo = typeof clientLogos.$inferSelect;
+export type MetaConfig = typeof metaConfigs.$inferSelect;
+export type NewMetaConfig = typeof metaConfigs.$inferInsert;
 
 export type Role = "admin" | "agency";
 export type BillingPlan = "free" | "pro" | "agency";
