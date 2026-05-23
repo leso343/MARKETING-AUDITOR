@@ -37,6 +37,11 @@ export interface DeviceResult {
 export function analyzeDevices(rows: BreakdownRow[]): DeviceResult {
   const deviceRows = rows.filter((r) => r.breakdownKind === 'device');
 
+  // Prefer the dedicated "Leads" column over the generic "Results" column.
+  // Results conflates link clicks with actual leads depending on objective;
+  // the Leads column (when present) is always true lead-form submissions.
+  const hasLeadsData = deviceRows.some((r) => r.leads != null && r.leads > 0);
+
   // Aggregate by device bucket.
   const agg = new Map<
     string,
@@ -48,7 +53,7 @@ export function analyzeDevices(rows: BreakdownRow[]): DeviceResult {
     if (!key) continue;
     const cur = agg.get(key) ?? { spend: 0, results: 0, impressions: 0, clicks: 0 };
     cur.spend += r.amountSpent ?? 0;
-    cur.results += r.results ?? 0;
+    cur.results += hasLeadsData ? (r.leads ?? 0) : (r.results ?? 0);
     cur.impressions += r.impressions ?? 0;
     cur.clicks += r.linkClicks ?? 0;
     agg.set(key, cur);

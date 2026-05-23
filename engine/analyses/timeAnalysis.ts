@@ -70,6 +70,11 @@ function formatRanges(sorted: number[]): string {
 export function analyzeTimeOfDay(rows: BreakdownRow[]): TimeResult {
   const hourRows = rows.filter((r) => r.breakdownKind === 'hour');
 
+  // Prefer the dedicated "Leads" column over the generic "Results" column.
+  // Results conflates link clicks with actual leads depending on objective;
+  // the Leads column (when present) is always true lead-form submissions.
+  const hasLeadsData = hourRows.some((r) => r.leads != null && r.leads > 0);
+
   // Aggregate by hour bucket (0-23).
   const agg = new Map<number, { spend: number; results: number; impressions: number }>();
 
@@ -80,7 +85,7 @@ export function analyzeTimeOfDay(rows: BreakdownRow[]): TimeResult {
     if (Number.isNaN(h) || h < 0 || h > 23) continue;
     const cur = agg.get(h) ?? { spend: 0, results: 0, impressions: 0 };
     cur.spend += r.amountSpent ?? 0;
-    cur.results += r.results ?? 0;
+    cur.results += hasLeadsData ? (r.leads ?? 0) : (r.results ?? 0);
     cur.impressions += r.impressions ?? 0;
     agg.set(h, cur);
   }

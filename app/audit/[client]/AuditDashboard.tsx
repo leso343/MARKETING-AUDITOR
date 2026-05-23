@@ -14,6 +14,9 @@ import TrackingFailuresPanel from "@/components/audit/TrackingFailuresPanel";
 import GeographicHeatmap from "@/components/audit/GeographicHeatmap";
 import CreativeAnalysisGrid from "@/components/audit/CreativeAnalysisGrid";
 import DemographicsPanel from "@/components/audit/DemographicsPanel";
+import PlacementsPanel from "@/components/audit/PlacementsPanel";
+import DevicesPanel from "@/components/audit/DevicesPanel";
+import TimeOfDayPanel from "@/components/audit/TimeOfDayPanel";
 import RecommendationCards from "@/components/audit/RecommendationCards";
 import AuditRibbon from "@/components/audit/AuditRibbon";
 import BenchmarkStatus from "@/components/audit/BenchmarkStatus";
@@ -369,6 +372,25 @@ export default function AuditDashboard({
               {audit.demographics.brackets.some((b) => b.spend > 0) && (
                 <section id="demographics" className="col-span-12">
                   <DemographicsPanel demographics={audit.demographics} targetCpl={liveCpl} />
+                </section>
+              )}
+
+              {/* Placement + Device breakdown */}
+              {audit.placements.placements.length > 0 && (
+                <section id="placements" className="col-span-12 lg:col-span-6">
+                  <PlacementsPanel placements={audit.placements} targetCpl={liveCpl} />
+                </section>
+              )}
+              {audit.devices.devices.length > 0 && (
+                <section id="devices" className="col-span-12 lg:col-span-6">
+                  <DevicesPanel devices={audit.devices} />
+                </section>
+              )}
+
+              {/* Dayparting / Time-of-day analysis */}
+              {audit.timeOfDay.hours.length > 0 && (
+                <section id="dayparting" className="col-span-12">
+                  <TimeOfDayPanel timeOfDay={audit.timeOfDay} />
                 </section>
               )}
 

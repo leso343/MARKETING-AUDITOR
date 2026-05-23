@@ -121,6 +121,10 @@ function scaleBreakdowns(rows: BreakdownRow[], factor: number): BreakdownRow[] {
     ...r,
     amountSpent: (r.amountSpent ?? 0) * factor,
     results:     Math.round((r.results ?? 0) * factor),
+    leads:       r.leads != null ? Math.round(r.leads * factor) : r.leads,
+    reach:       r.reach != null ? Math.round(r.reach * factor) : r.reach,
+    impressions: r.impressions != null ? Math.round(r.impressions * factor) : r.impressions,
+    linkClicks:  r.linkClicks != null ? Math.round(r.linkClicks * factor) : r.linkClicks,
   }));
 }
 
