@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * SNA Marketing Auditor — CLI entry point.
+ * SNA Forensic — Marketing Auditor CLI entry point.
  *
  * Usage:
  *   node dist/engine/index.js --csv-dir ./csvs/client --client "Client Name" --output ./reports/client.html
@@ -67,7 +67,7 @@ function main(): void {
   const program = new Command();
   program
     .name('sna-audit')
-    .description('SNA Marketing Auditor — Meta Ads CSV → forensic dashboard.')
+    .description('SNA Forensic — Marketing Auditor: Meta Ads CSV → forensic dashboard.')
     .requiredOption('--csv-dir <path>', 'Directory of Meta Ads Manager CSV exports')
     .requiredOption('--client <name>', 'Client name for the report header')
     .requiredOption('--output <path>', 'Output HTML path')

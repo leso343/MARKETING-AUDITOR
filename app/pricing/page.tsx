@@ -1,8 +1,8 @@
 /**
  * /pricing — public pricing page (no auth required).
  *
- * Tier 4 will wire the Subscribe buttons to Stripe Checkout. For now they
- * POST to /api/billing/checkout which returns a TODO message.
+ * Subscribe buttons POST to /api/billing/checkout, which creates a Stripe
+ * Checkout session and redirects the user to Stripe's hosted payment page.
  */
 import Link from "next/link";
 import {
@@ -15,8 +15,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import PricingCard from "./PricingCard";
-
-export const dynamic = "force-static";
+import BillingToggle, { BillingProvider } from "./BillingToggle";
 
 /* ─── plan data ────────────────────────────────────────────────────────── */
 
@@ -45,6 +44,7 @@ const PLANS = [
     plan: "pro" as const,
     name: "Pro",
     price: "$99",
+    annualPrice: "$79",
     period: "per month",
     description:
       "For solo operators and small teams running 1 to 5 active client accounts with full audit capabilities.",
@@ -71,6 +71,7 @@ const PLANS = [
     plan: "agency" as const,
     name: "Agency",
     price: "$299",
+    annualPrice: "$239",
     period: "per month",
     description:
       "For agencies managing multiple clients. White-label branding, team seats, and advanced automation.",
@@ -167,7 +168,7 @@ const FAQ = [
   },
   {
     q: "Do you offer annual billing?",
-    a: "Yes. Annual billing is available on Pro and Agency plans and saves you roughly 20% compared to monthly billing. Contact us or toggle to annual pricing during checkout.",
+    a: "Yes. Use the Monthly / Annual toggle above to see annual pricing. You save roughly 20% on both Pro and Agency plans when billed annually.",
   },
   {
     q: "What payment methods do you accept?",
@@ -244,7 +245,7 @@ export default function PricingPage() {
         {/* ── Hero ────────────────────────────────────────────────── */}
         <div className="text-center mb-16">
           <div className="font-mono text-[10px] uppercase tracking-[3px] text-[var(--text-dim)] mb-4">
-            &gt; SNA_Forensic / Pricing
+            &gt; SNA Forensic / Pricing
           </div>
           <h1
             className="text-4xl sm:text-5xl font-bold tracking-tight mb-4"
@@ -261,7 +262,9 @@ export default function PricingPage() {
           </p>
         </div>
 
-        {/* ── Pricing cards ──────────────────────────────────────── */}
+        {/* ── Billing toggle + Pricing cards ──────────────────── */}
+        <BillingProvider>
+        <BillingToggle />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
           {PLANS.map((p) => (
             <div key={p.plan} className="relative flex flex-col">
@@ -282,6 +285,7 @@ export default function PricingPage() {
                 plan={p.plan}
                 name={p.name}
                 price={p.price}
+                annualPrice={p.annualPrice}
                 period={p.period}
                 description={p.description}
                 features={p.features}
@@ -325,6 +329,7 @@ export default function PricingPage() {
             </div>
           </div>
         </div>
+        </BillingProvider>
 
         {/* ── Compare all features ───────────────────────────────── */}
         <div className="mt-24">

@@ -53,9 +53,17 @@ export function appUrl(): string {
   );
 }
 
-/** Resolve tier → Stripe price ID. Returns null for unknown / unset. */
-export function priceIdForTier(tier: string): string | null {
-  if (tier === "pro") return process.env.STRIPE_PRO_PRICE_ID ?? null;
-  if (tier === "agency") return process.env.STRIPE_AGENCY_PRICE_ID ?? null;
+/** Resolve tier + billing period → Stripe price ID. Returns null for unknown / unset. */
+export function priceIdForTier(tier: string, period: "monthly" | "annual" = "monthly"): string | null {
+  if (tier === "pro") {
+    return period === "annual"
+      ? (process.env.STRIPE_PRO_ANNUAL_PRICE_ID ?? process.env.STRIPE_PRO_PRICE_ID ?? null)
+      : (process.env.STRIPE_PRO_PRICE_ID ?? null);
+  }
+  if (tier === "agency") {
+    return period === "annual"
+      ? (process.env.STRIPE_AGENCY_ANNUAL_PRICE_ID ?? process.env.STRIPE_AGENCY_PRICE_ID ?? null)
+      : (process.env.STRIPE_AGENCY_PRICE_ID ?? null);
+  }
   return null;
 }

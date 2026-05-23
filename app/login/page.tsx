@@ -21,7 +21,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <div className="font-mono text-[10px] uppercase tracking-[3px] text-[var(--text-dim)] mb-2">
-            &gt; SNA_Forensic / Login
+            &gt; SNA Forensic / Login
           </div>
           <h1
             className="text-3xl font-bold tracking-tight"

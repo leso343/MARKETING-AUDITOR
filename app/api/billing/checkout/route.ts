@@ -53,7 +53,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unauthorized — sign in first." }, { status: 401 });
   }
 
-  const body = (await req.json().catch(() => ({}))) as { tier?: string; plan?: string };
+  const body = (await req.json().catch(() => ({}))) as { tier?: string; plan?: string; period?: string };
   // Accept `tier` (new spec) or `plan` (legacy from existing PricingCard).
   const tier = (body.tier ?? body.plan ?? "").toLowerCase();
   if (!ALLOWED_TIERS.has(tier)) {
@@ -63,7 +63,8 @@ export async function POST(req: Request) {
     );
   }
 
-  const priceId = priceIdForTier(tier);
+  const period: "monthly" | "annual" = body.period === "annual" ? "annual" : "monthly";
+  const priceId = priceIdForTier(tier, period);
   if (!priceId) {
     const envName = tier === "pro" ? "STRIPE_PRO_PRICE_ID" : "STRIPE_AGENCY_PRICE_ID";
     return NextResponse.json(

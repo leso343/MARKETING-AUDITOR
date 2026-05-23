@@ -23,54 +23,59 @@ export async function PATCH(req: Request) {
     );
   }
 
-  const session = await auth();
-  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    const session = await auth();
+    if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const body = (await req.json().catch(() => ({}))) as {
-    agencyId?: string;
-    name?: string;
-    logoUrl?: string | null;
-    primaryColor?: string;
-    secondaryColor?: string | null;
-    accentColor?: string | null;
-    highlightColor?: string | null;
-    popColor?: string | null;
-  };
+    const body = (await req.json().catch(() => ({}))) as {
+      agencyId?: string;
+      name?: string;
+      logoUrl?: string | null;
+      primaryColor?: string;
+      secondaryColor?: string | null;
+      accentColor?: string | null;
+      highlightColor?: string | null;
+      popColor?: string | null;
+    };
 
-  // Resolve target agency
-  let targetId = body.agencyId ?? session.user.agencyId ?? null;
-  if (session.user.role !== "admin") {
-    // Agency users can only update their own agency.
-    targetId = session.user.agencyId ?? null;
-  }
-  if (!targetId) return NextResponse.json({ error: "No target agency" }, { status: 400 });
-
-  const updates: Record<string, unknown> = {};
-  if (typeof body.name === "string" && body.name.trim().length >= 2) updates.name = body.name.trim();
-  if (body.logoUrl === null || typeof body.logoUrl === "string") updates.logoUrl = body.logoUrl || null;
-
-  const hexRe = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
-
-  // Helper: validate a nullable hex color field
-  function setColorField(key: string, value: string | null | undefined) {
-    if (value === null) {
-      updates[key] = null;
-    } else if (typeof value === "string" && hexRe.test(value)) {
-      updates[key] = value;
+    // Resolve target agency
+    let targetId = body.agencyId ?? session.user.agencyId ?? null;
+    if (session.user.role !== "admin") {
+      // Agency users can only update their own agency.
+      targetId = session.user.agencyId ?? null;
     }
+    if (!targetId) return NextResponse.json({ error: "No target agency" }, { status: 400 });
+
+    const updates: Record<string, unknown> = {};
+    if (typeof body.name === "string" && body.name.trim().length >= 2) updates.name = body.name.trim();
+    if (body.logoUrl === null || typeof body.logoUrl === "string") updates.logoUrl = body.logoUrl || null;
+
+    const hexRe = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
+
+    // Helper: validate a nullable hex color field
+    function setColorField(key: string, value: string | null | undefined) {
+      if (value === null) {
+        updates[key] = null;
+      } else if (typeof value === "string" && hexRe.test(value)) {
+        updates[key] = value;
+      }
+    }
+
+    setColorField("primaryColor", body.primaryColor);
+    setColorField("secondaryColor", body.secondaryColor);
+    setColorField("accentColor", body.accentColor);
+    setColorField("highlightColor", body.highlightColor);
+    setColorField("popColor", body.popColor);
+
+    if (Object.keys(updates).length === 0) {
+      return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
+    }
+
+    await db.update(schema.agencies).set(updates).where(eq(schema.agencies.id, targetId));
+    const fresh = await db.select().from(schema.agencies).where(eq(schema.agencies.id, targetId)).limit(1);
+    return NextResponse.json(fresh[0] ?? { ok: true });
+  } catch (error) {
+    console.error("PATCH /api/agency error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-
-  setColorField("primaryColor", body.primaryColor);
-  setColorField("secondaryColor", body.secondaryColor);
-  setColorField("accentColor", body.accentColor);
-  setColorField("highlightColor", body.highlightColor);
-  setColorField("popColor", body.popColor);
-
-  if (Object.keys(updates).length === 0) {
-    return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
-  }
-
-  await db.update(schema.agencies).set(updates).where(eq(schema.agencies.id, targetId));
-  const fresh = await db.select().from(schema.agencies).where(eq(schema.agencies.id, targetId)).limit(1);
-  return NextResponse.json(fresh[0] ?? { ok: true });
 }

@@ -2,11 +2,13 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { Check } from "lucide-react";
+import { useBillingPeriod } from "./BillingToggle";
 
 interface Props {
   plan: "free" | "pro" | "agency";
   name: string;
   price: string;
+  annualPrice?: string;
   period: string;
   description: string;
   features: string[];
@@ -17,6 +19,7 @@ interface Props {
 export default function PricingCard(props: Props) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const { period: billingPeriod } = useBillingPeriod();
 
   // Free tier doesn't hit Stripe — point at /login (or /admin if already in).
   if (props.plan === "free") {
@@ -46,6 +49,9 @@ export default function PricingCard(props: Props) {
     );
   }
 
+  const displayPrice = billingPeriod === "annual" && props.annualPrice ? props.annualPrice : props.price;
+  const displayPeriod = billingPeriod === "annual" ? "per month, billed annually" : props.period;
+
   const onSubscribe = () => {
     setError(null);
     startTransition(async () => {
@@ -53,7 +59,7 @@ export default function PricingCard(props: Props) {
         const res = await fetch("/api/billing/checkout", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ tier: props.plan }),
+          body: JSON.stringify({ tier: props.plan, period: billingPeriod }),
         });
         const j = await res.json().catch(() => ({}));
         if (res.ok && j.url) {
@@ -76,9 +82,15 @@ export default function PricingCard(props: Props) {
     <div className={`panel flex flex-col ${props.highlighted ? "border-[var(--red)]" : ""}`}>
       <div className="panel-label">{props.name}</div>
       <div className="mt-3 flex items-baseline gap-2">
-        <span className="text-4xl font-bold" style={{ fontFamily: "var(--font-head)" }}>{props.price}</span>
-        <span className="text-xs font-mono text-[var(--text-dim)]">{props.period}</span>
+        <span className="text-4xl font-bold" style={{ fontFamily: "var(--font-head)" }}>{displayPrice}</span>
+        <span className="text-xs font-mono text-[var(--text-dim)]">{displayPeriod}</span>
       </div>
+      {billingPeriod === "annual" && props.annualPrice && (
+        <div className="mt-1 text-[10px] font-mono text-emerald-400">
+          <span className="line-through text-[var(--text-dim)]">{props.price}/mo</span>
+          {" → "}{props.annualPrice}/mo
+        </div>
+      )}
       <p className="text-xs text-[var(--text-dim)] mt-3">{props.description}</p>
       <ul className="mt-5 space-y-2 text-sm flex-1">
         {props.features.map((f) => (
