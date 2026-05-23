@@ -35,12 +35,12 @@ export default function BillingToggle() {
       <button
         type="button"
         onClick={toggle}
-        className="relative h-7 w-14 rounded-full border border-[var(--border)] bg-[var(--card)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--red)]"
+        className="relative h-7 w-12 rounded-full border border-[var(--border)] bg-[var(--card)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--red)]"
         aria-label="Toggle billing period"
       >
         <span
-          className={`absolute top-0.5 h-5 w-5 rounded-full bg-[var(--red)] transition-transform duration-200 ${
-            period === "annual" ? "translate-x-[30px]" : "translate-x-[3px]"
+          className={`absolute top-[3px] left-[3px] h-[22px] w-[22px] rounded-full bg-[var(--red)] transition-transform duration-200 ${
+            period === "annual" ? "translate-x-[20px]" : "translate-x-0"
           }`}
         />
       </button>
