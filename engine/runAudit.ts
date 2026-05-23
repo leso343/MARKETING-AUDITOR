@@ -71,7 +71,7 @@ function flatRows<T extends ParsedRow>(files: ParsedFile[], kind: T["kind"], act
   for (const f of files) {
     if (f.kind === kind) {
       for (const row of f.rows as T[]) {
-        if (activeOnly && 'isActive' in row && !(row as any).isActive) continue;
+        if (activeOnly && "isActive" in row && (row as { isActive?: boolean }).isActive === false) continue;
         out.push(row);
       }
     }

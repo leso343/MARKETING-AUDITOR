@@ -39,7 +39,7 @@ async function upsertAgency(slug: string, name: string, primaryColor = "#ff0000"
 
 async function upsertUser(email: string, password: string, role: "admin" | "agency", agencyId?: string, name?: string) {
   const found = await db.select().from(schema.users).where(eq(schema.users.email, email)).limit(1);
-  const passwordHash = await bcrypt.hash(password, 10);
+  const passwordHash = await bcrypt.hash(password, 12);
   if (found[0]) {
     await db.update(schema.users).set({ passwordHash, role, agencyId: agencyId ?? null, name: name ?? found[0].name }).where(eq(schema.users.id, found[0].id));
     return found[0];
@@ -75,11 +75,17 @@ async function main() {
   console.log(`[seed] admin user: ${ADMIN_EMAIL}`);
   await upsertUser(ADMIN_EMAIL, ADMIN_PASSWORD, "admin", sna.id, "Lester Ortiz");
 
-  console.log("[seed] client: Take Charge Roofing under Blank Page Audits");
-  await upsertClient("take-charge-roofing", "Take Charge Roofing", sna.id, {
-    subtitle: "Roofing · Atlanta",
-    industry: "roofing",
-  });
+  // L-10 fix: only seed the demo client in dev / when explicitly
+  // requested. Production deploys should start clean.
+  if (process.env.SEED_INCLUDE_DEMO === "true" || process.env.NODE_ENV !== "production") {
+    console.log("[seed] client: Take Charge Roofing under Blank Page Audits");
+    await upsertClient("take-charge-roofing", "Take Charge Roofing", sna.id, {
+      subtitle: "Roofing · Atlanta",
+      industry: "roofing",
+    });
+  } else {
+    console.log("[seed] skipping demo client (set SEED_INCLUDE_DEMO=true to include)");
+  }
 
   console.log("[seed] subscription: BPA → free / trialing");
   await ensureSubscription(sna.id);
@@ -88,7 +94,9 @@ async function main() {
   console.log("");
   console.log("    Login at /login with:");
   console.log(`      email:    ${ADMIN_EMAIL}`);
-  console.log(`      password: ${ADMIN_PASSWORD}`);
+  // M-4 fix: do NOT echo the password. Whoever ran the seed knows it
+  // (they set SEED_ADMIN_PASSWORD or used the default in this file).
+  console.log("      password: <use SEED_ADMIN_PASSWORD or the default>");
   console.log("");
 }
 

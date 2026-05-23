@@ -12,7 +12,7 @@ export default function AuditError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("[audit-error]", error);
+    if (process.env.NODE_ENV !== "production") console.error("[audit-error]", error);
   }, [error]);
 
   return (

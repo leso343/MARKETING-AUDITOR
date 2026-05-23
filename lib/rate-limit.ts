@@ -1,4 +1,25 @@
 /**
+ * ⚠️  M-2 NOTE: This limiter stores per-process state in a Map. On
+ *    serverless platforms (Vercel/AWS Lambda) each cold-started
+ *    invocation has its OWN map, so the configured "N per window per
+ *    IP" cap is really "N per IP per warm instance per window".
+ *    Attackers rotating across cold starts can bypass it.
+ *
+ *    For real cross-instance rate limiting, swap this module for an
+ *    Upstash Redis or Vercel KV backend (`@upstash/ratelimit` is one
+ *    drop-in). Suggested migration:
+ *
+ *      1. provision an Upstash KV store, add @upstash/ratelimit
+ *      2. re-export rateLimit() with the same signature backed by
+ *         `new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(...) })`
+ *      3. delete the Map below
+ *
+ *    Until then, treat the existing limits as best-effort and rely on
+ *    Stripe webhook signatures, NextAuth's per-request guards, and the
+ *    plan-cap enforcement in lib/billing-access to provide the real
+ *    abuse protection.
+ */
+/**
  * In-memory sliding-window rate limiter.
  *
  * For serverless (Vercel), in-memory state resets on cold starts — this is

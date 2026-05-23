@@ -259,10 +259,18 @@ export default async function AuditPage({ params, searchParams }: PageProps) {
             <span className="text-[var(--text)] font-mono">{clientName}</span>.
           </p>
           <p className="text-[var(--text-dim)] text-sm">
-            {dbClient
-              ? "Upload the five Meta exports (campaigns, ads, breakdown_age_gender, breakdown_placement, breakdowns) on the client's admin page."
-              : `Drop your exports in /public/csvs/${clientSlug}/ or create the client through /admin/clients.`}
+            Upload the five Meta exports (campaigns, ads,
+            breakdown_age_gender, breakdown_placement, breakdowns) and
+            we'll regenerate the audit.
           </p>
+          {dbClient && (
+            <a
+              href={`/admin/clients/${clientSlug}`}
+              className="inline-block bg-[var(--red)] text-white font-mono text-xs uppercase tracking-widest px-4 py-2 hover:opacity-90"
+            >
+              Upload CSVs →
+            </a>
+          )}
         </div>
       </div>
     );
