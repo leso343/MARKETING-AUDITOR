@@ -1,0 +1,10 @@
+# Blank Page Audits — robots.txt
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /audit/
+Disallow: /billing/
+Disallow: /setup/
+
+Sitemap: https://blankpageaudits.com/sitemap.xml

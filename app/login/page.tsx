@@ -8,11 +8,17 @@
  * just throw on submit. Show a clear notice + a link back to "/" (legacy
  * single-tenant mode) instead.
  */
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
 import LoginForm from "./LoginForm";
 import { authEnabled } from "@/auth";
 import Logo from "@/components/Logo";
+
+export const metadata: Metadata = {
+  title: "Sign in — Blank Page Audits",
+  description: "Sign in to access your forensic ad audit dashboards.",
+};
 
 export const dynamic = "force-dynamic";
 

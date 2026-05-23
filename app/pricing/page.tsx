@@ -4,6 +4,7 @@
  * Subscribe buttons POST to /api/billing/checkout, which creates a Stripe
  * Checkout session and redirects the user to Stripe's hosted payment page.
  */
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   Zap,
@@ -247,6 +248,12 @@ function TierBadge({
 }
 
 /* ═══════════════════════════════════════════════════════════════════════ */
+
+export const metadata: Metadata = {
+  title: "Pricing — Blank Page Audits",
+  description:
+    "Forensic Meta Ads audits starting at $0. Compare Free, Pro, Agency, and Enterprise plans. Stop bleeding ad spend.",
+};
 
 export default function PricingPage() {
   return (
