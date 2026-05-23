@@ -129,6 +129,12 @@ export async function POST(req: Request) {
         metadata: { agencyId, tier },
       },
       allow_promotion_codes: true,
+      custom_text: {
+        submit: {
+          message:
+            "By subscribing you agree that all sales are final and no refunds will be issued. You may cancel anytime.",
+        },
+      },
     });
   } catch (err) {
     // eslint-disable-next-line no-console

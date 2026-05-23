@@ -60,8 +60,8 @@ const PLANS = [
       "Branded PDF exports (no watermark)",
       "Demographic deep-dive (age + gender)",
       "Email + chat support",
-      "Weekly re-audit scheduling",
-      "API access (limited to plan's client cap)",
+      "Weekly re-audit scheduling · Coming Soon",
+      "API access (limited to plan's client cap) · Coming Soon",
     ],
     cta: "Get started",
     highlighted: true,
@@ -81,14 +81,14 @@ const PLANS = [
       "White-label branding (logo, colors, fonts)",
       "Multiple user seats (up to 10)",
       "Time-of-day optimization analysis",
-      "Scheduled auto-audits (daily/weekly)",
-      "Custom industry benchmarks",
+      "Scheduled auto-audits (daily/weekly) · Coming Soon",
+      "Custom industry benchmarks · Coming Soon",
       "Priority support (< 4hr response)",
-      "Client-facing read-only dashboard links",
-      "Historical trend comparison",
+      "Client-facing read-only dashboard links · Coming Soon",
+      "Historical trend comparison · Coming Soon",
       "Budget utilization monitoring",
-      "Custom report templates",
-      "API access (unlimited clients)",
+      "Custom report templates · Coming Soon",
+      "API access (unlimited clients) · Coming Soon",
     ],
     cta: "Get started",
     highlighted: false,
@@ -132,16 +132,16 @@ const COMPARISON: ComparisonRow[] = [
   { feature: "Weekly trend tracking", free: false, pro: true, agency: true, enterprise: true },
   { feature: "Demographic deep-dive", free: false, pro: true, agency: true, enterprise: true },
   { feature: "PDF export", free: "Watermarked", pro: "Branded", agency: "Branded", enterprise: "Branded" },
-  { feature: "Weekly re-audit scheduling", free: false, pro: true, agency: true, enterprise: true },
+  { feature: "Weekly re-audit scheduling", free: false, pro: "Soon", agency: "Soon", enterprise: true },
   { feature: "White-label branding", free: false, pro: false, agency: true, enterprise: true },
-  { feature: "Scheduled auto-audits", free: false, pro: false, agency: true, enterprise: true },
+  { feature: "Scheduled auto-audits", free: false, pro: false, agency: "Soon", enterprise: true },
   { feature: "Time-of-day optimization", free: false, pro: false, agency: true, enterprise: true },
-  { feature: "Custom industry benchmarks", free: false, pro: false, agency: true, enterprise: true },
-  { feature: "Client-facing dashboard links", free: false, pro: false, agency: true, enterprise: true },
-  { feature: "Historical trend comparison", free: false, pro: false, agency: true, enterprise: true },
+  { feature: "Custom industry benchmarks", free: false, pro: false, agency: "Soon", enterprise: true },
+  { feature: "Client-facing dashboard links", free: false, pro: false, agency: "Soon", enterprise: true },
+  { feature: "Historical trend comparison", free: false, pro: false, agency: "Soon", enterprise: true },
   { feature: "Budget utilization monitoring", free: false, pro: false, agency: true, enterprise: true },
-  { feature: "Custom report templates", free: false, pro: false, agency: true, enterprise: true },
-  { feature: "API access", free: false, pro: true, agency: true, enterprise: true },
+  { feature: "Custom report templates", free: false, pro: false, agency: "Soon", enterprise: true },
+  { feature: "API access", free: false, pro: "Soon", agency: "Soon", enterprise: true },
   { feature: "SSO / SAML authentication", free: false, pro: false, agency: false, enterprise: true },
   { feature: "Dedicated onboarding specialist", free: false, pro: false, agency: false, enterprise: true },
   { feature: "Custom analysis modules", free: false, pro: false, agency: false, enterprise: true },
@@ -174,6 +174,10 @@ const FAQ = [
     q: "What payment methods do you accept?",
     a: "We accept all major credit and debit cards (Visa, Mastercard, Amex, Discover) through Stripe. Enterprise customers can also pay via invoice and bank transfer.",
   },
+  {
+    q: "What is your refund policy?",
+    a: "All sales are final. No refunds will be issued under any circumstances. You have a full 14-day free trial to evaluate the platform before committing to a paid plan. If you decide to cancel, you can do so at any time from your billing settings — your subscription will remain active through the end of the current billing period, and you will not be charged again.",
+  },
 ];
 
 /* ─── helper components ────────────────────────────────────────────────── */
@@ -184,6 +188,13 @@ function ComparisonCell({ value }: { value: CellValue }) {
   }
   if (value === false) {
     return <Minus className="h-4 w-4 text-[var(--text-dim)] opacity-30 mx-auto" />;
+  }
+  if (value === "Soon") {
+    return (
+      <span className="text-[9px] font-mono uppercase tracking-wider text-[var(--text-dim)] bg-[var(--border)] px-1.5 py-0.5 rounded-full">
+        Soon
+      </span>
+    );
   }
   return (
     <span className="text-xs font-mono text-[var(--text-dim)]">{value}</span>
@@ -330,6 +341,13 @@ export default function PricingPage() {
           </div>
         </div>
         </BillingProvider>
+
+        {/* ── No-refund disclaimer ──────────────────────────────── */}
+        <div className="mt-6 text-center">
+          <p className="font-mono text-[10px] uppercase tracking-[2px] text-[var(--text-dim)] opacity-60">
+            All sales are final. No refunds. Cancel anytime — you won&apos;t be charged again.
+          </p>
+        </div>
 
         {/* ── Compare all features ───────────────────────────────── */}
         <div className="mt-24">

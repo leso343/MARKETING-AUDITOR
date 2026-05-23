@@ -32,12 +32,22 @@ export default function PricingCard(props: Props) {
         </div>
         <p className="text-xs text-[var(--text-dim)] mt-3">{props.description}</p>
         <ul className="mt-5 space-y-2 text-sm flex-1">
-          {props.features.map((f) => (
-            <li key={f} className="flex items-start gap-2">
-              <Check className="h-4 w-4 mt-0.5 text-[var(--red)] shrink-0" />
-              <span>{f}</span>
-            </li>
-          ))}
+          {props.features.map((f) => {
+            const [featureName, badge] = f.split(" · ");
+            return (
+              <li key={f} className="flex items-start gap-2">
+                <Check className="h-4 w-4 mt-0.5 text-[var(--red)] shrink-0" />
+                <span>
+                  {featureName}
+                  {badge && (
+                    <span className="ml-1.5 text-[9px] font-mono uppercase tracking-wider text-[var(--text-dim)] bg-[var(--border)] px-1.5 py-0.5 rounded-full">
+                      {badge}
+                    </span>
+                  )}
+                </span>
+              </li>
+            );
+          })}
         </ul>
         <Link
           href="/login"
@@ -93,12 +103,22 @@ export default function PricingCard(props: Props) {
       )}
       <p className="text-xs text-[var(--text-dim)] mt-3">{props.description}</p>
       <ul className="mt-5 space-y-2 text-sm flex-1">
-        {props.features.map((f) => (
-          <li key={f} className="flex items-start gap-2">
-            <Check className="h-4 w-4 mt-0.5 text-[var(--red)] shrink-0" />
-            <span>{f}</span>
-          </li>
-        ))}
+        {props.features.map((f) => {
+          const [featureName, badge] = f.split(" · ");
+          return (
+            <li key={f} className="flex items-start gap-2">
+              <Check className="h-4 w-4 mt-0.5 text-[var(--red)] shrink-0" />
+              <span>
+                {featureName}
+                {badge && (
+                  <span className="ml-1.5 text-[9px] font-mono uppercase tracking-wider text-[var(--text-dim)] bg-[var(--border)] px-1.5 py-0.5 rounded-full">
+                    {badge}
+                  </span>
+                )}
+              </span>
+            </li>
+          );
+        })}
       </ul>
       <button
         type="button"

@@ -488,6 +488,9 @@ export default function BillingSuccessPage() {
                 <p className="font-mono text-[9px] uppercase tracking-[2px] text-[var(--text-dim)] opacity-50">
                   Receipt sent to your email. Cancel or change plans anytime from billing settings.
                 </p>
+                <p className="mt-2 font-mono text-[9px] uppercase tracking-[2px] text-[var(--text-dim)] opacity-40">
+                  All sales are final. No refunds. You may cancel anytime from billing settings.
+                </p>
               </div>
             </div>
           )}

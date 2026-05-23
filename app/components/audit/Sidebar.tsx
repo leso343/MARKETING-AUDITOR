@@ -195,7 +195,7 @@ export default function Sidebar({ clientName, clientSubtitle, primaryLeak, clien
           {primaryLeak}
         </div>
 
-        {/* Full interactive campaign report — opens in new tab */}
+        {/* Static demo report — opens in new tab */}
         <a
           href="/campaign_report.html"
           target="_blank"
@@ -203,7 +203,7 @@ export default function Sidebar({ clientName, clientSubtitle, primaryLeak, clien
           className="mt-5 flex items-center gap-2 border border-[var(--red-dim)] bg-[rgba(255,0,0,0.04)] px-3 py-2.5 font-mono text-[9px] uppercase tracking-wider text-[var(--red)] transition-colors hover:border-[var(--red)] hover:bg-[rgba(255,0,0,0.08)]"
         >
           <ExternalLink className="h-3 w-3 flex-shrink-0" />
-          {t("Interactive Report", "Interactive Report")}
+          {t("Sample Report", "Sample Report")}
         </a>
 
       </div>
