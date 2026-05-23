@@ -9,9 +9,16 @@
  */
 import { NextResponse } from "next/server";
 import { db, schema, dbAvailable } from "@/lib/db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, count } from "drizzle-orm";
 import { auth, authEnabled } from "@/auth";
 import { randomUUID } from "node:crypto";
+
+/** Max clients per plan. Agency plan = unlimited (Infinity). */
+const PLAN_CLIENT_LIMITS: Record<string, number> = {
+  free: 1,
+  pro: 5,
+  agency: Infinity,
+};
 
 function slugify(name: string): string {
   return name
@@ -64,6 +71,33 @@ export async function POST(req: Request) {
   }
   if (!agencyId) {
     return NextResponse.json({ error: "no target agency (user has no agency assigned)" }, { status: 400 });
+  }
+
+  // ── Plan-based client limit ────────────────────────────────────────────
+  const subRows = await db
+    .select()
+    .from(schema.subscriptions)
+    .where(eq(schema.subscriptions.agencyId, agencyId))
+    .limit(1);
+  const plan = subRows[0]?.plan ?? "free";
+  const limit = PLAN_CLIENT_LIMITS[plan] ?? 1;
+
+  if (limit !== Infinity) {
+    const [{ total }] = await db
+      .select({ total: count() })
+      .from(schema.clients)
+      .where(eq(schema.clients.agencyId, agencyId));
+
+    if (total >= limit) {
+      const upgrade = plan === "free" ? "Pro" : "Agency";
+      return NextResponse.json(
+        {
+          error: `Your ${plan} plan allows up to ${limit} client${limit === 1 ? "" : "s"}. Upgrade to ${upgrade} for more.`,
+          code: "CLIENT_LIMIT",
+        },
+        { status: 403 },
+      );
+    }
   }
 
   const existing = await db.select().from(schema.clients).where(eq(schema.clients.slug, slug)).limit(1);

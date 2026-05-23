@@ -44,7 +44,7 @@ const PLANS = [
   {
     plan: "pro" as const,
     name: "Pro",
-    price: "$49",
+    price: "$99",
     period: "per month",
     description:
       "For solo operators and small teams running 1 to 5 active client accounts with full audit capabilities.",
@@ -61,6 +61,7 @@ const PLANS = [
       "Demographic deep-dive (age + gender)",
       "Email + chat support",
       "Weekly re-audit scheduling",
+      "API access (limited to plan's client cap)",
     ],
     cta: "Get started",
     highlighted: true,
@@ -69,7 +70,7 @@ const PLANS = [
   {
     plan: "agency" as const,
     name: "Agency",
-    price: "$199",
+    price: "$299",
     period: "per month",
     description:
       "For agencies managing multiple clients. White-label branding, team seats, and advanced automation.",
@@ -86,6 +87,7 @@ const PLANS = [
       "Historical trend comparison",
       "Budget utilization monitoring",
       "Custom report templates",
+      "API access (unlimited clients)",
     ],
     cta: "Get started",
     highlighted: false,
@@ -96,7 +98,7 @@ const PLANS = [
 const ENTERPRISE_FEATURES = [
   "Everything in Agency, plus:",
   "Unlimited user seats",
-  "API access for integrations",
+  "Full API access (no rate limits)",
   "SSO / SAML authentication",
   "Dedicated onboarding specialist",
   "Custom analysis modules",
@@ -138,7 +140,7 @@ const COMPARISON: ComparisonRow[] = [
   { feature: "Historical trend comparison", free: false, pro: false, agency: true, enterprise: true },
   { feature: "Budget utilization monitoring", free: false, pro: false, agency: true, enterprise: true },
   { feature: "Custom report templates", free: false, pro: false, agency: true, enterprise: true },
-  { feature: "API access", free: false, pro: false, agency: false, enterprise: true },
+  { feature: "API access", free: false, pro: true, agency: true, enterprise: true },
   { feature: "SSO / SAML authentication", free: false, pro: false, agency: false, enterprise: true },
   { feature: "Dedicated onboarding specialist", free: false, pro: false, agency: false, enterprise: true },
   { feature: "Custom analysis modules", free: false, pro: false, agency: false, enterprise: true },

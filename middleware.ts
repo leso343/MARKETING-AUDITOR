@@ -20,6 +20,7 @@ const PUBLIC_PATHS = [
   "/login",
   "/pricing",
   "/api/auth",
+  "/api/billing/webhook",
   "/_next",
   "/favicon",
 ];
