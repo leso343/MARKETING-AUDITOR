@@ -7,11 +7,12 @@
  */
 import { NextResponse } from "next/server";
 import { db, schema, dbAvailable } from "@/lib/db";
-import { eq } from "drizzle-orm";
-import { auth, authEnabled } from "@/auth";
+import { eq, count } from "drizzle-orm";
+import { auth, authEnabled, bumpTokenVersion } from "@/auth";
 import { randomUUID } from "node:crypto";
 import { hash } from "bcryptjs";
 import { log } from "@/lib/logger";
+import { getBillingState, countAgencySeats } from "@/lib/billing-access";
 
 function guard() {
   if (!authEnabled || !dbAvailable) {
@@ -100,6 +101,26 @@ export async function POST(req: Request) {
     }
 
     const role = body.role === "admin" ? "admin" : "agency";
+
+    // C-7 seat cap: when creating a non-admin user attached to an
+    // agency, refuse if the agency is at its seat limit.
+    if (role === "agency" && body.agencyId) {
+      const billing = await getBillingState(body.agencyId);
+      const seatLimit = billing.plan.seatLimit;
+      if (Number.isFinite(seatLimit)) {
+        const seats = await countAgencySeats(body.agencyId);
+        if (seats >= seatLimit) {
+          return NextResponse.json(
+            {
+              error: `That agency's ${billing.plan.id} plan allows up to ${seatLimit} seat${seatLimit === 1 ? "" : "s"}.`,
+              code: "SEAT_LIMIT",
+            },
+            { status: 403 },
+          );
+        }
+      }
+    }
+
     const id = randomUUID();
     const passwordHash = await hash(body.password, 12);
 
@@ -143,15 +164,50 @@ export async function PATCH(req: Request) {
     }
 
     const rows = await db.select().from(schema.users).where(eq(schema.users.id, body.userId)).limit(1);
-    if (!rows[0]) return NextResponse.json({ error: "User not found" }, { status: 404 });
+    const target = rows[0];
+    if (!target) return NextResponse.json({ error: "User not found" }, { status: 404 });
+
+    // H-3 fix: block self-demotion. Without this an admin can flip
+    // their own role to 'agency' and lock the platform out of admin
+    // capabilities (no UI to fix it).
+    if (body.userId === session.user.id && body.role === "agency") {
+      return NextResponse.json(
+        { error: "You can't demote yourself. Ask another admin to do it." },
+        { status: 400 },
+      );
+    }
+    // H-3 fix: block demoting the LAST remaining admin. Same lockout
+    // risk if e.g. admin A demotes admin B before A demotes themselves.
+    if (target.role === "admin" && body.role === "agency") {
+      const adminCount = await db
+        .select({ c: count() })
+        .from(schema.users)
+        .where(eq(schema.users.role, "admin"));
+      if ((adminCount[0]?.c ?? 0) <= 1) {
+        return NextResponse.json(
+          { error: "Cannot demote the last remaining admin." },
+          { status: 400 },
+        );
+      }
+    }
 
     const updates: Record<string, unknown> = {};
+    let mustBumpToken = false;
     if (typeof body.name === "string") updates.name = body.name.trim() || null;
-    if (body.role === "admin" || body.role === "agency") updates.role = body.role;
-    if (body.agencyId === null) updates.agencyId = null;
-    else if (typeof body.agencyId === "string" && body.agencyId.trim()) updates.agencyId = body.agencyId.trim();
+    if (body.role === "admin" || body.role === "agency") {
+      if (body.role !== target.role) mustBumpToken = true;
+      updates.role = body.role;
+    }
+    if (body.agencyId === null) {
+      if (target.agencyId !== null) mustBumpToken = true;
+      updates.agencyId = null;
+    } else if (typeof body.agencyId === "string" && body.agencyId.trim()) {
+      if (body.agencyId.trim() !== target.agencyId) mustBumpToken = true;
+      updates.agencyId = body.agencyId.trim();
+    }
     if (typeof body.password === "string" && body.password.length >= 8) {
       updates.passwordHash = await hash(body.password, 12);
+      mustBumpToken = true; // force re-auth on password change
     }
 
     if (Object.keys(updates).length === 0) {
@@ -159,6 +215,13 @@ export async function PATCH(req: Request) {
     }
 
     await db.update(schema.users).set(updates).where(eq(schema.users.id, body.userId));
+
+    // H-4 integration: bump tokenVersion when role / agency / password
+    // changed. Forces the target user's existing JWTs to fail on the
+    // next request.
+    if (mustBumpToken) {
+      await bumpTokenVersion(body.userId);
+    }
     const fresh = await db
       .select({
         id: schema.users.id,
@@ -203,6 +266,25 @@ export async function DELETE(req: Request) {
     const rows = await db.select().from(schema.users).where(eq(schema.users.id, userId)).limit(1);
     if (!rows[0]) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
+    // H-3 fix: refuse to delete the last admin.
+    if (rows[0].role === "admin") {
+      const adminCount = await db
+        .select({ c: count() })
+        .from(schema.users)
+        .where(eq(schema.users.role, "admin"));
+      if ((adminCount[0]?.c ?? 0) <= 1) {
+        return NextResponse.json(
+          { error: "Cannot delete the last remaining admin." },
+          { status: 400 },
+        );
+      }
+    }
+
+    // H-4 integration: bump tokenVersion BEFORE delete so any
+    // concurrent JWT check on this user fails. The cascade on
+    // ON DELETE will clean up; the post-delete jwt callback will
+    // return null when the user row is gone.
+    await bumpTokenVersion(userId);
     await db.delete(schema.users).where(eq(schema.users.id, userId));
     return NextResponse.json({ ok: true, deleted: rows[0].email });
   } catch (error) {
