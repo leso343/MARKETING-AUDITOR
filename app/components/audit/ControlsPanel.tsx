@@ -70,7 +70,8 @@ export default function ControlsPanel({
 
         {/* Language toggle */}
         <div className="mb-6">
-          <label className="mb-2 block font-mono text-[9px] uppercase tracking-[2px] text-[var(--text-dim)]">
+          <label className="mb-2 flex items-center gap-2 font-mono text-[10px] font-semibold uppercase tracking-[2px] text-[var(--text)]">
+            <span className="inline-block h-[2px] w-3 bg-[var(--red)] flex-shrink-0" />
             {t("Language Mode", "Language Mode")}
           </label>
           <button
@@ -97,7 +98,8 @@ export default function ControlsPanel({
 
         {/* Industry */}
         <div className="mb-6">
-          <label className="mb-2 block font-mono text-[9px] uppercase tracking-[2px] text-[var(--text-dim)]">
+          <label className="mb-2 flex items-center gap-2 font-mono text-[10px] font-semibold uppercase tracking-[2px] text-[var(--text)]">
+            <span className="inline-block h-[2px] w-3 bg-[var(--red)] flex-shrink-0" />
             {t("Industry Benchmark", "Your industry")}
           </label>
           <select
@@ -119,7 +121,8 @@ export default function ControlsPanel({
         {/* Target CPL */}
         <div className="mb-6">
           <div className="mb-2 flex items-baseline justify-between">
-            <label className="font-mono text-[9px] uppercase tracking-[2px] text-[var(--text-dim)]">
+            <label className="flex items-center gap-2 font-mono text-[10px] font-semibold uppercase tracking-[2px] text-[var(--text)]">
+              <span className="inline-block h-[2px] w-3 bg-[var(--red)] flex-shrink-0" />
               {t("Target CPL", "Cost per lead goal")}
             </label>
             <div className="flex items-baseline gap-1.5">
@@ -156,7 +159,8 @@ export default function ControlsPanel({
         {/* Target CTR */}
         <div className="mb-6">
           <div className="mb-2 flex items-baseline justify-between">
-            <label className="font-mono text-[9px] uppercase tracking-[2px] text-[var(--text-dim)]">
+            <label className="flex items-center gap-2 font-mono text-[10px] font-semibold uppercase tracking-[2px] text-[var(--text)]">
+              <span className="inline-block h-[2px] w-3 bg-[var(--red)] flex-shrink-0" />
               {t("Target CTR", "Click rate goal")}
             </label>
             <div className="flex items-baseline gap-1.5">
@@ -203,7 +207,8 @@ export default function ControlsPanel({
 
         {/* Time window */}
         <div className="mb-6">
-          <label className="mb-2 block font-mono text-[9px] uppercase tracking-[2px] text-[var(--text-dim)]">
+          <label className="mb-2 flex items-center gap-2 font-mono text-[10px] font-semibold uppercase tracking-[2px] text-[var(--text)]">
+            <span className="inline-block h-[2px] w-3 bg-[var(--red)] flex-shrink-0" />
             {t("Time Window", "Dates to look at")}
           </label>
           <select

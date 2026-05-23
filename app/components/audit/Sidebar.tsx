@@ -154,7 +154,8 @@ export default function Sidebar({ clientName, clientSubtitle, primaryLeak, clien
 
       {navGroups.map((g) => (
         <div key={g.label} className="mb-7">
-          <div className="mb-4 font-mono text-[9px] uppercase tracking-[2px] text-[var(--text-dim)]">
+          <div className="sidebar-section-title mb-4 flex items-center gap-2 font-mono text-[10px] font-semibold uppercase tracking-[2px] text-[var(--text)]">
+            <span className="inline-block h-[2px] w-3 bg-[var(--red)] flex-shrink-0" />
             {g.label}
           </div>
           {g.items.map((item) => {
