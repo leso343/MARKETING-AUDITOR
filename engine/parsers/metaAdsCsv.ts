@@ -287,6 +287,7 @@ export function parseMetaCsv(filePath: string): ParsedFile {
 /** Auto-discover CSVs in a directory and parse them all. */
 export function parseCsvDir(dir: string): ParsedFile[] {
   const out: ParsedFile[] = [];
+  if (!fs.existsSync(dir)) return out;
   const entries = fs.readdirSync(dir, { withFileTypes: true });
   for (const e of entries) {
     if (!e.isFile()) continue;
