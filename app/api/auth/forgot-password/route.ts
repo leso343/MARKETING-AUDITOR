@@ -65,7 +65,13 @@ export async function POST(req: Request) {
     .limit(1);
 
   if (rows.length === 0) {
-    // No user — return success anyway (prevent enumeration)
+    // M-13 fix: pad the latency so the existent vs nonexistent paths
+    // take similar time. Without this an attacker can enumerate
+    // registered emails by measuring the response time.
+    await new Promise<void>((r) => setTimeout(r, 80));
+    // Pre-compute a throwaway token-hash so timing matches the
+    // existent path (which does randomBytes + sha256 + DB writes).
+    createHash("sha256").update(randomBytes(32)).digest("hex");
     return SUCCESS;
   }
 

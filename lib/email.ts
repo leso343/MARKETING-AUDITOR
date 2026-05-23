@@ -45,12 +45,16 @@ export interface EmailResult {
  */
 export async function sendEmail(payload: EmailPayload): Promise<EmailResult> {
   if (!RESEND_API_KEY) {
-    // Dev fallback: log to console
+    // Dev fallback: log a metadata line ONLY.
+    //
+    // NEW-M-27 fix: do NOT include the email body or preview here.
+    // Templates like password-reset embed a single-use token in the
+    // plain-text body, and logging even a snippet leaks it into any
+    // server-log sink that retains structured fields.
     log.info("Email (dev mode — RESEND_API_KEY not set)", {
       to: payload.to,
       subject: payload.subject,
-      // Truncate HTML for readability
-      preview: payload.text?.slice(0, 200) ?? "(html only)",
+      bodyBytes: payload.html.length,
     });
     return { success: true, id: "dev-console" };
   }
