@@ -34,14 +34,15 @@
 
 /* ── Light mode overrides ─────────────────────────────────────── */
 html.light {
-  --bg: #f8f9fa;
-  --sidebar: #ffffff;
+  --bg: #eef0f3;
+  --sidebar: #f8f9fb;
   --card: #ffffff;
   --red: #dc2626;
-  --red-dim: rgba(220, 38, 38, 0.06);
-  --border: #e5e7eb;
-  --text: #111827;
-  --text-dim: #6b7280;
+  --red-dim: rgba(220, 38, 38, 0.08);
+  --border: #c9cdd4;
+  --text: #0f172a;
+  --text-dim: #475569;
+  --header-bg: rgba(238, 240, 243, 0.95);
 }
 
 html.light body {
@@ -52,11 +53,11 @@ html.light body {
 html.light .panel {
   background: var(--card);
   border-color: var(--border);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06);
 }
 
 html.light .panel-label {
-  color: #374151;
+  color: #1e293b;
 }
 html.light .panel-label::before {
   color: var(--red);
@@ -68,24 +69,29 @@ html.light .data-table th {
 }
 
 html.light .data-table td {
-  border-bottom-color: #f3f4f6;
-  color: #374151;
+  border-bottom-color: #e2e5ea;
+  color: #1e293b;
 }
 
 html.light .insight-box {
-  background: #fafafa;
+  background: #f1f3f6;
   border-color: var(--border);
+  color: #1e293b;
 }
-html.light .status-ok    { color: #16a34a; }
-html.light .status-warn  { color: #b45309; }
+html.light .insight-box b {
+  color: #0f172a;
+}
+html.light .status-ok    { color: #15803d; }
+html.light .status-warn  { color: #a16207; }
 html.light .status-critical { color: var(--red); }
 
 html.light header[class*="sticky"] {
-  background: rgba(248,249,250,0.92) !important;
+  background: rgba(238,240,243,0.95) !important;
+  border-bottom-color: var(--border) !important;
 }
 
 html.light .leaflet-container {
-  background: #e8e8e8;
+  background: #dde0e5;
 }
 
 /* Light-mode form elements */
@@ -96,36 +102,61 @@ html.light textarea {
 }
 html.light input::placeholder,
 html.light textarea::placeholder {
-  color: #9ca3af;
+  color: #94a3b8;
 }
 
 /* Light-mode scrollbar — subtle gray instead of red fire */
-html.light * { scrollbar-color: #d1d5db #f3f4f6; }
-html.light *::-webkit-scrollbar-track { background: #f3f4f6 !important; }
-html.light *::-webkit-scrollbar-thumb { background: #d1d5db !important; }
-html.light::-webkit-scrollbar-track { background: #f3f4f6 !important; box-shadow: none !important; }
-html.light::-webkit-scrollbar-thumb { background: #d1d5db !important; box-shadow: none !important; }
-html.light::-webkit-scrollbar-thumb:hover { background: #9ca3af !important; box-shadow: none !important; }
-html.light.is-scrolling *::-webkit-scrollbar-thumb:vertical { background: #d1d5db !important; box-shadow: none !important; }
-html.light.is-scrolling *::-webkit-scrollbar-track:vertical { background: #f3f4f6 !important; }
-html.light.is-scrolling::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #d1d5db, #9ca3af) !important; box-shadow: none !important; }
-html.light.is-scrolling::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #9ca3af, #6b7280) !important; box-shadow: none !important; }
-html.light.is-scrolling::-webkit-scrollbar-track { background: #f3f4f6 !important; box-shadow: none !important; }
+html.light * { scrollbar-color: #b0b7c3 var(--bg); }
+html.light *::-webkit-scrollbar-track { background: var(--bg) !important; }
+html.light *::-webkit-scrollbar-thumb { background: #b0b7c3 !important; }
+html.light::-webkit-scrollbar-track { background: var(--bg) !important; box-shadow: none !important; }
+html.light::-webkit-scrollbar-thumb { background: #b0b7c3 !important; box-shadow: none !important; }
+html.light::-webkit-scrollbar-thumb:hover { background: #8891a0 !important; box-shadow: none !important; }
+html.light.is-scrolling *::-webkit-scrollbar-thumb:vertical { background: #b0b7c3 !important; box-shadow: none !important; }
+html.light.is-scrolling *::-webkit-scrollbar-track:vertical { background: var(--bg) !important; }
+html.light.is-scrolling::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #b0b7c3, #8891a0) !important; box-shadow: none !important; }
+html.light.is-scrolling::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #8891a0, #64748b) !important; box-shadow: none !important; }
+html.light.is-scrolling::-webkit-scrollbar-track { background: var(--bg) !important; box-shadow: none !important; }
 
 /* Light-mode range slider */
-html.light .range-input { background: #e5e7eb; }
-html.light .range-input::-webkit-slider-thumb { border-color: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+html.light .range-input { background: #cbd5e1; }
+html.light .range-input::-webkit-slider-thumb { border-color: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.25); }
 
 /* Light-mode selects */
-html.light .dark-select { background: #fff; color: #111827; border-color: #e5e7eb; }
-html.light .dark-select:hover { border-color: #d1d5db; }
+html.light .dark-select { background: #fff; color: #0f172a; border-color: var(--border); }
+html.light .dark-select:hover { border-color: #94a3b8; }
 
 /* Light-mode funnel */
 html.light .funnel-stage { border-color: var(--border); }
-html.light .funnel-stage:hover { background: rgba(0,0,0,0.02); border-color: #d1d5db; }
+html.light .funnel-stage:hover { background: rgba(0,0,0,0.03); border-color: #94a3b8; }
 
 /* Light-mode stat values */
-html.light .stat-val { color: #111827; }
+html.light .stat-val { color: #0f172a; }
+
+/* Light-mode sidebar separation */
+html.light aside[class*="border-r"] {
+  border-right-color: var(--border);
+  background: var(--sidebar);
+}
+
+/* Light-mode logo fallback — when no explicit logo-light variant exists,
+   place logos on a dark pill background so dark-bg logos stay visible. */
+html.light .logo-dark-bg {
+  background: #1e293b;
+  border-radius: 12px;
+  padding: 12px 16px;
+}
+
+/* Light-mode chart overrides */
+html.light .recharts-cartesian-grid line,
+html.light .chart-grid line {
+  stroke: #d1d5db !important;
+}
+html.light .recharts-xAxis .recharts-cartesian-axis-tick-value,
+html.light .recharts-yAxis .recharts-cartesian-axis-tick-value,
+html.light .chart-tick text {
+  fill: #64748b !important;
+}
 
 * { box-sizing: border-box; scroll-behavior: smooth; }
 

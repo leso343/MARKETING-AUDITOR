@@ -120,7 +120,7 @@ export default function DemographicsPanel({ demographics, targetCpl }: Props) {
                   <stop offset="100%" stopColor="#ff0000" stopOpacity={0.15} />
                 </linearGradient>
               </defs>
-              <CartesianGrid vertical={false} stroke="#1a1a1a" />
+              <CartesianGrid vertical={false} className="chart-grid" stroke="#1a1a1a" />
               <XAxis
                 dataKey="bracket"
                 tick={{ fill: "#666", fontSize: 10, fontFamily: "monospace" }}

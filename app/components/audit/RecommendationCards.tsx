@@ -348,10 +348,11 @@ export default function RecommendationCards({ audit, targetCpl }: Props) {
           </div>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={projData} margin={{ top: 4, right: 12, left: 0, bottom: 0 }}>
-              <CartesianGrid vertical={false} stroke="#1a1a1a" />
+              <CartesianGrid vertical={false} className="chart-grid" stroke="#1a1a1a" />
               <XAxis
                 dataKey="day"
                 tick={{ fill: "#666", fontSize: 10, fontFamily: "monospace" }}
+                className="chart-tick"
                 axisLine={false}
                 tickLine={false}
               />
@@ -360,6 +361,7 @@ export default function RecommendationCards({ audit, targetCpl }: Props) {
                 domain={[0, yMax20]}
                 tickFormatter={(v) => "$" + v}
                 tick={{ fill: "#666", fontSize: 10, fontFamily: "monospace" }}
+                className="chart-tick"
                 axisLine={false}
                 tickLine={false}
                 width={44}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Activity,
@@ -28,7 +28,9 @@ interface Props {
   primaryLeak: string;
   clientSlug?: string;
   agencyLogo?: string;
+  agencyLogoLight?: string;
   clientLogo?: string;
+  clientLogoLight?: string;
 }
 
 function AgencyLogoSVG({ compact }: { compact?: boolean }) {
@@ -47,7 +49,7 @@ function AgencyLogoSVG({ compact }: { compact?: boolean }) {
       <span className="inline-block w-[5px] h-[5px] bg-[var(--red)] mb-[3px] flex-shrink-0" />
       <div className="flex flex-col leading-tight">
         <span className="font-black text-[var(--text)] uppercase" style={{ fontFamily: "var(--font-head)", fontSize: 8, letterSpacing: 2 }}>FORENSIC</span>
-        <span className="text-[#9CA3AF] uppercase" style={{ fontFamily: "var(--font-mono)", fontSize: 6, letterSpacing: 1.5 }}>MARKETING ENGINE</span>
+        <span className="text-[var(--text-dim)] uppercase" style={{ fontFamily: "var(--font-mono)", fontSize: 6, letterSpacing: 1.5 }}>MARKETING ENGINE</span>
       </div>
     </div>
   );
@@ -68,7 +70,7 @@ function ClientLogoSVG({ name, subtitle }: { name: string; subtitle?: string }) 
         {name.toUpperCase()}
       </div>
       {subtitle && (
-        <div className="mt-0.5 text-[#9CA3AF] uppercase" style={{ fontFamily: "var(--font-mono)", fontSize: 7, letterSpacing: 2 }}>
+        <div className="mt-0.5 text-[var(--text-dim)] uppercase" style={{ fontFamily: "var(--font-mono)", fontSize: 7, letterSpacing: 2 }}>
           {subtitle}
         </div>
       )}
@@ -76,9 +78,19 @@ function ClientLogoSVG({ name, subtitle }: { name: string; subtitle?: string }) 
   );
 }
 
-export default function Sidebar({ clientName, clientSubtitle, primaryLeak, clientSlug, agencyLogo, clientLogo }: Props) {
+export default function Sidebar({ clientName, clientSubtitle, primaryLeak, clientSlug, agencyLogo, agencyLogoLight, clientLogo, clientLogoLight }: Props) {
   const { t } = useLang();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isLight, setIsLight] = useState(false);
+
+  // Detect light mode for logo swapping
+  useEffect(() => {
+    const check = () => setIsLight(document.documentElement.classList.contains("light"));
+    check();
+    const observer = new MutationObserver(check);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
 
   const navGroups = [
     {
@@ -127,10 +139,14 @@ export default function Sidebar({ clientName, clientSubtitle, primaryLeak, clien
         {t("All clients", "All clients")}
       </Link>
 
-      {/* Agency logo */}
-      <div className="mb-10 flex justify-center">
+      {/* Agency logo — swap to light variant if available, or add dark bg fallback */}
+      <div className={`mb-10 flex justify-center${isLight && agencyLogo && !agencyLogoLight ? " logo-dark-bg" : ""}`}>
         {agencyLogo ? (
-          <img src={agencyLogo} alt="Agency" className="h-28 w-auto max-w-[210px] object-contain" />
+          <img
+            src={isLight && agencyLogoLight ? agencyLogoLight : agencyLogo}
+            alt="Agency"
+            className="h-28 w-auto max-w-[210px] object-contain"
+          />
         ) : (
           <AgencyLogoSVG />
         )}
@@ -138,7 +154,7 @@ export default function Sidebar({ clientName, clientSubtitle, primaryLeak, clien
 
       {navGroups.map((g) => (
         <div key={g.label} className="mb-7">
-          <div className="mb-4 font-mono text-[9px] uppercase tracking-[2px] text-[#666]">
+          <div className="mb-4 font-mono text-[9px] uppercase tracking-[2px] text-[var(--text-dim)]">
             {g.label}
           </div>
           {g.items.map((item) => {
@@ -159,10 +175,14 @@ export default function Sidebar({ clientName, clientSubtitle, primaryLeak, clien
       ))}
 
       <div className="mt-auto border-t border-[var(--border)] pt-5">
-        {/* Client logo block */}
-        <div className="mb-4 flex justify-center">
+        {/* Client logo block — swap to light variant if available, or add dark bg fallback */}
+        <div className={`mb-4 flex justify-center${isLight && clientLogo && !clientLogoLight ? " logo-dark-bg" : ""}`}>
           {clientLogo ? (
-            <img src={clientLogo} alt={clientName} className="h-32 w-auto max-w-[210px] object-contain" />
+            <img
+              src={isLight && clientLogoLight ? clientLogoLight : clientLogo}
+              alt={clientName}
+              className="h-32 w-auto max-w-[210px] object-contain"
+            />
           ) : (
             <ClientLogoSVG name={clientName} subtitle={clientSubtitle} />
           )}
@@ -196,9 +216,13 @@ export default function Sidebar({ clientName, clientSubtitle, primaryLeak, clien
         className="fixed left-0 right-0 top-0 z-40 flex items-center justify-between border-b border-[var(--border)] px-4 py-3 lg:hidden"
         style={{ background: "var(--sidebar)", backdropFilter: "blur(8px)" }}
       >
-        <div className="flex items-center">
+        <div className={`flex items-center${isLight && agencyLogo && !agencyLogoLight ? " logo-dark-bg" : ""}`}>
           {agencyLogo ? (
-            <img src={agencyLogo} alt="Agency" className="h-8 w-auto object-contain" />
+            <img
+              src={isLight && agencyLogoLight ? agencyLogoLight : agencyLogo}
+              alt="Agency"
+              className="h-8 w-auto object-contain"
+            />
           ) : (
             <AgencyLogoSVG compact />
           )}

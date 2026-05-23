@@ -35,7 +35,9 @@ interface Props {
   clientSlug: string;
   clientSubtitle?: string;
   agencyLogo?: string;
+  agencyLogoLight?: string;
   clientLogo?: string;
+  clientLogoLight?: string;
   industry: string;
   industryOptions: { key: string; label: string }[];
   /**
@@ -146,7 +148,9 @@ export default function AuditDashboard({
   clientSlug,
   clientSubtitle,
   agencyLogo,
+  agencyLogoLight,
   clientLogo,
+  clientLogoLight,
   industry,
   industryOptions,
   printMode = false,
@@ -230,7 +234,9 @@ export default function AuditDashboard({
               primaryLeak={audit.funnel.primaryLeak}
               clientSlug={clientSlug}
               agencyLogo={agencyLogo}
+              agencyLogoLight={agencyLogoLight}
               clientLogo={clientLogo}
+              clientLogoLight={clientLogoLight}
             />
           )}
 
@@ -243,7 +249,7 @@ export default function AuditDashboard({
                   ? "flex flex-col gap-2 border-b border-[var(--border)] px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-10 sm:py-6"
                   : "sticky top-0 z-30 flex flex-col gap-2 border-b border-[var(--border)] px-4 py-3 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-10 sm:py-6"
               }
-              style={printMode ? undefined : { background: "rgba(3,3,3,0.9)" }}
+              style={printMode ? undefined : { background: "var(--header-bg, rgba(3,3,3,0.9))" }}
             >
               <h1
                 className="truncate text-sm font-bold tracking-tight sm:text-lg"

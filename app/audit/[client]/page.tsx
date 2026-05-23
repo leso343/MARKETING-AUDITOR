@@ -123,6 +123,11 @@ export default async function AuditPage({ params, searchParams }: PageProps) {
     agencyLogo = findAsset(path.join(process.cwd(), "public", "logos"), "agency");
   }
   const clientLogo = dbClient?.logoUrl ?? (fsExists ? findAsset(fsCsvDir, "logo") : null);
+  // Light-mode logo variants: look for logo-light.* / agency-light.* alongside the normal file.
+  const agencyLogoLight = dbClient
+    ? findAsset(path.join(process.cwd(), "public", "logos"), "agency-light")
+    : findAsset(path.join(process.cwd(), "public", "logos"), "agency-light");
+  const clientLogoLight = fsExists ? findAsset(fsCsvDir, "logo-light") : null;
 
   // Resolve benchmarks.
   type IndustryBench = { label?: string; targetCpl: number; targetCtr: number };
@@ -214,7 +219,9 @@ export default async function AuditPage({ params, searchParams }: PageProps) {
       clientSlug={clientSlug}
       clientSubtitle={clientSubtitle}
       agencyLogo={agencyLogo ?? undefined}
+      agencyLogoLight={agencyLogoLight ?? undefined}
       clientLogo={clientLogo ?? undefined}
+      clientLogoLight={clientLogoLight ?? undefined}
       industry={industry}
       industryOptions={industryOptions}
       printMode={printMode}
