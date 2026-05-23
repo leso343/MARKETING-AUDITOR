@@ -1,41 +1,63 @@
 /**
  * POST /api/fetch-logo — auto-fetch a logo from a client's website URL.
  *
- * Scrapes the target page for:
- *   1. Open Graph image (og:image)
- *   2. Logo-related <img> tags (src contains "logo")
- *   3. apple-touch-icon
- *   4. Favicon (link[rel="icon"])
+ * Re-audited (Phase 2) and rewritten:
  *
- * Downloads the best match, saves it to public/csvs/<slug>/logo.<ext>,
- * and optionally updates the client's logoUrl in the DB.
+ *   - NEW-C-11 (SSRF): validates the URL with `validateOutboundUrl()`
+ *     before BOTH the page fetch and the extracted-logo fetch.
+ *     Redirects are handled manually so each hop is re-validated. No
+ *     more reaching 169.254.169.254 / 10.x / localhost / file://.
+ *   - NEW-C-12 (no agency scope): the caller's `clientSlug` is now
+ *     resolved against the session's agency via
+ *     getVisibleClientBySlug(); the user-supplied `clientId` is
+ *     ignored — we use the looked-up client's id.
+ *   - NEW-C-13: bytes are stored in client_logos (blob) instead of
+ *     `public/csvs/...` (Vercel FS is ephemeral). The URL returned
+ *     points at /api/logos/client/[clientId].
+ *   - M-14 / SVG: image/svg+xml is dropped from the type allowlist.
+ *   - H-5: slug regex is lowercase + strict.
+ *   - Content-Length pre-check before download (don't pull 100MB+
+ *     before the size cap fires).
  *
- * Body: { url: string, clientSlug: string, clientId?: string }
+ * Body: { url: string, clientSlug: string }
+ *
+ * Returns:
+ *   { ok: true, logoUrl, logoUrlLight, sourceUrl }
  */
 import { NextResponse } from "next/server";
-import fs from "node:fs";
-import path from "node:path";
-import { auth, authEnabled } from "@/auth";
+import { auth } from "@/auth";
 import { db, schema, dbAvailable } from "@/lib/db";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
+import { randomUUID } from "node:crypto";
+import { getVisibleClientBySlug } from "@/lib/access";
+import { safeSlug } from "@/lib/billing-access";
+import { validateOutboundUrl, isPrivateAddress } from "@/lib/url-safety";
+import { rateLimit, getClientIp, rateLimitHeaders } from "@/lib/rate-limit";
 import { log } from "@/lib/logger";
 
-const MAX_LOGO_BYTES = 5 * 1024 * 1024; // 5 MB
+const MAX_LOGO_BYTES = 2 * 1024 * 1024; // 2 MB (matches /api/upload-logo)
+const FETCH_TIMEOUT_MS = 8000;
+const MAX_REDIRECTS = 4;
+const USER_AGENT = "BlankPageAuditsBot/1.0 (+https://blankpageaudits.com)";
+
+const ALLOWED_LOGO_MIME: Record<string, string> = {
+  "image/png": "image/png",
+  "image/jpeg": "image/jpeg",
+  "image/jpg": "image/jpeg",
+  "image/webp": "image/webp",
+};
 
 /** Extract the best logo URL from raw HTML. */
 function extractLogoUrl(html: string, baseUrl: string): string | null {
   const candidates: { url: string; priority: number }[] = [];
 
-  // 1. og:image (high priority — usually a clean brand image)
-  const ogMatch = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
-    ?? html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
-  if (ogMatch?.[1]) {
-    candidates.push({ url: ogMatch[1], priority: 3 });
-  }
+  const ogMatch =
+    html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ??
+    html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
+  if (ogMatch?.[1]) candidates.push({ url: ogMatch[1], priority: 3 });
 
-  // 2. <img> tags with "logo" in src, alt, or class (highest priority)
   const imgRegex = /<img[^>]*(?:src|data-src)=["']([^"']+)["'][^>]*>/gi;
-  let imgMatch;
+  let imgMatch: RegExpExecArray | null;
   while ((imgMatch = imgRegex.exec(html)) !== null) {
     const tag = imgMatch[0].toLowerCase();
     const src = imgMatch[1];
@@ -50,67 +72,77 @@ function extractLogoUrl(html: string, baseUrl: string): string | null {
     }
   }
 
-  // Also check for srcset or data-src with logo
-  const dataSrcRegex = /<img[^>]*data-src=["']([^"']+logo[^"']*?)["'][^>]*>/gi;
-  let dsMatch;
-  while ((dsMatch = dataSrcRegex.exec(html)) !== null) {
-    candidates.push({ url: dsMatch[1], priority: 4 });
-  }
+  const appleIcon =
+    html.match(/<link[^>]+rel=["']apple-touch-icon["'][^>]+href=["']([^"']+)["']/i) ??
+    html.match(/<link[^>]+href=["']([^"']+)["'][^>]+rel=["']apple-touch-icon["']/i);
+  if (appleIcon?.[1]) candidates.push({ url: appleIcon[1], priority: 2 });
 
-  // 3. apple-touch-icon (good quality, usually 180x180+)
-  const appleIcon = html.match(/<link[^>]+rel=["']apple-touch-icon["'][^>]+href=["']([^"']+)["']/i)
-    ?? html.match(/<link[^>]+href=["']([^"']+)["'][^>]+rel=["']apple-touch-icon["']/i);
-  if (appleIcon?.[1]) {
-    candidates.push({ url: appleIcon[1], priority: 2 });
-  }
-
-  // 4. Large favicon (link[rel="icon"] with sizes)
   const iconRegex = /<link[^>]+rel=["'](?:icon|shortcut icon)["'][^>]+href=["']([^"']+)["'][^>]*>/gi;
-  let iconMatch;
+  let iconMatch: RegExpExecArray | null;
   while ((iconMatch = iconRegex.exec(html)) !== null) {
     const tag = iconMatch[0];
     const href = iconMatch[1];
-    // Prefer larger icons
     const sizeMatch = tag.match(/sizes=["'](\d+)x\d+["']/);
     const size = sizeMatch ? parseInt(sizeMatch[1]) : 16;
-    if (size >= 64) {
-      candidates.push({ url: href, priority: 2 });
-    } else {
-      candidates.push({ url: href, priority: 1 });
-    }
+    candidates.push({ url: href, priority: size >= 64 ? 2 : 1 });
   }
 
   if (candidates.length === 0) return null;
-
-  // Sort by priority (highest first)
   candidates.sort((a, b) => b.priority - a.priority);
 
-  // Resolve relative URLs
   const best = candidates[0].url;
   try {
     return new URL(best, baseUrl).href;
   } catch {
-    return best.startsWith("http") ? best : null;
+    return null;
   }
 }
 
-/** Determine file extension from content-type or URL. */
-function getExtension(contentType: string | null, url: string): string {
-  if (contentType?.includes("svg")) return "svg";
-  if (contentType?.includes("webp")) return "webp";
-  if (contentType?.includes("png")) return "png";
-  if (contentType?.includes("jpeg") || contentType?.includes("jpg")) return "jpg";
-  // Fall back to URL
-  const urlLower = url.toLowerCase();
-  if (urlLower.includes(".svg")) return "svg";
-  if (urlLower.includes(".webp")) return "webp";
-  if (urlLower.includes(".jpg") || urlLower.includes(".jpeg")) return "jpg";
-  return "png"; // default
+/**
+ * Fetch a URL safely: validate before every hop, follow up to N
+ * redirects manually, abort on private-IP hosts at any step.
+ */
+async function safeFetch(rawUrl: string, accept: string): Promise<{ res: Response; finalUrl: string } | null> {
+  let currentUrl = rawUrl;
+  for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
+    const v = await validateOutboundUrl(currentUrl);
+    if (!v.ok) {
+      log.warn("safeFetch blocked URL", { url: currentUrl, reason: v.reason });
+      return null;
+    }
+    const res = await fetch(v.url.href, {
+      method: "GET",
+      redirect: "manual",
+      headers: {
+        "User-Agent": USER_AGENT,
+        Accept: accept,
+      },
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    });
+    if (res.status >= 300 && res.status < 400) {
+      const location = res.headers.get("location");
+      if (!location) return null;
+      currentUrl = new URL(location, v.url.href).href;
+      // Loop continues — next hop re-validated.
+      continue;
+    }
+    return { res, finalUrl: v.url.href };
+  }
+  return null;
+}
+
+function inferMime(contentType: string | null): string | null {
+  if (!contentType) return null;
+  const norm = contentType.split(";")[0].trim().toLowerCase();
+  return ALLOWED_LOGO_MIME[norm] ?? null;
 }
 
 export async function POST(req: Request) {
-  if (!authEnabled) {
-    return NextResponse.json({ error: "Auth required" }, { status: 503 });
+  if (!dbAvailable) {
+    return NextResponse.json(
+      { error: "Database unavailable — fetch-logo requires DATABASE_URL." },
+      { status: 503 },
+    );
   }
 
   const session = await auth();
@@ -118,116 +150,129 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await req.json().catch(() => null);
-  const url = (body?.url ?? "").toString().trim();
-  const clientSlug = (body?.clientSlug ?? "").toString().trim();
-  const clientId = (body?.clientId ?? "").toString().trim() || null;
-
-  if (!url || !clientSlug) {
-    return NextResponse.json({ error: "url and clientSlug are required" }, { status: 400 });
+  // Rate-limit: 10 / min / IP. Outbound fetches cost something.
+  const rl = rateLimit(`fetch-logo:${getClientIp(req)}`, { max: 10, windowMs: 60_000 });
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: "Too many requests — please wait a moment." },
+      { status: 429, headers: rateLimitHeaders(rl) },
+    );
   }
 
-  // Normalize URL
-  let targetUrl = url;
-  if (!targetUrl.startsWith("http")) {
-    targetUrl = `https://${targetUrl}`;
+  const body = (await req.json().catch(() => ({}))) as { url?: unknown; clientSlug?: unknown };
+  const rawUrl = String(body.url ?? "").trim();
+  const slug = safeSlug(body.clientSlug);
+  if (!rawUrl) return NextResponse.json({ error: "url is required" }, { status: 400 });
+  if (!slug) return NextResponse.json({ error: "Invalid clientSlug" }, { status: 400 });
+
+  // NEW-C-12 fix: resolve the slug against the caller's agency.
+  const client = await getVisibleClientBySlug(slug);
+  if (!client) return NextResponse.json({ error: "Client not found" }, { status: 404 });
+
+  // Normalize bare-host input ("example.com") to https://.
+  const normalized = /^[a-z][a-z0-9+.-]*:\/\//i.test(rawUrl) ? rawUrl : `https://${rawUrl}`;
+
+  // NEW-C-11 fix: validate before fetching the page.
+  const pageFetch = await safeFetch(normalized, "text/html,application/xhtml+xml");
+  if (!pageFetch || !pageFetch.res.ok) {
+    return NextResponse.json(
+      { error: "Could not fetch the page — check the URL and try again." },
+      { status: 400 },
+    );
   }
 
+  // Cap HTML size to avoid OOM on giant pages.
+  const HTML_MAX = 2 * 1024 * 1024;
+  const htmlContentLength = Number(pageFetch.res.headers.get("content-length") ?? "0");
+  if (htmlContentLength && htmlContentLength > HTML_MAX) {
+    return NextResponse.json({ error: "Page too large to scan." }, { status: 400 });
+  }
+  const html = await pageFetch.res.text();
+  if (html.length > HTML_MAX) {
+    return NextResponse.json({ error: "Page too large to scan." }, { status: 400 });
+  }
+
+  const extractedLogoUrl = extractLogoUrl(html, pageFetch.finalUrl);
+  if (!extractedLogoUrl) {
+    return NextResponse.json(
+      { error: "No logo found on that page. Try uploading manually." },
+      { status: 404 },
+    );
+  }
+
+  // NEW-C-11 fix: re-validate the extracted logo URL with the same
+  // host/redirect guards before the second fetch.
+  const logoFetch = await safeFetch(extractedLogoUrl, "image/*");
+  if (!logoFetch || !logoFetch.res.ok) {
+    return NextResponse.json(
+      { error: "Could not download the discovered logo." },
+      { status: 400 },
+    );
+  }
+  // Pre-check Content-Length before pulling bytes.
+  const cl = Number(logoFetch.res.headers.get("content-length") ?? "0");
+  if (cl && cl > MAX_LOGO_BYTES) {
+    return NextResponse.json({ error: "Logo file too large (>2 MB)." }, { status: 400 });
+  }
+  // M-14 fix: drop SVG.
+  const mime = inferMime(logoFetch.res.headers.get("content-type"));
+  if (!mime) {
+    return NextResponse.json(
+      { error: "Discovered logo is not a supported image type (PNG/JPEG/WEBP)." },
+      { status: 400 },
+    );
+  }
+  const buffer = Buffer.from(await logoFetch.res.arrayBuffer());
+  if (buffer.length > MAX_LOGO_BYTES) {
+    return NextResponse.json({ error: "Logo file too large (>2 MB)." }, { status: 400 });
+  }
+
+  // NEW-C-13 fix: store in DB (client_logos), not on disk. Persist
+  // the SAME bytes as both dark + light variants — the auto-fetch
+  // path can't realistically discriminate, and the user can later
+  // upload a variant via /api/upload-logo.
   try {
-    // Fetch the page HTML
-    const pageRes = await fetch(targetUrl, {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (compatible; BlankPageAudits/1.0)",
-        Accept: "text/html,application/xhtml+xml",
-      },
-      redirect: "follow",
-      signal: AbortSignal.timeout(10000),
-    });
-
-    if (!pageRes.ok) {
-      return NextResponse.json(
-        { error: `Could not fetch ${targetUrl} (${pageRes.status})` },
-        { status: 400 },
-      );
-    }
-
-    const html = await pageRes.text();
-    const logoUrl = extractLogoUrl(html, targetUrl);
-
-    if (!logoUrl) {
-      return NextResponse.json(
-        { error: "No logo found on that page. Try uploading manually." },
-        { status: 404 },
-      );
-    }
-
-    // Download the logo
-    const logoRes = await fetch(logoUrl, {
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; BlankPageAudits/1.0)" },
-      redirect: "follow",
-      signal: AbortSignal.timeout(10000),
-    });
-
-    if (!logoRes.ok) {
-      return NextResponse.json(
-        { error: `Could not download logo from ${logoUrl}` },
-        { status: 400 },
-      );
-    }
-
-    const contentType = logoRes.headers.get("content-type");
-    const buffer = Buffer.from(await logoRes.arrayBuffer());
-
-    if (buffer.length > MAX_LOGO_BYTES) {
-      return NextResponse.json({ error: "Logo file too large (>5 MB)" }, { status: 400 });
-    }
-
-    const ext = getExtension(contentType, logoUrl);
-    const safeSlug = clientSlug.replace(/[^a-z0-9-_]/gi, "-");
-    const saveDir = path.join(process.cwd(), "public", "csvs", safeSlug);
-    fs.mkdirSync(saveDir, { recursive: true });
-
-    // Delete old logos
-    if (fs.existsSync(saveDir)) {
-      const existing = fs.readdirSync(saveDir).filter((f) => f.startsWith("logo."));
-      for (const old of existing) fs.unlinkSync(path.join(saveDir, old));
-    }
-
-    // Save as both logo (dark mode default) and logo-light (light mode)
-    const filename = `logo.${ext}`;
-    const lightFilename = `logo-light.${ext}`;
-    fs.writeFileSync(path.join(saveDir, filename), buffer);
-    fs.writeFileSync(path.join(saveDir, lightFilename), buffer);
-
-    const publicUrl = `/csvs/${safeSlug}/${filename}`;
-    const publicUrlLight = `/csvs/${safeSlug}/${lightFilename}`;
-
-    // Update DB if clientId provided
-    if (clientId && dbAvailable) {
-      try {
-        await db
-          .update(schema.clients)
-          .set({
-            logoUrl: publicUrl,
-            logoUrlLight: publicUrlLight,
-            websiteUrl: targetUrl,
-            updatedAt: new Date(),
-          })
-          .where(eq(schema.clients.id, clientId));
-      } catch (err) {
-        log.warn("Failed to update client logoUrl in DB", { error: String(err) });
-      }
-    }
-
-    return NextResponse.json({
-      ok: true,
-      logoUrl: publicUrl,
-      logoUrlLight: publicUrlLight,
-      sourceUrl: logoUrl,
+    await db
+      .delete(schema.clientLogos)
+      .where(and(eq(schema.clientLogos.clientId, client.id), eq(schema.clientLogos.variant, "dark")));
+    await db.insert(schema.clientLogos).values({
+      id: randomUUID(),
+      clientId: client.id,
+      variant: "dark",
+      data: buffer,
+      mime,
+      size: buffer.length,
     });
   } catch (err) {
-    log.error("Logo fetch failed", err);
-    const msg = err instanceof Error ? err.message : "Failed to fetch logo";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    log.error("fetch-logo: client_logos insert failed", err);
+    return NextResponse.json({ error: "Could not save logo." }, { status: 500 });
   }
+  const logoUrl = `/api/logos/client/${client.id}?v=dark&t=${Date.now()}`;
+  const logoUrlLight = logoUrl;
+
+  // Best-effort: also persist on the clients row so existing renderers find it.
+  try {
+    // Only store the website if it passed validation (it did, via safeFetch).
+    await db
+      .update(schema.clients)
+      .set({
+        logoUrl,
+        logoUrlLight,
+        websiteUrl: pageFetch.finalUrl,
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.clients.id, client.id));
+  } catch (err) {
+    log.warn("fetch-logo: updating clients row failed", { error: String(err) });
+  }
+
+  return NextResponse.json({
+    ok: true,
+    logoUrl,
+    logoUrlLight,
+    sourceUrl: pageFetch.finalUrl,
+  });
 }
+
+// Silence unused import — kept for future host overrides
+void isPrivateAddress;

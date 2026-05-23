@@ -32,6 +32,7 @@ import AuditDashboard from "./AuditDashboard";
 import BrandTheme from "@/components/BrandTheme";
 import benchmarksData from "@/data/benchmarks.json";
 import { getVisibleClientBySlug, listClientCsvs, getAgencyById } from "@/lib/access";
+import { SLUG_RE, getBillingState, countMonthlyAudits, logAuditRun } from "@/lib/billing-access";
 
 export const dynamic = "force-dynamic";
 
@@ -67,13 +68,27 @@ async function safe<T>(fn: () => Promise<T>): Promise<T | null> {
 }
 
 export default async function AuditPage({ params, searchParams }: PageProps) {
-  const { client: clientSlug } = await params;
+  const { client: clientSlugRaw } = await params;
   const search = await searchParams;
+
+  // H-2 fix: validate the URL slug BEFORE letting it near the
+  // filesystem. Without this, /audit/..%2F..%2Fetc lets the engine
+  // probe arbitrary directories via fs.existsSync / fs.readdirSync.
+  if (!SLUG_RE.test(clientSlugRaw)) {
+    notFound();
+  }
+  const clientSlug = clientSlugRaw;
 
   // Auth + access gate. Falls through to FS path when DB/auth unavailable.
   const dbClient = await safe(() => getVisibleClientBySlug(clientSlug));
 
   const fsCsvDir = path.join(process.cwd(), "public", "csvs", clientSlug);
+  // M-23 fix: belt-and-suspenders — path.join must resolve back inside
+  // public/csvs even after the regex check.
+  const csvsRoot = path.join(process.cwd(), "public", "csvs");
+  if (!fsCsvDir.startsWith(csvsRoot + path.sep) && fsCsvDir !== csvsRoot) {
+    notFound();
+  }
   const fsExists = fs.existsSync(fsCsvDir);
 
   // If neither DB nor filesystem has data, 404.
@@ -164,6 +179,56 @@ export default async function AuditPage({ params, searchParams }: PageProps) {
     return Number.isFinite(n) && Number.isInteger(n) && n > 0 ? n : undefined;
   }
   const daysFilter = parsePosInt(search.days);
+
+  // C-6 / C-7: enforce subscription status + monthly audit cap for
+  // DB-backed clients. The legacy FS path (take-charge-roofing demo)
+  // skips the check so the bundled baseline still renders.
+  if (dbClient) {
+    const billing = await getBillingState(dbClient.agencyId);
+    if (!billing.ok) {
+      return (
+        <div className="min-h-screen flex items-center justify-center p-8 text-center">
+          <div className="max-w-md space-y-4">
+            <div className="text-4xl">⚠️</div>
+            <h1 className="text-2xl font-bold">Subscription required</h1>
+            <p className="text-[var(--text-dim)]">{billing.reason}</p>
+            <a
+              href="/pricing"
+              className="inline-block bg-[var(--red)] text-white font-mono text-xs uppercase tracking-widest px-4 py-2 hover:opacity-90"
+            >
+              View plans →
+            </a>
+          </div>
+        </div>
+      );
+    }
+    const cap = billing.plan.auditsPerMonth;
+    if (Number.isFinite(cap)) {
+      const used = await countMonthlyAudits(dbClient.agencyId);
+      if (used >= cap) {
+        return (
+          <div className="min-h-screen flex items-center justify-center p-8 text-center">
+            <div className="max-w-md space-y-4">
+              <div className="text-4xl">📊</div>
+              <h1 className="text-2xl font-bold">Monthly audit limit reached</h1>
+              <p className="text-[var(--text-dim)]">
+                Your {billing.plan.id} plan allows {cap} audit{cap === 1 ? "" : "s"} per month.
+                Upgrade for unlimited.
+              </p>
+              <a
+                href="/pricing"
+                className="inline-block bg-[var(--red)] text-white font-mono text-xs uppercase tracking-widest px-4 py-2 hover:opacity-90"
+              >
+                Upgrade →
+              </a>
+            </div>
+          </div>
+        );
+      }
+    }
+    // Log the run; best-effort.
+    void logAuditRun(dbClient.agencyId, dbClient.id);
+  }
 
   const audit = useDb
     ? runAuditFromFiles({
