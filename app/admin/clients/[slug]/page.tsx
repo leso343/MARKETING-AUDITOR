@@ -20,6 +20,7 @@ import DeleteCsvButton from "./DeleteCsvButton";
 import EditClientForm from "./EditClientForm";
 import DeleteClientButton from "./DeleteClientButton";
 import ExportGuide from "./ExportGuide";
+import ClientLogoUpload from "./ClientLogoUpload";
 
 export const dynamic = "force-dynamic";
 
@@ -166,6 +167,15 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ s
             {client.subtitle && (
               <p className="text-sm text-[var(--text-dim)] mt-1">{client.subtitle}</p>
             )}
+            <div className="mt-3">
+              <ClientLogoUpload
+                clientId={client.id}
+                clientSlug={client.slug}
+                currentLogoUrl={client.logoUrl}
+                currentLogoUrlLight={client.logoUrlLight}
+                currentWebsiteUrl={client.websiteUrl}
+              />
+            </div>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">

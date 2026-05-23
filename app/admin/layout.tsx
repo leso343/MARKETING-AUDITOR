@@ -12,6 +12,7 @@ import {
   Shield,
 } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
+import NotificationBell from "@/components/NotificationBell";
 import SubscriptionBanner from "@/components/SubscriptionBanner";
 
 /**
@@ -104,6 +105,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
           {/* right: theme toggle + user info */}
           <div className="flex items-center gap-3">
+            <NotificationBell />
             <ThemeToggle />
             <div className="flex items-center gap-2">
               <div className="flex h-6 w-6 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--card)]">

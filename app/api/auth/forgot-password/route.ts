@@ -5,17 +5,18 @@
  *
  * Always returns 200 with a success message (prevents email enumeration).
  * Generates a secure token, stores its SHA-256 hash in the password_resets
- * table, and — when SMTP is configured — sends the reset email.
+ * table, and sends a styled HTML email via Resend.
  *
- * When SMTP is NOT configured (MVP), the token is logged to the server
- * console so admins can manually relay it. This lets the full flow work
- * in development without an email provider.
+ * When RESEND_API_KEY is not configured, the token is logged to the server
+ * console so admins can manually relay it during development.
  */
 import { NextResponse } from "next/server";
 import { randomBytes, createHash } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { db, schema, dbAvailable } from "@/lib/db";
 import { rateLimit, getClientIp, rateLimitHeaders } from "@/lib/rate-limit";
+import { sendEmail } from "@/lib/email";
+import { passwordResetEmail } from "@/lib/email-templates";
 
 const TOKEN_EXPIRY_MS = 60 * 60 * 1000; // 1 hour
 
@@ -92,20 +93,9 @@ export async function POST(req: Request) {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   const resetUrl = `${baseUrl}/reset-password?token=${rawToken}`;
 
-  // TODO: Send email via SMTP when configured (Resend, SendGrid, etc.)
-  // For now, log to server console (development / admin-relay fallback)
-  const smtpConfigured = !!process.env.SMTP_HOST || !!process.env.RESEND_API_KEY;
-  if (!smtpConfigured) {
-    // eslint-disable-next-line no-console
-    console.log(
-      `\n📧 [PASSWORD RESET] ${email}\n   Link: ${resetUrl}\n   Expires: ${expiresAt.toISOString()}\n`,
-    );
-  } else {
-    // Placeholder for email integration
-    // await sendResetEmail(email, resetUrl);
-    // eslint-disable-next-line no-console
-    console.log(`[password-reset] Email sent to ${email}`);
-  }
+  // Send styled password reset email via Resend (or log in dev mode)
+  const { subject, html, text } = passwordResetEmail(resetUrl, 60);
+  await sendEmail({ to: email, subject, html, text });
 
   return SUCCESS;
 }

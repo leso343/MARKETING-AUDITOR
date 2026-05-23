@@ -30,6 +30,7 @@ import { stripe, stripeEnabled, stripeNotConfiguredResponse } from "@/lib/stripe
 import type Stripe from "stripe";
 import { rateLimit, getClientIp, rateLimitHeaders } from "@/lib/rate-limit";
 import { log } from "@/lib/logger";
+import { notifyAgencyUsers } from "@/lib/notifications";
 
 // Stripe webhooks require the raw body — disable Next's caching/JSON parsing.
 export const runtime = "nodejs";
@@ -241,6 +242,22 @@ export async function POST(req: Request) {
           typeof inv.customer === "string" ? inv.customer : inv.customer?.id ?? null;
         if (customerId) {
           await updateByCustomerId(customerId, { status: "active" });
+          // Notify agency users that payment succeeded (only for renewals, not first)
+          if (dbAvailable) {
+            const subRows = await db
+              .select({ agencyId: schema.subscriptions.agencyId })
+              .from(schema.subscriptions)
+              .where(eq(schema.subscriptions.stripeCustomerId, customerId))
+              .limit(1);
+            if (subRows[0]?.agencyId) {
+              await notifyAgencyUsers(subRows[0].agencyId, {
+                type: "payment_resolved",
+                title: "Payment successful",
+                message: "Your subscription payment has been processed successfully.",
+                actionUrl: "/admin/billing",
+              });
+            }
+          }
         }
         break;
       }
@@ -251,6 +268,22 @@ export async function POST(req: Request) {
           typeof inv.customer === "string" ? inv.customer : inv.customer?.id ?? null;
         if (customerId) {
           await updateByCustomerId(customerId, { status: "past_due" });
+          // Notify agency users about the payment issue
+          if (dbAvailable) {
+            const subRows = await db
+              .select({ agencyId: schema.subscriptions.agencyId })
+              .from(schema.subscriptions)
+              .where(eq(schema.subscriptions.stripeCustomerId, customerId))
+              .limit(1);
+            if (subRows[0]?.agencyId) {
+              await notifyAgencyUsers(subRows[0].agencyId, {
+                type: "payment_issue",
+                title: "Payment failed",
+                message: "We were unable to process your payment. Please update your billing information to avoid service interruption.",
+                actionUrl: "/admin/billing",
+              });
+            }
+          }
         }
         break;
       }

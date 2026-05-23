@@ -51,6 +51,10 @@ export const clients = sqliteTable(
     subtitle: text("subtitle"),
     industry: text("industry").default("roofing"),
     logoUrl: text("logo_url"),
+    /** Light-mode logo variant — used when html.light is active */
+    logoUrlLight: text("logo_url_light"),
+    /** Client's website URL — used for auto-fetching logos */
+    websiteUrl: text("website_url"),
     agencyId: text("agency_id")
       .notNull()
       .references(() => agencies.id, { onDelete: "cascade" }),
@@ -113,6 +117,34 @@ export const subscriptions = sqliteTable("subscriptions", {
 });
 
 /**
+ * In-app notifications — alerts for audit completion, payment issues, etc.
+ *
+ *   type   : "audit_complete" | "payment_issue" | "payment_resolved" | "welcome" | "system"
+ *   read   : 0 (unread) | 1 (read)
+ */
+export const notifications = sqliteTable(
+  "notifications",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    type: text("type").notNull().default("system"),
+    title: text("title").notNull(),
+    message: text("message").notNull(),
+    /** Optional link to navigate when clicked */
+    actionUrl: text("action_url"),
+    /** 0 = unread, 1 = read (SQLite has no native booleans) */
+    read: integer("read").notNull().default(0),
+    createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().default(sql`(unixepoch() * 1000)`),
+  },
+  (t) => ({
+    userIdx: index("notifications_user_idx").on(t.userId),
+    unreadIdx: index("notifications_unread_idx").on(t.userId, t.read),
+  }),
+);
+
+/**
  * Password reset tokens — hashed for security.
  * Raw token sent via email; only SHA-256 hash stored in DB.
  */
@@ -135,8 +167,9 @@ export const agenciesRelations = relations(agencies, ({ many, one }) => ({
   subscription: one(subscriptions),
 }));
 
-export const usersRelations = relations(users, ({ one }) => ({
+export const usersRelations = relations(users, ({ one, many }) => ({
   agency: one(agencies, { fields: [users.agencyId], references: [agencies.id] }),
+  notifications: many(notifications),
 }));
 
 export const clientsRelations = relations(clients, ({ one, many }) => ({
@@ -152,6 +185,10 @@ export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
   agency: one(agencies, { fields: [subscriptions.agencyId], references: [agencies.id] }),
 }));
 
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  user: one(users, { fields: [notifications.userId], references: [users.id] }),
+}));
+
 // ─── Type exports ──────────────────────────────────────────────────────
 
 export type Agency = typeof agencies.$inferSelect;
@@ -165,6 +202,9 @@ export type NewCsvFile = typeof csvFiles.$inferInsert;
 export type Subscription = typeof subscriptions.$inferSelect;
 export type NewSubscription = typeof subscriptions.$inferInsert;
 
+export type Notification = typeof notifications.$inferSelect;
+export type NewNotification = typeof notifications.$inferInsert;
+
 export type Role = "admin" | "agency";
 export type BillingPlan = "free" | "pro" | "agency";
 export type BillingStatus =
@@ -173,3 +213,9 @@ export type BillingStatus =
   | "past_due"
   | "canceled"
   | "incomplete";
+export type NotificationType =
+  | "audit_complete"
+  | "payment_issue"
+  | "payment_resolved"
+  | "welcome"
+  | "system";

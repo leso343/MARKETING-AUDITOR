@@ -139,6 +139,9 @@ export async function PATCH(req: Request) {
       name?: string;
       subtitle?: string | null;
       industry?: string;
+      logoUrl?: string | null;
+      logoUrlLight?: string | null;
+      websiteUrl?: string | null;
     };
 
     if (!body.clientId) {
@@ -159,6 +162,12 @@ export async function PATCH(req: Request) {
     if (body.subtitle === null) updates.subtitle = null;
     else if (typeof body.subtitle === "string") updates.subtitle = body.subtitle.trim() || null;
     if (typeof body.industry === "string" && body.industry.trim()) updates.industry = body.industry.trim();
+    if (body.logoUrl === null) updates.logoUrl = null;
+    else if (typeof body.logoUrl === "string" && body.logoUrl.trim()) updates.logoUrl = body.logoUrl.trim();
+    if (body.logoUrlLight === null) updates.logoUrlLight = null;
+    else if (typeof body.logoUrlLight === "string" && body.logoUrlLight.trim()) updates.logoUrlLight = body.logoUrlLight.trim();
+    if (body.websiteUrl === null) updates.websiteUrl = null;
+    else if (typeof body.websiteUrl === "string" && body.websiteUrl.trim()) updates.websiteUrl = body.websiteUrl.trim();
     updates.updatedAt = new Date();
 
     if (Object.keys(updates).length <= 1) {

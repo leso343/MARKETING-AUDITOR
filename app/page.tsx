@@ -16,9 +16,12 @@
 import Link from "next/link";
 import fs from "node:fs";
 import path from "node:path";
-import { Activity, Building2, Plus, Settings2, LogOut } from "lucide-react";
+import { Activity, Plus, Settings2, LogOut } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 import Logo from "@/components/Logo";
+import NotificationBell from "@/components/NotificationBell";
+import OnboardingWizard from "@/components/OnboardingWizard";
+import ClientLogo from "@/components/ClientLogo";
 import { auth, authEnabled, signOut } from "@/auth";
 import { redirect } from "next/navigation";
 import { dbAvailable } from "@/lib/db";
@@ -32,7 +35,20 @@ type ClientTile = {
   name: string;
   subtitle: string | null;
   industry: string | null;
+  logoUrl: string | null;
+  logoUrlLight: string | null;
 };
+
+/** Look for logo.{png,jpg,svg,webp} on disk. Returns public URL or null. */
+function findClientLogo(slug: string, prefix = "logo"): string | null {
+  const dir = path.join(process.cwd(), "public", "csvs", slug);
+  if (!fs.existsSync(dir)) return null;
+  for (const ext of ["png", "jpg", "jpeg", "svg", "webp"]) {
+    const file = path.join(dir, `${prefix}.${ext}`);
+    if (fs.existsSync(file)) return `/csvs/${slug}/${prefix}.${ext}`;
+  }
+  return null;
+}
 
 function prettyClient(slug: string): string {
   return slug
@@ -72,7 +88,9 @@ function scanFsClients(): ClientTile[] {
         /* ignore malformed client.json */
       }
     }
-    return { id: slug, slug, name, subtitle, industry };
+    const logoUrl = findClientLogo(slug);
+    const logoUrlLight = findClientLogo(slug, "logo-light");
+    return { id: slug, slug, name, subtitle, industry, logoUrl, logoUrlLight };
   });
 }
 
@@ -122,8 +140,8 @@ export default async function Home() {
               className="group panel transition-all hover:border-[var(--red)]"
             >
               <div className="mb-5 flex items-start justify-between">
-                <div className="flex h-12 w-12 items-center justify-center border border-[var(--border)] bg-[var(--bg)]">
-                  <Building2 className="h-5 w-5 text-[var(--red)]" />
+                <div className="flex h-12 w-12 items-center justify-center border border-[var(--border)] bg-[var(--bg)] overflow-hidden">
+                  <ClientLogo name={c.name} logoUrl={c.logoUrl} logoUrlLight={c.logoUrlLight} />
                 </div>
                 <span className="status-pill status-critical">Active</span>
               </div>
@@ -158,7 +176,13 @@ export default async function Home() {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
-  const clients = await listVisibleClients();
+  const rawClients = await listVisibleClients();
+  // Resolve logos for each client: DB → on-disk fallback
+  const clients = rawClients.map((c) => ({
+    ...c,
+    logoUrl: c.logoUrl ?? findClientLogo(c.slug),
+    logoUrlLight: c.logoUrlLight ?? findClientLogo(c.slug, "logo-light"),
+  }));
   const agency = await getCurrentAgency();
   const isAdmin = session.user.role === "admin";
 
@@ -209,6 +233,7 @@ export default async function Home() {
               Engine: Online
             </span>
           </div>
+          <NotificationBell />
           <ThemeToggle />
           {isAdmin && (
             <Link href="/admin/clients" className="flex items-center gap-1.5 rounded border border-[var(--border)] px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)] transition-all hover:border-[var(--red)] hover:text-[var(--red)]">
@@ -234,6 +259,9 @@ export default async function Home() {
         </div>
       </div>
 
+      {/* Onboarding wizard — shown when user has no clients */}
+      {clients.length === 0 && <OnboardingWizard />}
+
       {/* client grid */}
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
         {clients.map((c) => (
@@ -243,8 +271,8 @@ export default async function Home() {
             className="group panel transition-all hover:border-[var(--red)]"
           >
             <div className="mb-5 flex items-start justify-between">
-              <div className="flex h-12 w-12 items-center justify-center border border-[var(--border)] bg-[var(--bg)]">
-                <Building2 className="h-5 w-5 text-[var(--red)]" />
+              <div className="flex h-12 w-12 items-center justify-center border border-[var(--border)] bg-[var(--bg)] overflow-hidden">
+                <ClientLogo name={c.name} logoUrl={c.logoUrl} logoUrlLight={c.logoUrlLight} />
               </div>
               <span className="status-pill status-critical">Active</span>
             </div>
