@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import UploadCsvForm from "./UploadCsvForm";
 import DeleteCsvButton from "./DeleteCsvButton";
+import EditClientForm from "./EditClientForm";
+import DeleteClientButton from "./DeleteClientButton";
 
 export const dynamic = "force-dynamic";
 
@@ -72,16 +74,31 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ s
             )}
           </div>
 
-          <Link
-            href={`/audit/${client.slug}`}
-            className="group flex items-center gap-2 rounded bg-[var(--red)] px-4 py-2.5 text-white font-mono text-xs uppercase tracking-widest hover:opacity-90 transition-all shrink-0"
-          >
-            <BarChart3 className="h-3.5 w-3.5" />
-            Open audit
-            <ArrowUpRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-          </Link>
+          <div className="flex items-center gap-2 shrink-0">
+            <EditClientForm
+              clientId={client.id}
+              currentName={client.name}
+              currentSubtitle={client.subtitle}
+              currentIndustry={client.industry}
+            />
+            <DeleteClientButton
+              clientId={client.id}
+              clientName={client.name}
+              clientSlug={client.slug}
+            />
+            <Link
+              href={`/audit/${client.slug}`}
+              className="group flex items-center gap-2 rounded bg-[var(--red)] px-4 py-2.5 text-white font-mono text-xs uppercase tracking-widest hover:opacity-90 transition-all"
+            >
+              <BarChart3 className="h-3.5 w-3.5" />
+              Open audit
+              <ArrowUpRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </Link>
+          </div>
         </div>
       </div>
+
+      {/* ── danger zone (delete confirmation renders here) ────── */}
 
       {/* ── data completeness ────────────────────────────────────── */}
       <div className="panel">

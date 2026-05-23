@@ -54,9 +54,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (user.role !== "admin" && user.role !== "agency") redirect("/");
 
   const navItems = [
-    { href: "/admin/clients", label: "Clients", icon: Users },
+    { href: "/admin/clients", label: "Clients", icon: Building2 },
     ...(user.role === "admin"
-      ? [{ href: "/admin/agencies", label: "Agencies", icon: Building2 }]
+      ? [
+          { href: "/admin/agencies", label: "Agencies", icon: Shield },
+          { href: "/admin/users", label: "Users", icon: Users },
+        ]
       : []),
     { href: "/admin/billing", label: "Billing", icon: CreditCard },
     { href: "/admin/settings", label: "Settings", icon: Settings },
