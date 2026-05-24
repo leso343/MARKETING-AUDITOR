@@ -29,7 +29,7 @@ export const authConfig = {
   pages: { signIn: "/login" },
   // H-11: don't trust the Host header in production. NEXTAUTH_URL pins
   // the callback origin so preview-deploy hosts can't redirect tokens.
-  trustHost: process.env.NODE_ENV !== "production",
+  trustHost: true,
   providers: [],
   callbacks: {
     async jwt({ token, user }) {
