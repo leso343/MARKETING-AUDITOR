@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const BASE = process.env.NEXT_PUBLIC_APP_URL ?? "https://blankpageaudits.com";
+const BASE = process.env.NEXT_PUBLIC_APP_URL ?? "https://blankpageaudits.app";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [

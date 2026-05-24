@@ -38,7 +38,7 @@ import { log } from "@/lib/logger";
 const MAX_LOGO_BYTES = 2 * 1024 * 1024; // 2 MB (matches /api/upload-logo)
 const FETCH_TIMEOUT_MS = 8000;
 const MAX_REDIRECTS = 4;
-const USER_AGENT = "BlankPageAuditsBot/1.0 (+https://blankpageaudits.com)";
+const USER_AGENT = "BlankPageAuditsBot/1.0 (+https://blankpageaudits.app)";
 
 const ALLOWED_LOGO_MIME: Record<string, string> = {
   "image/png": "image/png",

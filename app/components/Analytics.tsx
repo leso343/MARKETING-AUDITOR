@@ -2,7 +2,7 @@
  * Analytics — lightweight, privacy-friendly.
  *
  * Supports two providers (set ONE env var):
- *   - Plausible:        NEXT_PUBLIC_PLAUSIBLE_DOMAIN="blankpageaudits.com"
+ *   - Plausible:        NEXT_PUBLIC_PLAUSIBLE_DOMAIN="blankpageaudits.app"
  *   - Google Analytics: NEXT_PUBLIC_GA_ID="G-XXXXXXXXXX"
  *
  * When neither is set, this component renders nothing.

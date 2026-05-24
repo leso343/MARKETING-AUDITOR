@@ -324,7 +324,7 @@ export default function PricingPage() {
                 ))}
               </ul>
               <a
-                href="mailto:sales@blankpageaudits.com?subject=Enterprise%20inquiry"
+                href="mailto:sales@blankpageaudits.app?subject=Enterprise%20inquiry"
                 className="mt-6 w-full inline-block text-center border border-[var(--border)] hover:border-[var(--red)] hover:text-[var(--red)] font-mono text-xs uppercase tracking-widest py-3 transition-colors"
               >
                 Contact sales

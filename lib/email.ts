@@ -18,7 +18,7 @@
 import { log } from "@/lib/logger";
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const FROM_EMAIL = process.env.EMAIL_FROM ?? "Blank Page Audits <noreply@blankpageaudits.com>";
+const FROM_EMAIL = process.env.EMAIL_FROM ?? "Blank Page Audits <noreply@blankpageaudits.app>";
 
 /** True when email sending is configured (Resend API key is set). */
 export const emailEnabled = !!RESEND_API_KEY;
