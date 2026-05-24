@@ -13,6 +13,7 @@
  *           force-signout deleted / role-changed users.
  */
 import type { NextAuthConfig } from "next-auth";
+import type {} from "next-auth/jwt";
 
 declare module "next-auth/jwt" {
   interface JWT {
