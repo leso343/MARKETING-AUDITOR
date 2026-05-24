@@ -362,29 +362,29 @@ body {
 .login-split__hero-content {
   position: relative;
   z-index: 10;
-  padding: 44px 48px;
-  max-width: 540px;
-  background: rgba(3, 3, 3, 0.55);
+  padding: 26px 30px;
+  max-width: 380px;
+  background: rgba(3, 3, 3, 0.62);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.45);
   animation: login-enter 0.8s ease-out both;
 }
 .login-split__hero-badge {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 2px;
+  font-size: 9px;
+  letter-spacing: 1.8px;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.6);
   border: 1px solid rgba(255, 60, 60, 0.2);
   border-radius: 100px;
-  padding: 7px 16px;
-  margin-bottom: 28px;
+  padding: 5px 12px;
+  margin-bottom: 18px;
   backdrop-filter: blur(8px);
   background: rgba(255, 40, 40, 0.06);
 }
@@ -402,49 +402,49 @@ body {
 }
 .login-split__hero-title {
   font-family: var(--font-head);
-  font-size: clamp(28px, 3vw, 40px);
+  font-size: clamp(20px, 1.9vw, 26px);
   font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
+  line-height: 1.22;
+  letter-spacing: -0.015em;
   color: #fff;
-  margin-bottom: 20px;
+  margin-bottom: 14px;
   text-shadow: 0 2px 16px rgba(0, 0, 0, 0.6);
 }
 .login-split__hero-sub {
-  font-size: 15px;
-  line-height: 1.7;
-  color: rgba(255, 255, 255, 0.55);
-  max-width: 400px;
-  margin-bottom: 48px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 22px;
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.5);
 }
 .login-split__hero-stats {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 14px;
 }
 .login-split__stat {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 .login-split__stat-num {
   font-family: var(--font-head);
-  font-size: 24px;
+  font-size: 18px;
   font-weight: 700;
   color: #fff;
+  line-height: 1;
 }
 .login-split__stat-label {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 8px;
   text-transform: uppercase;
-  letter-spacing: 1.5px;
+  letter-spacing: 1.2px;
   color: rgba(255, 255, 255, 0.4);
   text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
 }
 .login-split__stat-divider {
   width: 1px;
-  height: 36px;
+  height: 26px;
   background: rgba(255, 255, 255, 0.12);
 }
 .login-split__hero-footer {
