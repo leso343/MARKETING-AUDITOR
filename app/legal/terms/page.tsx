@@ -158,8 +158,8 @@ export default function TermsPage() {
             </h2>
             <p>
               Questions about these terms? Email us at{" "}
-              <a href="mailto:support@blankpageaudits.com" className="text-[var(--red)] hover:underline">
-                support@blankpageaudits.com
+              <a href="mailto:support@blankpageaudits.app" className="text-[var(--red)] hover:underline">
+                support@blankpageaudits.app
               </a>
               .
             </p>

@@ -121,7 +121,7 @@ export default async function OGImage() {
             textTransform: "uppercase",
           }}
         >
-          blankpageaudits.com
+          blankpageaudits.app
         </div>
       </div>
     ),

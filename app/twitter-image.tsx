@@ -67,7 +67,7 @@ export default async function TwitterImage() {
         </div>
 
         <div style={{ position: "absolute", bottom: 20, fontSize: 13, color: "#475569", letterSpacing: "3px", textTransform: "uppercase" }}>
-          blankpageaudits.com
+          blankpageaudits.app
         </div>
       </div>
     ),

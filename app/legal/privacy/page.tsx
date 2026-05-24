@@ -84,8 +84,8 @@ export default function PrivacyPage() {
             <p>
               You may request access to, correction of, or deletion of your personal data at any time
               by contacting us at{" "}
-              <a href="mailto:support@blankpageaudits.com" className="text-[var(--red)] hover:underline">
-                support@blankpageaudits.com
+              <a href="mailto:support@blankpageaudits.app" className="text-[var(--red)] hover:underline">
+                support@blankpageaudits.app
               </a>
               . You may also delete your account from your admin settings, which removes all associated data.
             </p>
@@ -118,8 +118,8 @@ export default function PrivacyPage() {
             </h2>
             <p>
               Questions about this policy? Email us at{" "}
-              <a href="mailto:support@blankpageaudits.com" className="text-[var(--red)] hover:underline">
-                support@blankpageaudits.com
+              <a href="mailto:support@blankpageaudits.app" className="text-[var(--red)] hover:underline">
+                support@blankpageaudits.app
               </a>
               .
             </p>

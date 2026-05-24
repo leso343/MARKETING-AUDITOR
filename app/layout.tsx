@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description:
     "Forensic Meta Ads audits that surface budget leaks, funnel gaps, and wasted spend. Upload CSVs, get answers.",
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL ?? "https://blankpageaudits.com"
+    process.env.NEXT_PUBLIC_APP_URL ?? "https://blankpageaudits.app"
   ),
   openGraph: {
     title: "Blank Page Audits — Forensic Ad Intelligence",
