@@ -41,7 +41,14 @@ export interface AdScore {
   headline: string;
   body: string;
   spend: number;
+  /** Raw "Results" column total (may mix leads + link clicks + video views
+   *  depending on each row's Result indicator). Kept for backward compat. */
   results: number;
+  /** Subset of `results` whose Result indicator marks them as lead-form
+   *  submissions. Used as the denominator for the per-ad `cpl` so a
+   *  traffic-objective ad with 525 profile-visit "results" cannot fake a
+   *  $0.39 CPL win against actual lead-gen ads. */
+  leadResults: number;
   cpl: number;
   cpc: number;
   ctr: number;
@@ -52,7 +59,16 @@ export interface AdScore {
 }
 
 export interface CreativeAnalysisResult {
+  /** Lead-CPL winners — only ads with `leadResults > 0` are eligible, so
+   *  Traffic / Reach / Engagement-objective ads (whose Results column is
+   *  link clicks or profile visits) can never appear here. */
   winners: AdScore[];
+  /** Best click-cost ads from traffic-objective campaigns. Surfaces ads
+   *  whose Results column is link clicks (so a per-lead ranking would be
+   *  meaningless) but that still have a low CPC. Always shown in a
+   *  separately labelled section in the UI. Empty when no traffic ads
+   *  have non-zero results. */
+  clickWinners: AdScore[];
   wasters: AdScore[];
   totalAds: number;
   totalSpend: number;
@@ -153,7 +169,15 @@ export function analyzeCreatives(ads: AdRow[]): CreativeAnalysisResult {
   const scored: AdScore[] = Array.from(aggMap.values()).map((a) => {
     const spend = a.spend;
     const results = a.results;
-    const cpl = results > 0 ? round(spend / results, 2) : 0;
+    const leadResults = a.leadResults;
+    // -- Bug fix: CPL must use leadResults, NOT raw Results. -----------------
+    // The earlier version computed `cpl = spend / results`, so a Traffic-
+    // objective ad whose Results column is 525 profile visits at $205 spend
+    // surfaced as a $0.39 CPL "winner" against real lead-gen ads costing
+    // $50+ per lead. We now divide by `leadResults` (Results filtered to
+    // lead-shaped indicators) so traffic ads with zero lead results fall to
+    // CPL = 0 and are filtered out of the lead-winners ranking below.
+    const cpl = leadResults > 0 ? round(spend / leadResults, 2) : 0;
     // CTR / CPC re-derived from aggregated totals so the scoring step
     // sees the true blended rate, not whichever single row came last.
     const ctr = a.impressions > 0 ? round((a.clicks / a.impressions) * 100, 4) : 0;
@@ -171,6 +195,7 @@ export function analyzeCreatives(ads: AdRow[]): CreativeAnalysisResult {
       body: a.body,
       spend: round(spend, 2),
       results,
+      leadResults,
       cpl,
       cpc,
       ctr,
@@ -181,16 +206,37 @@ export function analyzeCreatives(ads: AdRow[]): CreativeAnalysisResult {
     };
   });
 
-  // Identify converters (results > 0 and spend > 0) for CPL ranking.
-  const converters = scored.filter((s) => s.results > 0 && s.spend > 0).sort((a, b) => a.cpl - b.cpl);
-  const wastersPool = scored.filter((s) => s.spend > 100 && s.results === 0);
+  // -- Bug fix: rank CPL winners by lead-form submissions only, NOT raw -----
+  // Results. A Traffic-objective ad with 525 profile-visit "results" at $205
+  // would otherwise sort to the top with a fake $0.39 "CPL".
+  const converters = scored
+    .filter((s) => s.leadResults > 0 && s.spend > 0)
+    .sort((a, b) => a.cpl - b.cpl);
+  // Wasters are still measured against zero LEAD results; spending $100+ on
+  // an ad that has impressions but no actual leads is the signal.
+  const wastersPool = scored.filter((s) => s.spend > 100 && s.leadResults === 0);
 
   const winnerCutoff = Math.max(1, Math.ceil(converters.length * 0.25));
   const winners = converters.slice(0, winnerCutoff).map((w) => ({
     ...w,
     status: 'ok' as StatusLevel,
-    reason: `Top-quartile CPL of $${w.cpl.toFixed(2)} at ${w.results} leads. Scale this angle.`,
+    reason: `Top-quartile CPL of $${w.cpl.toFixed(2)} at ${w.leadResults} leads. Scale this angle.`,
   }));
+
+  // -- Separate leaderboard for click-cost ads (traffic objective). ---------
+  // Surfaces ads that have results > 0 but no lead indicator (e.g. Traffic
+  // ads whose Results column is link clicks or profile visits). Ranked by
+  // CPC ascending so the dashboard can show "Best click-cost ads (traffic)"
+  // without contaminating the lead-CPL winners list above.
+  const clickWinners: AdScore[] = scored
+    .filter((s) => s.spend > 0 && s.leadResults === 0 && s.results > 0 && s.cpc > 0)
+    .sort((a, b) => a.cpc - b.cpc)
+    .slice(0, Math.max(1, Math.ceil(scored.length * 0.1)))
+    .map((w) => ({
+      ...w,
+      status: 'ok' as StatusLevel,
+      reason: `Best click-cost ads (traffic): $${w.cpc.toFixed(2)} CPC at ${w.results} clicks. Evaluate by traffic quality, not CPL.`,
+    }));
 
   // Wasters: $100+ spent, zero conversions, OR bottom-quartile CPL with high spend.
   const bottomQuartileFromConverters = converters
@@ -245,6 +291,7 @@ export function analyzeCreatives(ads: AdRow[]): CreativeAnalysisResult {
 
   return {
     winners,
+    clickWinners,
     wasters,
     totalAds: scored.length, // unique ads after aggregation
     totalSpend: round(totalSpend, 2),
