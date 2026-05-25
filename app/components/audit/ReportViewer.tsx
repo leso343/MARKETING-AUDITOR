@@ -23,7 +23,7 @@
  *   4. Geo Audit         — geographic regions + waste
  */
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { X, Printer, ChevronLeft } from "lucide-react";
 import type { AuditResult } from "@/engine/runAudit";
 import type { ReportBranding } from "@/context/ReportContext";
@@ -78,11 +78,9 @@ export default function ReportViewer({
   branding,
 }: Props) {
   const [visible, setVisible] = useState(false);
+  // activePage drives which tab is highlighted — content always renders all 4
   const [activePage, setActivePage] = useState(page);
-
-  useEffect(() => {
-    if (open) setActivePage(page);
-  }, [page, open]);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     document.documentElement.style.overflow = open ? "hidden" : "";
@@ -111,18 +109,77 @@ export default function ReportViewer({
     return () => document.removeEventListener("keydown", handler);
   }, [open, onClose]);
 
-  useEffect(() => {
-    const el = document.getElementById("report-scroll");
-    if (el) el.scrollTop = 0;
-  }, [activePage]);
+  /**
+   * Smooth-scroll to a page section by anchor id. Uses scrollTo with an
+   * offset so the sticky top nav doesn't cover the page header.
+   */
+  const onPickPage = useCallback((p: number) => {
+    setActivePage(p); // optimistic — observer will reconfirm
+    const target = document.getElementById(`report-page-${p}`);
+    const container = scrollRef.current;
+    if (!target || !container) return;
+    const top = target.offsetTop - 12;
+    container.scrollTo({ top, behavior: "smooth" });
+  }, []);
 
-  const onPickPage = useCallback((p: number) => setActivePage(p), []);
+  /**
+   * Initial-page jump when the viewer first opens. Wait for the
+   * fade-in to complete so anchor offsets are correct.
+   */
+  useEffect(() => {
+    if (!open) return;
+    const id = setTimeout(() => {
+      const target = document.getElementById(`report-page-${page}`);
+      const container = scrollRef.current;
+      if (target && container) {
+        container.scrollTo({ top: target.offsetTop - 12, behavior: "auto" });
+      }
+      setActivePage(page);
+    }, 360); // matches the fade-in transition
+    return () => clearTimeout(id);
+  }, [open, page]);
+
+  /**
+   * IntersectionObserver tracks which page is mostly in view and
+   * updates the active tab highlight accordingly.
+   */
+  useEffect(() => {
+    if (!open) return;
+    const container = scrollRef.current;
+    if (!container) return;
+    const sections = PAGE_TABS.map((t) =>
+      document.getElementById(`report-page-${t.page}`),
+    ).filter((el): el is HTMLElement => el !== null);
+    if (sections.length === 0) return;
+
+    const obs = new IntersectionObserver(
+      (entries) => {
+        // Sort by intersectionRatio desc; first one is the most visible
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+        const top = visible[0];
+        if (!top) return;
+        const idStr = top.target.id.replace("report-page-", "");
+        const n = Number(idStr);
+        if (Number.isFinite(n) && n !== activePage) setActivePage(n);
+      },
+      {
+        root: container,
+        // Top trigger band — page is "active" when its top crosses ~25%
+        // of the viewport. Bottom margin negative so transitions feel snappy.
+        rootMargin: "-15% 0px -55% 0px",
+        threshold: [0, 0.1, 0.3, 0.5, 0.75, 1],
+      },
+    );
+    sections.forEach((s) => obs.observe(s));
+    return () => obs.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   // void unused params to keep React happy without firing eslint warnings
   void liveCtr;
   void industry;
-
-  const pageLabel = useMemo(() => `Page ${activePage} / ${PAGE_TABS.length}`, [activePage]);
 
   if (!open && !visible) return null;
 
@@ -193,28 +250,29 @@ export default function ReportViewer({
         </div>
       </nav>
 
-      {/* ── Scrollable content area — one ReportPage per active tab ── */}
-      <div id="report-scroll" className="flex-1 overflow-y-auto py-6">
-        {activePage === 1 && (
-          <ReportPage {...commonReportPageProps} pageLabel={pageLabel}>
+      {/* ── Scrollable content area — ALL 4 pages stacked, tab clicks
+              just smooth-scroll to the right anchor. ──────────────── */}
+      <div ref={scrollRef} id="report-scroll" className="flex-1 overflow-y-auto py-6">
+        <div id="report-page-1" style={{ scrollMarginTop: 12 }}>
+          <ReportPage {...commonReportPageProps} pageLabel="Page 1 / 4">
             <PageDiagnostic audit={audit} liveCpl={liveCpl} />
           </ReportPage>
-        )}
-        {activePage === 2 && (
-          <ReportPage {...commonReportPageProps} pageLabel={pageLabel}>
+        </div>
+        <div id="report-page-2" style={{ scrollMarginTop: 12 }}>
+          <ReportPage {...commonReportPageProps} pageLabel="Page 2 / 4">
             <PageCreativeAge audit={audit} liveCpl={liveCpl} />
           </ReportPage>
-        )}
-        {activePage === 3 && (
-          <ReportPage {...commonReportPageProps} pageLabel={pageLabel}>
+        </div>
+        <div id="report-page-3" style={{ scrollMarginTop: 12 }}>
+          <ReportPage {...commonReportPageProps} pageLabel="Page 3 / 4">
             <PageRoadmap audit={audit} liveCpl={liveCpl} />
           </ReportPage>
-        )}
-        {activePage === 4 && (
-          <ReportPage {...commonReportPageProps} pageLabel={pageLabel}>
+        </div>
+        <div id="report-page-4" style={{ scrollMarginTop: 12 }}>
+          <ReportPage {...commonReportPageProps} pageLabel="Page 4 / 4">
             <PageGeo audit={audit} liveCpl={liveCpl} />
           </ReportPage>
-        )}
+        </div>
       </div>
     </div>
   );
@@ -284,19 +342,28 @@ function PageDiagnostic({ audit, liveCpl }: { audit: AuditResult; liveCpl: numbe
 
       {t.failures.length > 0 && (
         <ReportTable
-          headers={["Campaign", "Spend", "Issue", "Status"]}
+          headers={["Affected campaign(s)", "Wasted spend", "Issue", "Severity"]}
           rows={t.failures.slice(0, 6).map((f) => {
-            const r = f as unknown as Record<string, unknown>;
-            const name = String(r.campaignName ?? r.name ?? "—");
-            const spend = typeof r.spend === "number" ? fmt$(r.spend) : "—";
-            const reason = String(r.reason ?? "broken tracking");
-            const sev = String(r.severity ?? "critical");
+            // TrackingFailure shape (engine/analyses/trackingFailures.ts):
+            //   { type, severity, description, estimatedImpact, affectedCampaigns: string[] }
+            const campaigns = f.affectedCampaigns ?? [];
+            const displayName =
+              campaigns.length === 0
+                ? "—"
+                : campaigns.length === 1
+                  ? campaigns[0]
+                  : `${campaigns[0]} (+${campaigns.length - 1} more)`;
+            const sev = (f.severity ?? "warn").toLowerCase();
+            const variant: "loss" | "warning" | "neutral" =
+              sev === "critical" || sev === "high" ? "loss"
+              : sev === "warn" || sev === "med" || sev === "medium" ? "warning"
+              : "neutral";
             return [
-              <strong key="n">{name}</strong>,
-              spend,
-              reason,
-              <ReportTag key="t" variant={sev === "critical" ? "loss" : "warning"}>
-                {sev}
+              <strong key="n">{displayName}</strong>,
+              fmt$(f.estimatedImpact),
+              f.description,
+              <ReportTag key="t" variant={variant}>
+                {f.severity}
               </ReportTag>,
             ];
           })}
