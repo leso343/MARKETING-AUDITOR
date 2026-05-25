@@ -34,7 +34,7 @@ launch deploy. Each is single-action; none requires more code.
 
 2. **Set these Vercel env vars** (Production env):
    - `AUTH_SECRET` — `openssl rand -base64 32`
-   - `NEXTAUTH_URL=https://blankpageaudits.com` (required now that `trustHost: false` in prod — H-11)
+   - `NEXTAUTH_URL=https://blankpageaudits.app` (required now that `trustHost: false` in prod — H-11)
    - `DATABASE_URL=libsql://<your-db>.turso.io`
    - `DATABASE_AUTH_TOKEN=...`
    - `STRIPE_SECRET_KEY=sk_live_...`
@@ -43,11 +43,11 @@ launch deploy. Each is single-action; none requires more code.
    - `STRIPE_AGENCY_PRICE_ID=price_...`      ($299/mo)
    - `STRIPE_PRO_ANNUAL_PRICE_ID=price_...`  ($79/mo billed annually)
    - `STRIPE_AGENCY_ANNUAL_PRICE_ID=price_...` ($239/mo billed annually)
-   - `NEXT_PUBLIC_APP_URL=https://blankpageaudits.com`
+   - `NEXT_PUBLIC_APP_URL=https://blankpageaudits.app`
    - `RESEND_API_KEY=re_...` (otherwise password reset / welcome
      emails won't be sent — they degrade to a log-line and the user
      thinks the product is broken)
-   - `EMAIL_FROM="Blank Page Audits <noreply@blankpageaudits.com>"`
+   - `EMAIL_FROM="Blank Page Audits <noreply@blankpageaudits.app>"`
      (must be a verified Resend domain)
 
 3. **Create the four Stripe products** in the Stripe Dashboard
@@ -58,17 +58,17 @@ launch deploy. Each is single-action; none requires more code.
    - Agency Annual — `$2,868/yr` ($239/mo equivalent; id → `STRIPE_AGENCY_ANNUAL_PRICE_ID`)
 
 4. **Register the Stripe webhook endpoint** at
-   `https://blankpageaudits.com/api/billing/webhook`. Subscribe to:
+   `https://blankpageaudits.app/api/billing/webhook`. Subscribe to:
    `checkout.session.completed`, `customer.subscription.created`,
    `customer.subscription.updated`, `customer.subscription.deleted`,
    `invoice.paid`, `invoice.payment_failed`. Copy the signing secret
    into `STRIPE_WEBHOOK_SECRET`.
 
 5. **Verify Resend domain + From address.** From defaults to
-   `noreply@blankpageaudits.com` — that domain needs SPF + DKIM
+   `noreply@blankpageaudits.app` — that domain needs SPF + DKIM
    records in DNS before Resend will deliver.
 
-6. **DNS + SSL**: point `blankpageaudits.com` (and `www.`) at Vercel.
+6. **DNS + SSL**: point `blankpageaudits.app` (and `www.`) at Vercel.
    Lester already knows the drill.
 
 ### 🟠 Nice-to-have before deploy
