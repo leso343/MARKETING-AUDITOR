@@ -27,6 +27,7 @@ import dynamic from "next/dynamic";
 import DensityControl, { type Density } from "@/components/audit/DensityControl";
 import { Languages } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
+import AuditAssistant from "@/components/ai/AuditAssistant";
 
 const CanvasMapPanel = dynamic(() => import("@/components/audit/CanvasMapPanel"), { ssr: false });
 
@@ -432,6 +433,11 @@ export default function AuditDashboard({
             />
           )}
         </div>
+
+        {/* AI assistant — grounded in this audit. Hidden in print mode. */}
+        {!printMode && (
+          <AuditAssistant clientSlug={clientSlug} clientName={audit.clientName} />
+        )}
       </ReportProvider>
     </LangProvider>
   );

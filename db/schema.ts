@@ -249,6 +249,63 @@ export const clientLogos = sqliteTable(
 );
 
 /**
+ * AI assistant — conversation threads scoped to (user, client).
+ *
+ * Each thread groups messages for one audit (clientId set) or for the
+ * generic on-board assistant (clientId null). Persistence lets users
+ * return to a thread later; the UI hides threads older than 90 days.
+ */
+export const aiConversations = sqliteTable(
+  "ai_conversations",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    /** Null when the conversation isn't anchored to a specific client. */
+    clientId: text("client_id").references(() => clients.id, { onDelete: "cascade" }),
+    /** Auto-derived from the first user message (truncated to ~60 chars). */
+    title: text("title").notNull().default("New conversation"),
+    createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().default(sql`(unixepoch() * 1000)`),
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull().default(sql`(unixepoch() * 1000)`),
+  },
+  (t) => ({
+    userIdx: index("ai_conversations_user_idx").on(t.userId),
+    userClientIdx: index("ai_conversations_user_client_idx").on(t.userId, t.clientId),
+  }),
+);
+
+/**
+ * AI assistant — individual messages within a conversation.
+ *
+ * `role` is "user" | "assistant". `inputTokens` / `outputTokens` capture
+ * Anthropic API usage for cost monitoring + rate limiting.
+ */
+export const aiMessages = sqliteTable(
+  "ai_messages",
+  {
+    id: text("id").primaryKey(),
+    conversationId: text("conversation_id")
+      .notNull()
+      .references(() => aiConversations.id, { onDelete: "cascade" }),
+    /** "user" | "assistant" */
+    role: text("role").notNull(),
+    content: text("content").notNull(),
+    /** Anthropic API token usage — null for user messages. */
+    inputTokens: integer("input_tokens"),
+    outputTokens: integer("output_tokens"),
+    /** Cached-tokens reads — null for user messages or when no cache hit. */
+    cacheReadTokens: integer("cache_read_tokens"),
+    createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().default(sql`(unixepoch() * 1000)`),
+  },
+  (t) => ({
+    conversationIdx: index("ai_messages_conversation_idx").on(t.conversationId),
+    /** Per-user-per-month usage queries — covers the monthly tier cap. */
+    userCreatedIdx: index("ai_messages_created_idx").on(t.createdAt),
+  }),
+);
+
+/**
  * C-5 fix: Meta Marketing API credentials (replaces config/meta.json).
  * One row per agency.
  */
@@ -310,6 +367,10 @@ export type Subscription = typeof subscriptions.$inferSelect;
 export type NewSubscription = typeof subscriptions.$inferInsert;
 export type Notification = typeof notifications.$inferSelect;
 export type NewNotification = typeof notifications.$inferInsert;
+export type AiConversation = typeof aiConversations.$inferSelect;
+export type NewAiConversation = typeof aiConversations.$inferInsert;
+export type AiMessage = typeof aiMessages.$inferSelect;
+export type NewAiMessage = typeof aiMessages.$inferInsert;
 export type StripeEvent = typeof stripeEvents.$inferSelect;
 export type NewStripeEvent = typeof stripeEvents.$inferInsert;
 export type AuditRun = typeof auditRuns.$inferSelect;

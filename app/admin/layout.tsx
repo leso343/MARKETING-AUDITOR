@@ -14,6 +14,7 @@ import {
 import ThemeToggle from "@/components/ThemeToggle";
 import NotificationBell from "@/components/NotificationBell";
 import SubscriptionBanner from "@/components/SubscriptionBanner";
+import AuditAssistant from "@/components/ai/AuditAssistant";
 
 /**
  * Admin shell — polished sidebar-style nav.
@@ -126,6 +127,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
       {/* ── content area ─────────────────────────────────────────── */}
       <main className="mx-auto max-w-6xl p-6">{children}</main>
+
+      {/* ── AI assistant — null slug = redirect-prompt mode ─────────── */}
+      <AuditAssistant clientSlug={null} />
     </div>
   );
 }
