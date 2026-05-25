@@ -140,7 +140,7 @@ export default async function Home() {
               className="group panel transition-all hover:border-[var(--red)]"
             >
               <div className="mb-5 flex items-start justify-between">
-                <div className="flex h-12 w-12 items-center justify-center border border-[var(--border)] bg-[var(--bg)] overflow-hidden">
+                <div className="flex h-20 w-20 items-center justify-center rounded-md border border-[var(--border)] bg-[var(--bg)] overflow-hidden">
                   <ClientLogo name={c.name} logoUrl={c.logoUrl} logoUrlLight={c.logoUrlLight} />
                 </div>
                 <span className="status-pill status-critical">Active</span>

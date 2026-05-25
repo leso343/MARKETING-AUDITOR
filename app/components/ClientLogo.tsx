@@ -35,7 +35,7 @@ export default function ClientLogo({ name, logoUrl, logoUrlLight }: Props) {
   const activeLogo = isLight ? (logoUrlLight ?? logoUrl) : logoUrl;
 
   if (!activeLogo) {
-    return <Building2 className="h-5 w-5 text-[var(--red)]" />;
+    return <Building2 className="h-1/2 w-1/2 text-[var(--red)]" />;
   }
 
   return (
@@ -43,7 +43,7 @@ export default function ClientLogo({ name, logoUrl, logoUrlLight }: Props) {
     <img
       src={activeLogo}
       alt={name}
-      className="h-full w-full object-contain p-1"
+      className="h-full w-full object-contain"
     />
   );
 }
