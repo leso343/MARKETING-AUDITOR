@@ -223,7 +223,18 @@ export default function AuditDashboard({
 
   return (
     <LangProvider>
-      <ReportProvider>
+      <ReportProvider
+        audit={audit}
+        liveCpl={liveCpl}
+        liveCtr={liveCtr}
+        industry={industry}
+        branding={{
+          agencyLogo,
+          agencyLogoLight,
+          clientLogo,
+          clientLogoLight,
+        }}
+      >
         <div
           className={printMode ? "min-h-screen print-mode" : "flex h-screen overflow-hidden"}
         >
