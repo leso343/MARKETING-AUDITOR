@@ -18,6 +18,7 @@
  */
 
 import { useEffect, useState, useCallback, useMemo } from "react";
+import dynamic from "next/dynamic";
 import { X, Printer, ChevronLeft } from "lucide-react";
 import type { AuditResult } from "@/engine/runAudit";
 import type { ReportBranding } from "@/context/ReportContext";
@@ -32,6 +33,17 @@ import PlacementsPanel from "@/components/audit/PlacementsPanel";
 import DevicesPanel from "@/components/audit/DevicesPanel";
 import RecommendationCards from "@/components/audit/RecommendationCards";
 import GeographicHeatmap from "@/components/audit/GeographicHeatmap";
+import AuditRibbon from "@/components/audit/AuditRibbon";
+import TimeOfDayPanel from "@/components/audit/TimeOfDayPanel";
+import InteractiveFunnelExplorer from "@/components/visualizers/InteractiveFunnelExplorer";
+import TimeSeriesScrubber from "@/components/visualizers/TimeSeriesScrubber";
+import GeoBudgetReallocator from "@/components/visualizers/GeoBudgetReallocator";
+
+// Leaflet-based map — same dynamic import pattern the dashboard uses.
+const CanvasMapPanel = dynamic(
+  () => import("@/components/audit/CanvasMapPanel"),
+  { ssr: false },
+);
 
 interface Props {
   open: boolean;
@@ -378,6 +390,9 @@ function ReportFooter({
 
 /* ═════════════════════════════════════════════════════════════════════
    Section 1 — DIAGNOSTIC
+   Full health snapshot. AuditRibbon → ExecutiveSummary → KPIs →
+   Benchmarks → Funnel chart → Interactive funnel explorer →
+   Tracking → Weekly trend chart.
    ═════════════════════════════════════════════════════════════════════ */
 function SectionDiagnostic({
   audit,
@@ -392,9 +407,15 @@ function SectionDiagnostic({
 }) {
   return (
     <div className="grid grid-cols-12 gap-4 sm:gap-5">
+      {/* Fact ribbon — quick at-a-glance numbers */}
+      <section className="col-span-12">
+        <AuditRibbon audit={audit} />
+      </section>
+
       <section className="col-span-12">
         <ExecutiveSummary audit={audit} />
       </section>
+
       <section className="col-span-12">
         <KPISnapshot
           kpis={audit.spend.kpis}
@@ -405,6 +426,7 @@ function SectionDiagnostic({
           isPreview={false}
         />
       </section>
+
       <section className="col-span-12">
         <BenchmarkStatus
           blendedCpl={audit.spend.blendedCpl}
@@ -416,18 +438,36 @@ function SectionDiagnostic({
           isPreview={false}
         />
       </section>
+
       <section className="col-span-12 lg:col-span-7">
         <FunnelLeakageChart funnel={audit.funnel} />
       </section>
       <section className="col-span-12 lg:col-span-5">
         <TrackingFailuresPanel tracking={audit.tracking} />
       </section>
+
+      {/* Interactive funnel — same component as the dashboard */}
+      <section className="col-span-12">
+        <InteractiveFunnelExplorer
+          funnel={audit.funnel}
+          blendedCpl={audit.spend.blendedCpl}
+        />
+      </section>
+
+      {/* Weekly trend — scrubber chart */}
+      {audit.weeklySeries.length > 0 && (
+        <section className="col-span-12">
+          <TimeSeriesScrubber weeks={audit.weeklySeries} />
+        </section>
+      )}
     </div>
   );
 }
 
 /* ═════════════════════════════════════════════════════════════════════
    Section 2 — CREATIVE & AGE
+   Creative winners/losers + demographics + placements + devices +
+   dayparting if data exists.
    ═════════════════════════════════════════════════════════════════════ */
 function SectionCreativeAndAge({
   audit,
@@ -441,11 +481,13 @@ function SectionCreativeAndAge({
       <section className="col-span-12">
         <CreativeAnalysisGrid creative={audit.creative} liveCpl={liveCpl} />
       </section>
+
       {audit.demographics.brackets.some((b) => b.spend > 0) && (
         <section className="col-span-12">
           <DemographicsPanel demographics={audit.demographics} targetCpl={liveCpl} />
         </section>
       )}
+
       {audit.placements.placements.length > 0 && (
         <section className="col-span-12 lg:col-span-6">
           <PlacementsPanel placements={audit.placements} targetCpl={liveCpl} />
@@ -456,12 +498,20 @@ function SectionCreativeAndAge({
           <DevicesPanel devices={audit.devices} />
         </section>
       )}
+
+      {audit.timeOfDay.hours.length > 0 && (
+        <section className="col-span-12">
+          <TimeOfDayPanel timeOfDay={audit.timeOfDay} />
+        </section>
+      )}
     </div>
   );
 }
 
 /* ═════════════════════════════════════════════════════════════════════
    Section 3 — 30-DAY ROADMAP
+   Action plan + weekly trend so the roadmap is anchored in real
+   momentum.
    ═════════════════════════════════════════════════════════════════════ */
 function SectionRoadmap({
   audit,
@@ -477,12 +527,19 @@ function SectionRoadmap({
       <section className="col-span-12">
         <RecommendationCards audit={audit} targetCpl={liveCpl} targetCtr={liveCtr} />
       </section>
+
+      {audit.weeklySeries.length > 0 && (
+        <section className="col-span-12">
+          <TimeSeriesScrubber weeks={audit.weeklySeries} />
+        </section>
+      )}
     </div>
   );
 }
 
 /* ═════════════════════════════════════════════════════════════════════
    Section 4 — GEO AUDIT
+   Heatmap + the canvas/leaflet map + interactive geo reallocator.
    ═════════════════════════════════════════════════════════════════════ */
 function SectionGeoAudit({
   audit,
@@ -500,6 +557,17 @@ function SectionGeoAudit({
           costMetricLabel={audit.spend.blendedCpl > 0 ? "CPL" : "CPC"}
         />
       </section>
+
+      {/* The actual map — Leaflet-backed, loaded client-side */}
+      <section className="col-span-12">
+        <CanvasMapPanel />
+      </section>
+
+      {audit.geo.regions.length > 0 && (
+        <section className="col-span-12">
+          <GeoBudgetReallocator geo={audit.geo} />
+        </section>
+      )}
     </div>
   );
 }
