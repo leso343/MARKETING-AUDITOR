@@ -306,6 +306,32 @@ export const aiMessages = sqliteTable(
 );
 
 /**
+ * Bring-your-own Anthropic API key per agency (Agency tier feature).
+ *
+ * When present, the AI assistant uses this key instead of the server's
+ * shared ANTHROPIC_API_KEY, so the agency pays Anthropic directly and
+ * bypasses the per-tier message cap. The hourly throttle (30/hr/user)
+ * still applies to prevent runaway loops.
+ *
+ * Key is stored AES-256-GCM-encrypted with the AI_KEY_ENCRYPTION_SECRET
+ * server-side secret. `keyMask` is the human-readable last-4 suffix
+ * shown in the UI; the plaintext key is never returned to the client.
+ */
+export const agencyAiConfigs = sqliteTable("agency_ai_configs", {
+  agencyId: text("agency_id")
+    .primaryKey()
+    .references(() => agencies.id, { onDelete: "cascade" }),
+  /** AES-256-GCM ciphertext, base64-encoded `iv:ciphertext:authTag`. */
+  encryptedKey: text("encrypted_key").notNull(),
+  /** Display-safe mask: "sk-ant-…abcd" (last 4 chars). */
+  keyMask: text("key_mask").notNull(),
+  /** 1 once we've successfully test-called the key. 0 otherwise. */
+  validated: integer("validated").notNull().default(0),
+  lastValidatedAt: integer("last_validated_at", { mode: "timestamp_ms" }),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull().default(sql`(unixepoch() * 1000)`),
+});
+
+/**
  * C-5 fix: Meta Marketing API credentials (replaces config/meta.json).
  * One row per agency.
  */
@@ -371,6 +397,8 @@ export type AiConversation = typeof aiConversations.$inferSelect;
 export type NewAiConversation = typeof aiConversations.$inferInsert;
 export type AiMessage = typeof aiMessages.$inferSelect;
 export type NewAiMessage = typeof aiMessages.$inferInsert;
+export type AgencyAiConfig = typeof agencyAiConfigs.$inferSelect;
+export type NewAgencyAiConfig = typeof agencyAiConfigs.$inferInsert;
 export type StripeEvent = typeof stripeEvents.$inferSelect;
 export type NewStripeEvent = typeof stripeEvents.$inferInsert;
 export type AuditRun = typeof auditRuns.$inferSelect;

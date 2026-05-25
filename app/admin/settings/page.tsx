@@ -1,8 +1,10 @@
 import { requireUser, getCurrentAgency } from "@/lib/access";
 import { redirect } from "next/navigation";
-import { Palette, Shield } from "lucide-react";
+import { Palette, Shield, Sparkles } from "lucide-react";
 import AgencyBrandingForm from "./AgencyBrandingForm";
 import ChangePasswordForm from "./ChangePasswordForm";
+import AiKeyForm from "./AiKeyForm";
+import { getBillingState } from "@/lib/billing-access";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +12,9 @@ export default async function AdminSettingsPage() {
   const user = await requireUser();
   const agency = await getCurrentAgency();
   if (!agency && user.role !== "admin") redirect("/");
+
+  const billing = agency ? await getBillingState(agency.id) : null;
+  const planId = billing?.ok ? billing.plan.id : "free";
 
   return (
     <div className="space-y-8">
@@ -61,6 +66,26 @@ export default async function AdminSettingsPage() {
             </div>
           </div>
         )}
+      </div>
+
+      {/* ── divider ──────────────────────────────────────────────── */}
+      <div className="border-t border-[var(--border)]" />
+
+      {/* ── AI assistant section ─────────────────────────────────── */}
+      <div>
+        <div className="flex items-center gap-2 mb-4">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--card)]">
+            <Sparkles className="h-4 w-4 text-[var(--red)]" />
+          </div>
+          <div>
+            <div className="text-sm font-bold">AI Assistant</div>
+            <div className="font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)]">
+              Bring your own Anthropic API key (Agency plan)
+            </div>
+          </div>
+        </div>
+
+        <AiKeyForm planId={planId} />
       </div>
 
       {/* ── divider ──────────────────────────────────────────────── */}

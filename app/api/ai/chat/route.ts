@@ -42,6 +42,7 @@ import {
   SYSTEM_PROMPT_NO_AUDIT,
 } from "@/lib/ai-context";
 import { checkAiUsage } from "@/lib/ai-usage";
+import { decryptSecret, isCryptoConfigured } from "@/lib/crypto";
 import { log } from "@/lib/logger";
 import fs from "node:fs";
 import path from "node:path";
@@ -126,15 +127,40 @@ export async function POST(req: Request) {
     }
   }
 
-  // ── Tier check ─────────────────────────────────────────────────────────
+  // ── Tier check + BYO key resolution ────────────────────────────────────
   const billing = user.agencyId ? await getBillingState(user.agencyId) : null;
   const planId = billing?.ok ? billing.plan.id : "free";
-  const usage = await checkAiUsage(user.id, planId);
-  if (!usage.ok) {
-    return NextResponse.json(
-      { error: usage.reason, code: usage.code, used: usage.used, limit: usage.limit },
-      { status: 403 },
-    );
+
+  // Agency tier can BYO their own Anthropic key — when present, they pay
+  // Anthropic directly and bypass the monthly tier cap (the hourly
+  // throttle still applies above).
+  let effectiveApiKey = apiKey;
+  let usingByoKey = false;
+  if (planId === "agency" && user.agencyId && isCryptoConfigured()) {
+    try {
+      const byoRows = await db
+        .select({ encryptedKey: schema.agencyAiConfigs.encryptedKey })
+        .from(schema.agencyAiConfigs)
+        .where(eq(schema.agencyAiConfigs.agencyId, user.agencyId))
+        .limit(1);
+      if (byoRows[0]?.encryptedKey) {
+        effectiveApiKey = decryptSecret(byoRows[0].encryptedKey);
+        usingByoKey = true;
+      }
+    } catch (err) {
+      log.error("[ai-chat] BYO key decrypt failed; falling back to server key", err);
+    }
+  }
+
+  // Skip tier cap when on BYO — they're paying Anthropic themselves.
+  if (!usingByoKey) {
+    const usage = await checkAiUsage(user.id, planId);
+    if (!usage.ok) {
+      return NextResponse.json(
+        { error: usage.reason, code: usage.code, used: usage.used, limit: usage.limit },
+        { status: 403 },
+      );
+    }
   }
 
   // ── Resolve / create conversation ──────────────────────────────────────
@@ -183,7 +209,7 @@ export async function POST(req: Request) {
   });
 
   // ── Build the Anthropic call ───────────────────────────────────────────
-  const client = new Anthropic({ apiKey });
+  const client = new Anthropic({ apiKey: effectiveApiKey });
 
   const systemBase = auditContextBlock ? SYSTEM_PROMPT_BASE : SYSTEM_PROMPT_NO_AUDIT;
   const systemBlocks: Anthropic.MessageCreateParams["system"] = auditContextBlock
@@ -214,7 +240,7 @@ export async function POST(req: Request) {
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(obj)}\n\n`));
 
       try {
-        send({ type: "meta", conversationId });
+        send({ type: "meta", conversationId, usingByoKey });
 
         const apiStream = client.messages.stream({
           model: MODEL,
