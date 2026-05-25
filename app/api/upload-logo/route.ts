@@ -27,6 +27,7 @@ import { getVisibleClientBySlug } from "@/lib/access";
 import { safeSlug } from "@/lib/billing-access";
 import { log } from "@/lib/logger";
 
+import { isSameOriginRequest, csrfRejection } from "@/lib/api-helpers";
 // M-14 fix: no SVG. SVGs can carry inline <script>; even if rendered
 // via <img> the file can be opened directly in a new tab.
 const ALLOWED_TYPES: Record<string, string> = {
@@ -38,6 +39,7 @@ const ALLOWED_TYPES: Record<string, string> = {
 const MAX_BYTES = 2 * 1024 * 1024; // 2 MB
 
 export async function POST(req: NextRequest) {
+  if (!isSameOriginRequest(req)) return csrfRejection();
   try {
     const session = await auth();
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

@@ -13,7 +13,9 @@ import { eq } from "drizzle-orm";
 import { auth, authEnabled } from "@/auth";
 import { log } from "@/lib/logger";
 
+import { isSameOriginRequest, csrfRejection } from "@/lib/api-helpers";
 export async function PATCH(req: Request) {
+  if (!isSameOriginRequest(req)) return csrfRejection();
   if (!authEnabled || !dbAvailable) {
     return NextResponse.json(
       {

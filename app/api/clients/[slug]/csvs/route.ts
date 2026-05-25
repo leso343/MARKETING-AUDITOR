@@ -34,6 +34,7 @@ import { log } from "@/lib/logger";
 import { notify } from "@/lib/notifications";
 import { getBillingState, countClientCsvs } from "@/lib/billing-access";
 
+import { isSameOriginRequest, csrfRejection } from "@/lib/api-helpers";
 const MAX_BYTES = 10 * 1024 * 1024; // 10 MB per file
 const MAX_LINES = 50_000; // protect papaparse from O(rows)
 const MAX_TOTAL_BODY = 60 * 1024 * 1024; // hard cap for JSON body
@@ -136,6 +137,7 @@ async function upsertCsv(clientId: string, filename: string, content: string): P
 }
 
 export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
+  if (!isSameOriginRequest(req)) return csrfRejection();
   if (!authEnabled || !dbAvailable) return gatedOff();
 
   const rl = rateLimit(`upload:${getClientIp(req)}`, { max: 20, windowMs: 60_000 });
@@ -313,6 +315,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
 }
 
 export async function DELETE(req: Request, { params }: { params: Promise<{ slug: string }> }) {
+  if (!isSameOriginRequest(req)) return csrfRejection();
   if (!authEnabled || !dbAvailable) return gatedOff();
 
   try {
