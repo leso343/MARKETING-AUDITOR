@@ -1,32 +1,32 @@
 "use client";
 
 /**
- * AuditAssistant — floating AI chat panel.
+ * AuditAssistant — iOS-style floating AI chat panel.
  *
- * Mounted on every authenticated page. When `clientSlug` is provided
- * (audit pages) the assistant has the audit context loaded server-side
- * and answers grounded questions. When `clientSlug` is null, the
- * assistant gracefully redirects users to open an audit.
+ * Visual language modeled on iPhone Messages / Apple Intelligence:
+ *   - Sheet with rounded top corners + drag-indicator grabber
+ *   - SF Pro font stack via system-ui / -apple-system
+ *   - iMessage-style bubbles (brand red for user, system gray for assistant)
+ *   - Pill input with circular send button
+ *   - Vibrancy / translucency on the sheet background
  *
- * UX:
- *   - Bottom-right FAB → opens a right-side slide-in panel (desktop)
- *     or full-height bottom sheet (mobile).
- *   - Streaming responses with markdown rendering.
- *   - Suggested starter chips on empty state.
- *   - Copy-to-clipboard on each assistant message.
- *   - "New" / "Clear" controls in header.
+ * Behavior is unchanged from the previous version:
+ *   - Streaming responses with markdown rendering
+ *   - Suggested starter chips on empty state
+ *   - Copy / new / clear in the nav bar
+ *   - Esc closes; Enter sends; Shift+Enter newline
+ *   - Grounded in the audit (clientSlug) or redirect mode (null)
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Sparkles,
   X,
-  Send,
+  ArrowUp,
   Copy,
   Check,
   Plus,
   Trash2,
-  Loader2,
   AlertCircle,
   MessageSquare,
 } from "lucide-react";
@@ -55,9 +55,9 @@ const STARTER_CHIPS_AUDIT = [
   "Explain the funnel leakage finding",
 ];
 
-const STARTER_CHIPS_NO_AUDIT = [
-  "Open a client's audit to start",
-];
+// Apple SF Pro font stack — falls back to system fonts on every device.
+const IOS_FONT =
+  '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", system-ui, sans-serif';
 
 export default function AuditAssistant({ clientSlug, clientName }: Props) {
   const [open, setOpen] = useState(false);
@@ -74,17 +74,21 @@ export default function AuditAssistant({ clientSlug, clientName }: Props) {
 
   // Auto-scroll on new content.
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [messages]);
 
   // Focus input on open.
   useEffect(() => {
-    if (open) {
-      setTimeout(() => inputRef.current?.focus(), 100);
-    }
+    if (open) setTimeout(() => inputRef.current?.focus(), 100);
   }, [open]);
+
+  // Auto-grow textarea like iMessage.
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.style.height = "auto";
+      inputRef.current.style.height = `${Math.min(inputRef.current.scrollHeight, 120)}px`;
+    }
+  }, [input]);
 
   // Esc to close.
   useEffect(() => {
@@ -125,11 +129,7 @@ export default function AuditAssistant({ clientSlug, clientName }: Props) {
         const res = await fetch("/api/ai/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            clientSlug,
-            conversationId,
-            message: text,
-          }),
+          body: JSON.stringify({ clientSlug, conversationId, message: text }),
           signal: controller.signal,
         });
 
@@ -147,11 +147,8 @@ export default function AuditAssistant({ clientSlug, clientName }: Props) {
           const { done, value } = await reader.read();
           if (done) break;
           buffer += decoder.decode(value, { stream: true });
-
-          // SSE frames are split by \n\n.
           const frames = buffer.split("\n\n");
           buffer = frames.pop() ?? "";
-
           for (const frame of frames) {
             if (!frame.startsWith("data: ")) continue;
             const json = frame.slice(6);
@@ -162,18 +159,14 @@ export default function AuditAssistant({ clientSlug, clientName }: Props) {
               } else if (event.type === "delta" && event.text) {
                 setMessages((prev) =>
                   prev.map((m) =>
-                    m.id === assistantId
-                      ? { ...m, content: m.content + event.text }
-                      : m,
+                    m.id === assistantId ? { ...m, content: m.content + event.text } : m,
                   ),
                 );
               } else if (event.type === "error") {
                 throw new Error(event.error);
               }
             } catch (parseErr) {
-              // Ignore malformed frames silently — partial reads happen.
-              if (parseErr instanceof Error && parseErr.message.startsWith("Unexpected"))
-                continue;
+              if (parseErr instanceof Error && parseErr.message.startsWith("Unexpected")) continue;
               throw parseErr;
             }
           }
@@ -182,7 +175,6 @@ export default function AuditAssistant({ clientSlug, clientName }: Props) {
         if (err instanceof Error && err.name === "AbortError") return;
         const msg = err instanceof Error ? err.message : "Something went wrong";
         setError(msg);
-        // Remove the empty assistant placeholder if it never got content.
         setMessages((prev) => prev.filter((m) => !(m.id === assistantId && !m.content)));
       } finally {
         setStreaming(false);
@@ -203,123 +195,134 @@ export default function AuditAssistant({ clientSlug, clientName }: Props) {
       setCopiedId(id);
       setTimeout(() => setCopiedId(null), 1500);
     } catch {
-      // ignore
+      /* ignore */
     }
   };
 
-  const chips = clientSlug ? STARTER_CHIPS_AUDIT : STARTER_CHIPS_NO_AUDIT;
+  const chips = STARTER_CHIPS_AUDIT;
   const hasAudit = Boolean(clientSlug);
 
   return (
     <>
-      {/* ── Floating action button ─────────────────────────────────────── */}
+      {/* ── Floating action button (iOS-style circular) ────────────────── */}
       {!open && (
         <button
           type="button"
           onClick={() => setOpen(true)}
           aria-label="Open AI assistant"
-          className="fixed bottom-6 right-6 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--red)] text-white shadow-[0_4px_24px_rgba(255,0,0,0.4)] hover:shadow-[0_6px_32px_rgba(255,0,0,0.6)] transition-all hover:scale-105 active:scale-95"
+          className="ios-fab"
+          style={{ fontFamily: IOS_FONT }}
         >
-          <Sparkles className="h-5 w-5" />
-          <span className="sr-only">Ask AI</span>
+          <Sparkles className="h-[22px] w-[22px]" strokeWidth={2.2} />
         </button>
       )}
 
-      {/* ── Slide-in panel ─────────────────────────────────────────────── */}
+      {/* ── iOS-style sheet ────────────────────────────────────────────── */}
       {open && (
         <>
-          {/* Mobile backdrop */}
+          {/* Dim backdrop (iOS sheets always have this when modal) */}
           <div
-            className="fixed inset-0 z-40 bg-black/40 lg:hidden"
+            className="ios-sheet-backdrop"
             onClick={() => setOpen(false)}
+            aria-hidden="true"
           />
 
           <aside
-            className="fixed inset-x-0 bottom-0 z-50 flex max-h-[85vh] flex-col rounded-t-2xl border-t border-[var(--border)] bg-[var(--card)] shadow-2xl lg:bottom-0 lg:right-0 lg:top-0 lg:inset-x-auto lg:max-h-none lg:h-screen lg:w-[420px] lg:rounded-none lg:border-l lg:border-t-0"
             role="dialog"
             aria-label="AI Assistant"
+            className="ios-sheet"
+            style={{ fontFamily: IOS_FONT }}
           >
-            {/* Header */}
-            <header className="flex items-center justify-between border-b border-[var(--border)] px-4 py-3">
-              <div className="flex items-center gap-2 min-w-0">
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--red)]/10">
-                  <Sparkles className="h-3.5 w-3.5 text-[var(--red)]" />
+            {/* Grabber */}
+            <div className="ios-grabber-wrap">
+              <div className="ios-grabber" />
+            </div>
+
+            {/* Nav bar */}
+            <header className="ios-navbar">
+              <div className="ios-navbar-side">
+                {messages.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={resetConversation}
+                    aria-label="New conversation"
+                    className="ios-navbar-btn"
+                  >
+                    <Plus className="h-[18px] w-[18px]" strokeWidth={2.2} />
+                  </button>
+                )}
+              </div>
+              <div className="ios-navbar-title">
+                <div className="ios-avatar">
+                  <Sparkles className="h-[14px] w-[14px]" strokeWidth={2.4} />
                 </div>
-                <div className="min-w-0">
-                  <div className="font-semibold text-sm">Audit Assistant</div>
-                  <div className="font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)] truncate">
+                <div className="ios-navbar-title-text">
+                  <div className="ios-title">Audit Assistant</div>
+                  <div className="ios-subtitle">
                     {hasAudit ? clientName ?? clientSlug ?? "—" : "No audit loaded"}
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-1">
+              <div className="ios-navbar-side ios-navbar-side--right">
                 {messages.length > 0 && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={resetConversation}
-                      title="New conversation"
-                      className="flex h-7 w-7 items-center justify-center rounded text-[var(--text-dim)] hover:bg-[var(--bg)] hover:text-[var(--text)] transition-colors"
-                    >
-                      <Plus className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={resetConversation}
-                      title="Clear conversation"
-                      className="flex h-7 w-7 items-center justify-center rounded text-[var(--text-dim)] hover:bg-[var(--bg)] hover:text-[var(--red)] transition-colors"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </>
+                  <button
+                    type="button"
+                    onClick={resetConversation}
+                    aria-label="Clear conversation"
+                    className="ios-navbar-btn"
+                  >
+                    <Trash2 className="h-[16px] w-[16px]" strokeWidth={2.2} />
+                  </button>
                 )}
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
-                  title="Close"
-                  className="flex h-7 w-7 items-center justify-center rounded text-[var(--text-dim)] hover:bg-[var(--bg)] hover:text-[var(--text)] transition-colors"
+                  aria-label="Close"
+                  className="ios-navbar-btn ios-navbar-close"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-[18px] w-[18px]" strokeWidth={2.4} />
                 </button>
               </div>
             </header>
 
-            {/* Messages */}
-            <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+            {/* Messages scroll area */}
+            <div ref={scrollRef} className="ios-messages">
               {messages.length === 0 ? (
-                <EmptyState
+                <IosEmptyState
                   hasAudit={hasAudit}
                   chips={chips}
                   onPickChip={(t) => send(t)}
                 />
               ) : (
-                messages.map((m) =>
-                  m.role === "user" ? (
-                    <UserBubble key={m.id} content={m.content} />
-                  ) : (
-                    <AssistantBubble
-                      key={m.id}
-                      content={m.content}
-                      isStreaming={streaming && m === messages[messages.length - 1]}
-                      copied={copiedId === m.id}
-                      onCopy={() => copyMessage(m.id, m.content)}
-                    />
-                  ),
-                )
+                <div className="space-y-3 py-4">
+                  {messages.map((m, i) =>
+                    m.role === "user" ? (
+                      <IosUserBubble key={m.id} content={m.content} />
+                    ) : (
+                      <IosAssistantBubble
+                        key={m.id}
+                        content={m.content}
+                        isStreaming={streaming && i === messages.length - 1}
+                        copied={copiedId === m.id}
+                        onCopy={() => copyMessage(m.id, m.content)}
+                      />
+                    ),
+                  )}
+                </div>
               )}
             </div>
 
-            {/* Error surface */}
+            {/* Error banner */}
             {error && (
-              <div className="mx-4 mb-2 flex items-start gap-2 rounded bg-[var(--red)]/10 border border-[var(--red)]/20 px-3 py-2">
-                <AlertCircle className="h-3.5 w-3.5 shrink-0 text-[var(--red)] mt-0.5" />
-                <p className="text-[11px] text-[var(--red)]">{error}</p>
+              <div className="ios-error">
+                <AlertCircle className="h-[14px] w-[14px]" />
+                <span>{error}</span>
               </div>
             )}
 
-            {/* Input */}
-            <form onSubmit={onSubmit} className="border-t border-[var(--border)] p-3">
-              <div className="flex items-end gap-2">
+            {/* Input bar */}
+            <form onSubmit={onSubmit} className="ios-inputbar">
+              <div className="ios-input-pill">
                 <textarea
                   ref={inputRef}
                   value={input}
@@ -331,31 +334,19 @@ export default function AuditAssistant({ clientSlug, clientName }: Props) {
                     }
                   }}
                   disabled={streaming || !hasAudit}
-                  placeholder={
-                    hasAudit
-                      ? "Ask about this audit…"
-                      : "Open an audit to chat"
-                  }
+                  placeholder={hasAudit ? "Message" : "Open an audit to chat"}
                   rows={1}
-                  className="flex-1 resize-none bg-[var(--bg)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:border-[var(--red)] outline-none max-h-32 disabled:opacity-50"
-                  style={{ minHeight: "40px" }}
+                  className="ios-input"
                 />
-                <button
-                  type="submit"
-                  disabled={!input.trim() || streaming || !hasAudit}
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--red)] text-white transition-all hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
-                  title="Send"
-                >
-                  {streaming ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Send className="h-4 w-4" />
-                  )}
-                </button>
               </div>
-              <p className="mt-2 font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)] text-center">
-                Grounded in your audit · Enter to send · Shift+Enter for newline
-              </p>
+              <button
+                type="submit"
+                disabled={!input.trim() || streaming || !hasAudit}
+                aria-label="Send"
+                className={`ios-send ${input.trim() && !streaming && hasAudit ? "ios-send--active" : ""}`}
+              >
+                <ArrowUp className="h-[18px] w-[18px]" strokeWidth={2.6} />
+              </button>
             </form>
           </aside>
         </>
@@ -364,8 +355,8 @@ export default function AuditAssistant({ clientSlug, clientName }: Props) {
   );
 }
 
-/* ── Empty state with suggested-question chips ───────────────────────── */
-function EmptyState({
+/* ── iOS empty state — hero icon + iOS-list-row suggested questions ──── */
+function IosEmptyState({
   hasAudit,
   chips,
   onPickChip,
@@ -376,12 +367,12 @@ function EmptyState({
 }) {
   if (!hasAudit) {
     return (
-      <div className="flex flex-col items-center justify-center h-full text-center px-4 py-12">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--bg)] border border-[var(--border)] mb-4">
-          <MessageSquare className="h-5 w-5 text-[var(--text-dim)]" />
+      <div className="flex flex-col items-center justify-center text-center px-6 py-16">
+        <div className="ios-empty-hero ios-empty-hero--muted">
+          <MessageSquare className="h-7 w-7" strokeWidth={1.8} />
         </div>
-        <h3 className="text-sm font-semibold mb-2">Audit data needed</h3>
-        <p className="text-xs text-[var(--text-dim)] max-w-[280px] leading-relaxed">
+        <h3 className="ios-empty-title">Audit data needed</h3>
+        <p className="ios-empty-body max-w-[280px]">
           Open a client&apos;s audit to chat with the assistant. It can only answer
           questions grounded in real audit data.
         </p>
@@ -390,47 +381,46 @@ function EmptyState({
   }
 
   return (
-    <div className="space-y-4">
-      <div className="text-center pt-4">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--red)]/10 mx-auto mb-3">
-          <Sparkles className="h-5 w-5 text-[var(--red)]" />
+    <div className="px-2 py-8">
+      <div className="text-center">
+        <div className="ios-empty-hero ios-empty-hero--brand">
+          <Sparkles className="h-7 w-7" strokeWidth={1.8} />
         </div>
-        <h3 className="text-sm font-semibold mb-1">Ask anything about this audit</h3>
-        <p className="text-xs text-[var(--text-dim)]">
-          I can only reference numbers from your data.
-        </p>
+        <h3 className="ios-empty-title">Ask anything about this audit</h3>
+        <p className="ios-empty-body">I can only reference numbers from your data.</p>
       </div>
-      <div className="space-y-2">
-        <div className="font-mono text-[9px] uppercase tracking-widest text-[var(--text-dim)] text-center">
-          Try one of these
+
+      <div className="ios-list-section">
+        <div className="ios-list-section-header">Suggested</div>
+        <div className="ios-list">
+          {chips.map((chip, i) => (
+            <button
+              key={chip}
+              type="button"
+              onClick={() => onPickChip(chip)}
+              className={`ios-list-row ${i === 0 ? "ios-list-row--first" : ""} ${i === chips.length - 1 ? "ios-list-row--last" : ""}`}
+            >
+              <span>{chip}</span>
+              <span className="ios-list-row-chevron">›</span>
+            </button>
+          ))}
         </div>
-        {chips.map((chip) => (
-          <button
-            key={chip}
-            type="button"
-            onClick={() => onPickChip(chip)}
-            className="w-full text-left rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2.5 text-xs hover:border-[var(--red)]/40 hover:bg-[var(--red)]/[0.03] transition-all"
-          >
-            {chip}
-          </button>
-        ))}
       </div>
     </div>
   );
 }
 
-/* ── Message bubbles ─────────────────────────────────────────────────── */
-function UserBubble({ content }: { content: string }) {
+/* ── User bubble — iMessage-style brand-red gradient, right-aligned ──── */
+function IosUserBubble({ content }: { content: string }) {
   return (
-    <div className="flex justify-end">
-      <div className="max-w-[85%] rounded-2xl rounded-tr-sm bg-[var(--red)]/10 border border-[var(--red)]/20 px-3.5 py-2 text-sm whitespace-pre-wrap break-words">
-        {content}
-      </div>
+    <div className="flex justify-end px-3">
+      <div className="ios-bubble ios-bubble--user">{content}</div>
     </div>
   );
 }
 
-function AssistantBubble({
+/* ── Assistant bubble — iMessage-style gray, left-aligned with avatar ── */
+function IosAssistantBubble({
   content,
   isStreaming,
   copied,
@@ -442,41 +432,39 @@ function AssistantBubble({
   onCopy: () => void;
 }) {
   return (
-    <div className="flex gap-2.5">
-      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--red)]/10 mt-0.5">
-        <Sparkles className="h-3 w-3 text-[var(--red)]" />
+    <div className="flex gap-2 px-3 items-end">
+      <div className="ios-avatar-sm">
+        <Sparkles className="h-[11px] w-[11px]" strokeWidth={2.4} />
       </div>
-      <div className="flex-1 min-w-0">
-        <div className="text-sm prose-assistant">
+      <div className="flex flex-col min-w-0 max-w-[78%]">
+        <div className="ios-bubble ios-bubble--assistant prose-assistant">
           {content ? (
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
           ) : (
-            <div className="flex items-center gap-1.5 text-[var(--text-dim)]">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--text-dim)] animate-pulse" />
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--text-dim)] animate-pulse [animation-delay:150ms]" />
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--text-dim)] animate-pulse [animation-delay:300ms]" />
+            <div className="flex items-center gap-1 py-0.5">
+              <span className="ios-dot" />
+              <span className="ios-dot" style={{ animationDelay: "150ms" }} />
+              <span className="ios-dot" style={{ animationDelay: "300ms" }} />
             </div>
           )}
         </div>
         {content && !isStreaming && (
-          <div className="mt-1.5 flex items-center gap-1">
-            <button
-              type="button"
-              onClick={onCopy}
-              className="flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-mono uppercase tracking-wider text-[var(--text-dim)] hover:text-[var(--text)] transition-colors"
-              title="Copy message"
-            >
-              {copied ? (
-                <>
-                  <Check className="h-2.5 w-2.5" /> Copied
-                </>
-              ) : (
-                <>
-                  <Copy className="h-2.5 w-2.5" /> Copy
-                </>
-              )}
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={onCopy}
+            className="ios-bubble-action"
+            aria-label="Copy message"
+          >
+            {copied ? (
+              <>
+                <Check className="h-[10px] w-[10px]" strokeWidth={2.5} /> Copied
+              </>
+            ) : (
+              <>
+                <Copy className="h-[10px] w-[10px]" strokeWidth={2.2} /> Copy
+              </>
+            )}
+          </button>
         )}
       </div>
     </div>

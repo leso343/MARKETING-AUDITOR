@@ -683,22 +683,510 @@ body {
   section { page-break-inside: avoid; break-inside: avoid; }
 }
 
-/* ─── AI assistant — markdown styling inside assistant bubbles ─── */
-.prose-assistant p { margin: 0 0 0.5rem; line-height: 1.55; }
+/* ═════════════════════════════════════════════════════════════════════
+   AI Assistant — iOS / iPhone-OS visual language
+   ═════════════════════════════════════════════════════════════════════ */
+
+/* ── iOS dark-mode system tokens (auto-mapped to light when html.light) ── */
+:root {
+  --ios-sheet-bg:       rgba(28, 28, 30, 0.92);
+  --ios-sheet-border:   rgba(84, 84, 88, 0.40);
+  --ios-grabber:        rgba(235, 235, 245, 0.30);
+  --ios-bubble-asst:    #2c2c2e;
+  --ios-bubble-asst-tx: #ffffff;
+  --ios-label:          #ffffff;
+  --ios-secondary:      rgba(235, 235, 245, 0.60);
+  --ios-tertiary:       rgba(235, 235, 245, 0.30);
+  --ios-fill-q:         rgba(120, 120, 128, 0.36);  /* quaternary fill */
+  --ios-fill-t:         rgba(120, 120, 128, 0.24);  /* tertiary fill */
+  --ios-separator:      rgba(84, 84, 88, 0.65);
+  --ios-row:            rgba(44, 44, 46, 0.85);
+  --ios-input-bg:       rgba(118, 118, 128, 0.24);
+  --ios-system-red:     #ff453a;
+  --ios-system-red-2:   #ff6b61;
+  --ios-system-blue:    #0a84ff;
+}
+html.light {
+  --ios-sheet-bg:       rgba(255, 255, 255, 0.95);
+  --ios-sheet-border:   rgba(60, 60, 67, 0.18);
+  --ios-grabber:        rgba(60, 60, 67, 0.30);
+  --ios-bubble-asst:    #e9e9eb;
+  --ios-bubble-asst-tx: #000000;
+  --ios-label:          #000000;
+  --ios-secondary:      rgba(60, 60, 67, 0.60);
+  --ios-tertiary:       rgba(60, 60, 67, 0.30);
+  --ios-fill-q:         rgba(120, 120, 128, 0.16);
+  --ios-fill-t:         rgba(120, 120, 128, 0.08);
+  --ios-separator:      rgba(60, 60, 67, 0.18);
+  --ios-row:            rgba(255, 255, 255, 1);
+  --ios-input-bg:       rgba(118, 118, 128, 0.10);
+  --ios-system-red:     #d70015;
+  --ios-system-red-2:   #ff3b30;
+  --ios-system-blue:    #007aff;
+}
+
+/* ── Floating action button (iOS-style: circular, brand red, soft shadow) ── */
+.ios-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 40;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(180deg, var(--ios-system-red-2), var(--ios-system-red));
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow:
+    0 6px 16px rgba(255, 69, 58, 0.40),
+    0 2px 4px rgba(0, 0, 0, 0.20),
+    inset 0 1px 0 rgba(255, 255, 255, 0.20);
+  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
+}
+.ios-fab:hover { transform: scale(1.05); }
+.ios-fab:active { transform: scale(0.92); transition: transform 0.1s; }
+
+/* ── Sheet backdrop ──────────────────────────────────────────────────── */
+.ios-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 49;
+  background: rgba(0, 0, 0, 0.30);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  animation: ios-backdrop-in 0.2s ease-out;
+}
+@keyframes ios-backdrop-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* ── Sheet itself: rounded top corners, vibrancy, iOS height behaviour ── */
+.ios-sheet {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  background: var(--ios-sheet-bg);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  border: 1px solid var(--ios-sheet-border);
+  /* Mobile: bottom sheet, 90vh tall, rounded top corners */
+  left: 0;
+  height: 90vh;
+  border-radius: 22px 22px 0 0;
+  animation: ios-sheet-up 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.4);
+}
+@keyframes ios-sheet-up {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+/* Desktop: dock to the right as a full-height pane */
+@media (min-width: 1024px) {
+  .ios-sheet {
+    left: auto;
+    top: 16px;
+    bottom: 16px;
+    right: 16px;
+    height: auto;
+    width: 420px;
+    border-radius: 22px;
+    animation: ios-sheet-slide-in 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  @keyframes ios-sheet-slide-in {
+    from { transform: translateX(110%); opacity: 0; }
+    to   { transform: translateX(0); opacity: 1; }
+  }
+}
+
+/* ── Grabber (drag indicator) ────────────────────────────────────────── */
+.ios-grabber-wrap {
+  padding: 6px 0 4px;
+  display: flex;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.ios-grabber {
+  width: 36px;
+  height: 5px;
+  border-radius: 100px;
+  background: var(--ios-grabber);
+}
+
+/* ── Nav bar ─────────────────────────────────────────────────────────── */
+.ios-navbar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px 10px;
+  border-bottom: 0.5px solid var(--ios-separator);
+  flex-shrink: 0;
+}
+.ios-navbar-side {
+  width: 64px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.ios-navbar-side--right { justify-content: flex-end; }
+.ios-navbar-title {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+.ios-navbar-title-text { text-align: center; min-width: 0; }
+.ios-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ios-label);
+  letter-spacing: -0.2px;
+  line-height: 1.15;
+}
+.ios-subtitle {
+  font-size: 11px;
+  color: var(--ios-secondary);
+  letter-spacing: -0.1px;
+  line-height: 1.15;
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+.ios-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, var(--ios-system-red-2), var(--ios-system-red));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.20);
+}
+.ios-navbar-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ios-system-blue);
+  cursor: pointer;
+  transition: background 0.15s, transform 0.12s;
+}
+.ios-navbar-btn:hover { background: var(--ios-fill-t); }
+.ios-navbar-btn:active { transform: scale(0.90); background: var(--ios-fill-q); }
+.ios-navbar-close {
+  width: 30px;
+  height: 30px;
+  background: var(--ios-fill-q);
+  color: var(--ios-secondary);
+}
+.ios-navbar-close:hover { background: var(--ios-fill-t); color: var(--ios-label); }
+
+/* ── Messages scroll area ────────────────────────────────────────────── */
+.ios-messages {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── Bubbles (iMessage style) ────────────────────────────────────────── */
+.ios-bubble {
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 15px;
+  line-height: 1.30;
+  letter-spacing: -0.2px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  max-width: 78%;
+}
+.ios-bubble--user {
+  background: linear-gradient(180deg, var(--ios-system-red-2), var(--ios-system-red));
+  color: #fff;
+  border-bottom-right-radius: 6px; /* iMessage tail */
+  box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+}
+.ios-bubble--assistant {
+  background: var(--ios-bubble-asst);
+  color: var(--ios-bubble-asst-tx);
+  border-bottom-left-radius: 6px; /* iMessage tail */
+  max-width: 100%;
+  white-space: normal;
+}
+
+/* Avatar sitting beside the assistant bubble */
+.ios-avatar-sm {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, var(--ios-system-red-2), var(--ios-system-red));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+  margin-bottom: 2px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.20);
+}
+
+/* "Copy" affordance below assistant bubbles */
+.ios-bubble-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  margin-top: 4px;
+  margin-left: 6px;
+  font-size: 11px;
+  color: var(--ios-secondary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  align-self: flex-start;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+}
+.ios-bubble-action:hover { color: var(--ios-label); background: var(--ios-fill-t); }
+
+/* Typing-indicator dots inside an empty assistant bubble */
+.ios-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ios-tertiary);
+  animation: ios-dot-pulse 1.2s ease-in-out infinite;
+  margin: 0 1px;
+}
+@keyframes ios-dot-pulse {
+  0%, 60%, 100% { opacity: 0.3; transform: scale(0.9); }
+  30%           { opacity: 1;   transform: scale(1.0); }
+}
+
+/* ── Empty state — iOS-list-style suggested questions ────────────────── */
+.ios-empty-hero {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+.ios-empty-hero--brand {
+  background: linear-gradient(180deg, var(--ios-system-red-2), var(--ios-system-red));
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(255, 69, 58, 0.30);
+}
+.ios-empty-hero--muted {
+  background: var(--ios-fill-q);
+  color: var(--ios-secondary);
+}
+.ios-empty-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ios-label);
+  letter-spacing: -0.4px;
+  margin-bottom: 6px;
+}
+.ios-empty-body {
+  font-size: 14px;
+  color: var(--ios-secondary);
+  letter-spacing: -0.2px;
+  line-height: 1.4;
+  margin: 0 auto;
+}
+.ios-list-section {
+  margin-top: 28px;
+  padding: 0 8px;
+}
+.ios-list-section-header {
+  font-size: 11px;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--ios-secondary);
+  padding: 0 12px 6px;
+}
+.ios-list {
+  background: var(--ios-row);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.ios-list-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 13px 16px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  color: var(--ios-label);
+  font-size: 15px;
+  letter-spacing: -0.2px;
+  cursor: pointer;
+  border-bottom: 0.5px solid var(--ios-separator);
+  transition: background 0.12s;
+}
+.ios-list-row:last-child { border-bottom: none; }
+.ios-list-row:active { background: var(--ios-fill-t); }
+.ios-list-row-chevron {
+  color: var(--ios-tertiary);
+  font-size: 18px;
+  font-weight: 300;
+  line-height: 1;
+}
+
+/* ── Input bar ───────────────────────────────────────────────────────── */
+.ios-inputbar {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 8px 10px 12px;
+  border-top: 0.5px solid var(--ios-separator);
+  flex-shrink: 0;
+}
+.ios-input-pill {
+  flex: 1;
+  background: var(--ios-input-bg);
+  border-radius: 18px;
+  padding: 7px 14px;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  border: 0.5px solid var(--ios-separator);
+}
+.ios-input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--ios-label);
+  font-size: 15px;
+  letter-spacing: -0.2px;
+  line-height: 1.30;
+  resize: none;
+  font-family: inherit;
+  padding: 0;
+  max-height: 120px;
+}
+.ios-input::placeholder { color: var(--ios-tertiary); }
+.ios-input:disabled { color: var(--ios-tertiary); cursor: not-allowed; }
+
+/* Circular send button — gray idle, brand-red when active, like iMessage */
+.ios-send {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: var(--ios-fill-q);
+  color: var(--ios-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: not-allowed;
+  transition: background 0.18s, transform 0.12s;
+  flex-shrink: 0;
+}
+.ios-send--active {
+  background: linear-gradient(180deg, var(--ios-system-red-2), var(--ios-system-red));
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(255, 69, 58, 0.30);
+}
+.ios-send--active:hover { transform: scale(1.05); }
+.ios-send--active:active { transform: scale(0.90); }
+
+/* ── Error banner (inside sheet, above input) ────────────────────────── */
+.ios-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0 12px 8px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--ios-system-red) 12%, transparent);
+  color: var(--ios-system-red);
+  font-size: 12px;
+  line-height: 1.4;
+  letter-spacing: -0.1px;
+}
+
+/* ═══ Markdown rendering inside assistant bubbles (iOS-tuned) ═══ */
+.prose-assistant {
+  font-size: 15px;
+  line-height: 1.40;
+  letter-spacing: -0.2px;
+}
+.prose-assistant p { margin: 0 0 8px; }
 .prose-assistant p:last-child { margin-bottom: 0; }
-.prose-assistant strong { color: var(--text); font-weight: 600; }
-.prose-assistant em { font-style: italic; color: var(--text-dim); font-size: 0.85em; }
-.prose-assistant ul, .prose-assistant ol { margin: 0.25rem 0 0.5rem 1.25rem; padding: 0; }
+.prose-assistant strong { font-weight: 600; }
+.prose-assistant em      { font-style: italic; color: var(--ios-secondary); font-size: 0.9em; }
+.prose-assistant ul, .prose-assistant ol { margin: 4px 0 8px 20px; padding: 0; }
 .prose-assistant ul { list-style: disc; }
 .prose-assistant ol { list-style: decimal; }
-.prose-assistant li { margin: 0.15rem 0; line-height: 1.5; }
-.prose-assistant h1, .prose-assistant h2 { display: none; } /* enforce no big headers */
-.prose-assistant h3 { font-size: 0.875rem; font-weight: 600; margin: 0.75rem 0 0.35rem; color: var(--text); }
-.prose-assistant code { background: var(--bg); padding: 0.1rem 0.35rem; border-radius: 3px; font-size: 0.85em; font-family: var(--font-mono); border: 1px solid var(--border); }
-.prose-assistant pre { background: var(--bg); padding: 0.75rem; border-radius: 6px; overflow-x: auto; margin: 0.5rem 0; border: 1px solid var(--border); }
-.prose-assistant pre code { background: transparent; padding: 0; border: 0; }
-.prose-assistant blockquote { border-left: 2px solid var(--red); padding-left: 0.75rem; margin: 0.5rem 0; color: var(--text-dim); font-style: italic; }
-.prose-assistant a { color: var(--red); text-decoration: underline; }
-.prose-assistant table { width: 100%; border-collapse: collapse; margin: 0.5rem 0; font-size: 0.85em; }
-.prose-assistant th, .prose-assistant td { border: 1px solid var(--border); padding: 0.35rem 0.5rem; text-align: left; }
-.prose-assistant th { background: var(--bg); font-weight: 600; }
+.prose-assistant li { margin: 2px 0; line-height: 1.4; }
+.prose-assistant h1, .prose-assistant h2 { display: none; }
+.prose-assistant h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 10px 0 4px;
+  letter-spacing: -0.2px;
+}
+.prose-assistant code {
+  background: var(--ios-fill-t);
+  padding: 1px 5px;
+  border-radius: 5px;
+  font-size: 0.88em;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+}
+.prose-assistant pre {
+  background: var(--ios-fill-t);
+  padding: 10px;
+  border-radius: 10px;
+  overflow-x: auto;
+  margin: 6px 0;
+}
+.prose-assistant pre code { background: transparent; padding: 0; }
+.prose-assistant blockquote {
+  border-left: 3px solid var(--ios-system-red);
+  padding-left: 10px;
+  margin: 6px 0;
+  color: var(--ios-secondary);
+  font-style: italic;
+}
+.prose-assistant a {
+  color: var(--ios-system-blue);
+  text-decoration: none;
+  font-weight: 500;
+}
+.prose-assistant a:hover { text-decoration: underline; }
+.prose-assistant table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 6px 0;
+  font-size: 0.9em;
+}
+.prose-assistant th, .prose-assistant td {
+  border-bottom: 0.5px solid var(--ios-separator);
+  padding: 6px 8px;
+  text-align: left;
+}
+.prose-assistant th { font-weight: 600; }
