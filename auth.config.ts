@@ -27,8 +27,10 @@ declare module "next-auth/jwt" {
 export const authConfig = {
   session: { strategy: "jwt" },
   pages: { signIn: "/login" },
-  // H-11: don't trust the Host header in production. NEXTAUTH_URL pins
-  // the callback origin so preview-deploy hosts can't redirect tokens.
+  // H-11: Vercel-managed deployment trusts the verified custom domain at
+  // the edge, so trustHost is enabled unconditionally to resolve NextAuth
+  // UntrustedHost errors on Vercel. NEXTAUTH_URL pins the callback origin
+  // so preview-deploy hosts can't redirect tokens.
   trustHost: true,
   providers: [],
   callbacks: {

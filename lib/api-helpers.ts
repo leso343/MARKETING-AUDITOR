@@ -62,7 +62,7 @@ export function isSameOriginRequest(req: Request): boolean {
 /** Returns a 403 NextResponse for a CSRF-fail. */
 export function csrfRejection(): NextResponse {
   return NextResponse.json(
-    { error: "Cross-site request blocked." },
+    { error: "CSRF / cross-origin request blocked" },
     { status: 403 },
   );
 }

@@ -192,7 +192,7 @@ The following were NOT on `origin/main` at the audited commit and so are not cov
 - **File:line** — `auth.config.ts:6`.
 - **What's wrong** — `trustHost: true` trusts whatever the `Host` header says. With JWT sessions and cookie `SameSite=Lax` (NextAuth default), this is mostly OK, but on Vercel preview deploys the same code answers under `<commit>-<project>.vercel.app` and could be set as the callback target. Combined with the open-redirect-sanitizer in `LoginForm.tsx:14` (only blocks `//…` and non-`/` paths), an attacker can craft a phishing flow on a preview URL.
 - **Why it matters** — Account-takeover via callback host spoofing. Low likelihood but high impact.
-- **Suggested fix** — Set `AUTH_TRUST_HOST=false` in prod and set `NEXTAUTH_URL=https://blankpageaudits.com`. In `auth.config.ts:6` change to `trustHost: process.env.NODE_ENV !== "production"`.
+- **Suggested fix** — Set `AUTH_TRUST_HOST=false` in prod and set `NEXTAUTH_URL=https://blankpageaudits.app`. In `auth.config.ts:6` change to `trustHost: process.env.NODE_ENV !== "production"`.
 
 ## H-12. CSV upload accepts anything ending in `.csv` — no content sniff, no UTF-8 validation, no row-cap.
 
@@ -744,7 +744,7 @@ action outside the repo (Lester ↗).
 - **H-8 (pricing $49/$199 vs $99/$299)** — ✅ FIXED in `f5ae87a`. Canonical `lib/plans.ts` imported by both pricing page and admin/billing page. `$99/$299` (matches `.env.example`).
 - **H-9 (annualPrice fallback label)** — ✅ FIXED in `f5ae87a`. Period label only flips to "billed annually" when `annualPrice` actually exists.
 - **H-10 (legal pages auth-gated)** — ✅ FIXED in `671287e`. `/legal/*` added to PUBLIC_PATHS.
-- **H-11 (`trustHost: true` in prod)** — ✅ FIXED in `671287e`. `trustHost: process.env.NODE_ENV !== "production"` — 🤝 LESTER must set `NEXTAUTH_URL=https://blankpageaudits.com` in Vercel.
+- **H-11 (`trustHost: true` in prod)** — ✅ FIXED in `671287e`. `trustHost: process.env.NODE_ENV !== "production"` — 🤝 LESTER must set `NEXTAUTH_URL=https://blankpageaudits.app` in Vercel.
 - **H-12 (CSV no sniff/UTF-8/rowcap)** — ✅ FIXED in `75c8cce`. `validateCsvText()` enforces fatal UTF-8 decode, ≤ 50,000 lines, header sniff for Meta-shaped CSVs. Applied to both upload branches.
 - **H-13 (Stripe duplicate customers)** — ✅ FIXED in `96b348c`. Checkout now creates a Stripe Customer once per agency, stores `stripeCustomerId`, reuses it.
 - **H-14 (db stub lies)** — ⏭️ DEFERRED. Documented in `lib/db.ts` comments via the existing banner; the stub remains permissive in legacy mode. Replacing it would require rewriting every caller; medium-impact, low likelihood of triggering in prod where DB is required.

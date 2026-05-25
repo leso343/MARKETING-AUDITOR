@@ -16,6 +16,7 @@ import { log } from "@/lib/logger";
 import { getBillingState, countAgencyClients } from "@/lib/billing-access";
 import { sanitizeStoredUrl } from "@/lib/url-safety";
 
+import { isSameOriginRequest, csrfRejection } from "@/lib/api-helpers";
 function slugify(name: string): string {
   return name
     .toLowerCase()
@@ -38,6 +39,7 @@ function guard() {
 /* ── POST — create client ─────────────────────────────────────────────── */
 
 export async function POST(req: Request) {
+  if (!isSameOriginRequest(req)) return csrfRejection();
   const g = guard();
   if (g) return g;
 
@@ -140,6 +142,7 @@ export async function POST(req: Request) {
 /* ── PATCH — update client ────────────────────────────────────────────── */
 
 export async function PATCH(req: Request) {
+  if (!isSameOriginRequest(req)) return csrfRejection();
   const g = guard();
   if (g) return g;
 
@@ -223,6 +226,7 @@ export async function PATCH(req: Request) {
 /* ── DELETE — delete client ───────────────────────────────────────────── */
 
 export async function DELETE(req: Request) {
+  if (!isSameOriginRequest(req)) return csrfRejection();
   const g = guard();
   if (g) return g;
 
