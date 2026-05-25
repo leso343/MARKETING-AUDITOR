@@ -1,49 +1,46 @@
 "use client";
 
 /**
- * ReportViewer — full-screen branded "Forensic Audit Report" overlay.
+ * ReportViewer — branded executive forensic-audit report.
  *
- * Replaces the prior implementation that loaded a static
- * /campaign_report.html in an iframe (hardcoded to one client and
- * blocked by the production CSP). Now renders live React content
- * using the same dashboard components that power the audit page, so
- * it always reflects the CURRENT client + benchmarks and automatically
- * inherits the agency's BrandTheme colors and logo.
+ * Distinctly different from the live dashboard:
+ *   - A4-style "pages" via ReportPage (agency-logo + red line + client
+ *     logo header, red footer accent)
+ *   - Narrative hero per page (badge + big title + lead copy)
+ *   - Section titles with red square accent
+ *   - Stat-card grids, insight callouts, roadmap phases, narrative
+ *     tables — all from app/components/report/Primitives.tsx
+ *   - Custom SVG charts (ReportFunnel, ReportAgeCpl, ReportCreativeBars)
+ *     built for narrative presentation, not interactive exploration
  *
- * Four sections, each a self-contained "page" within the overlay:
- *   1. Diagnostic       — health snapshot + funnel + tracking
- *   2. Creative & Age   — winners/losers + demographics + placements
- *   3. 30-Day Roadmap   — recommendations + weekly trend
- *   4. Geo Audit        — geographic deep-dive
+ * The dashboard remains a dense interactive cockpit; this report reads
+ * like a deliverable an agency would hand to a client.
+ *
+ * Four pages, switchable via the top tab nav:
+ *   1. Diagnostic        — health + funnel + tracking
+ *   2. Creative & Age    — winners/wasters + age CPL
+ *   3. 30-Day Roadmap    — phased action plan
+ *   4. Geo Audit         — geographic regions + waste
  */
 
 import { useEffect, useState, useCallback, useMemo } from "react";
-import dynamic from "next/dynamic";
 import { X, Printer, ChevronLeft } from "lucide-react";
 import type { AuditResult } from "@/engine/runAudit";
 import type { ReportBranding } from "@/context/ReportContext";
-import ExecutiveSummary from "@/components/audit/ExecutiveSummary";
-import KPISnapshot from "@/components/audit/KPISnapshot";
-import BenchmarkStatus from "@/components/audit/BenchmarkStatus";
-import FunnelLeakageChart from "@/components/audit/FunnelLeakageChart";
-import TrackingFailuresPanel from "@/components/audit/TrackingFailuresPanel";
-import CreativeAnalysisGrid from "@/components/audit/CreativeAnalysisGrid";
-import DemographicsPanel from "@/components/audit/DemographicsPanel";
-import PlacementsPanel from "@/components/audit/PlacementsPanel";
-import DevicesPanel from "@/components/audit/DevicesPanel";
-import RecommendationCards from "@/components/audit/RecommendationCards";
-import GeographicHeatmap from "@/components/audit/GeographicHeatmap";
-import AuditRibbon from "@/components/audit/AuditRibbon";
-import TimeOfDayPanel from "@/components/audit/TimeOfDayPanel";
-import InteractiveFunnelExplorer from "@/components/visualizers/InteractiveFunnelExplorer";
-import TimeSeriesScrubber from "@/components/visualizers/TimeSeriesScrubber";
-import GeoBudgetReallocator from "@/components/visualizers/GeoBudgetReallocator";
-
-// Leaflet-based map — same dynamic import pattern the dashboard uses.
-const CanvasMapPanel = dynamic(
-  () => import("@/components/audit/CanvasMapPanel"),
-  { ssr: false },
-);
+import ReportPage from "@/components/report/ReportPage";
+import {
+  ReportHero,
+  ReportSecTitle,
+  ReportStatCard,
+  ReportStatGrid,
+  ReportInsightBox,
+  ReportTable,
+  ReportRoadmapPhase,
+  ReportTag,
+} from "@/components/report/Primitives";
+import ReportFunnel from "@/components/report/ReportFunnel";
+import ReportAgeCpl from "@/components/report/ReportAgeCpl";
+import ReportCreativeBars from "@/components/report/ReportCreativeBars";
 
 interface Props {
   open: boolean;
@@ -57,11 +54,18 @@ interface Props {
 }
 
 const PAGE_TABS = [
-  { label: "Diagnostic",     page: 1, subtitle: "Health snapshot · Funnel · Tracking" },
-  { label: "Creative & Age", page: 2, subtitle: "Winners · Demographics · Placements" },
-  { label: "30-Day Roadmap", page: 3, subtitle: "Recommendations · Weekly trend" },
-  { label: "Geo Audit",      page: 4, subtitle: "Geographic deep-dive" },
+  { label: "Diagnostic",     page: 1 },
+  { label: "Creative & Age", page: 2 },
+  { label: "30-Day Roadmap", page: 3 },
+  { label: "Geo Audit",      page: 4 },
 ];
+
+const fmt$ = (n: number | null | undefined) =>
+  n == null || !Number.isFinite(n) ? "—" : `$${Number(n).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+const fmtN = (n: number | null | undefined) =>
+  n == null || !Number.isFinite(n) ? "—" : Number(n).toLocaleString();
+const fmtPct = (n: number | null | undefined, digits = 1) =>
+  n == null || !Number.isFinite(n) ? "—" : `${Number(n).toFixed(digits)}%`;
 
 export default function ReportViewer({
   open,
@@ -76,24 +80,17 @@ export default function ReportViewer({
   const [visible, setVisible] = useState(false);
   const [activePage, setActivePage] = useState(page);
 
-  // Sync activePage when prop changes externally
   useEffect(() => {
     if (open) setActivePage(page);
   }, [page, open]);
 
-  // Lock/unlock body scroll
   useEffect(() => {
-    if (open) {
-      document.documentElement.style.overflow = "hidden";
-    } else {
-      document.documentElement.style.overflow = "";
-    }
+    document.documentElement.style.overflow = open ? "hidden" : "";
     return () => {
       document.documentElement.style.overflow = "";
     };
   }, [open]);
 
-  // Fade-in
   useEffect(() => {
     if (!open) {
       setVisible(false);
@@ -105,7 +102,6 @@ export default function ReportViewer({
     return () => cancelAnimationFrame(raf);
   }, [open]);
 
-  // Esc closes
   useEffect(() => {
     if (!open) return;
     const handler = (e: KeyboardEvent) => {
@@ -115,7 +111,6 @@ export default function ReportViewer({
     return () => document.removeEventListener("keydown", handler);
   }, [open, onClose]);
 
-  // Scroll to top of content on tab change
   useEffect(() => {
     const el = document.getElementById("report-scroll");
     if (el) el.scrollTop = 0;
@@ -123,16 +118,21 @@ export default function ReportViewer({
 
   const onPickPage = useCallback((p: number) => setActivePage(p), []);
 
-  const sectionSubtitle = useMemo(
-    () => PAGE_TABS.find((t) => t.page === activePage)?.subtitle ?? "",
-    [activePage],
-  );
-  const sectionLabel = useMemo(
-    () => PAGE_TABS.find((t) => t.page === activePage)?.label.toUpperCase() ?? "",
-    [activePage],
-  );
+  // void unused params to keep React happy without firing eslint warnings
+  void liveCtr;
+  void industry;
+
+  const pageLabel = useMemo(() => `Page ${activePage} / ${PAGE_TABS.length}`, [activePage]);
 
   if (!open && !visible) return null;
+
+  const commonReportPageProps = {
+    agencyLogo: branding.agencyLogo,
+    agencyLogoLight: branding.agencyLogoLight,
+    clientLogo: branding.clientLogo,
+    clientLogoLight: branding.clientLogoLight,
+    clientName: audit.clientName,
+  };
 
   return (
     <div
@@ -146,14 +146,10 @@ export default function ReportViewer({
         transition: "opacity 0.32s ease, transform 0.32s ease",
       }}
     >
-      {/* ── Top nav bar ─────────────────────────────────────────────── */}
+      {/* ── Top nav bar (same chrome as before) ─────────────────────── */}
       <nav
         className="flex shrink-0 items-center gap-2 overflow-x-auto border-b border-[var(--border)] px-2 py-2 sm:px-4"
-        style={{
-          background: "var(--header-bg, rgba(6,6,6,0.96))",
-          backdropFilter: "blur(8px)",
-          scrollbarWidth: "none",
-        }}
+        style={{ background: "var(--header-bg, rgba(6,6,6,0.96))", backdropFilter: "blur(8px)", scrollbarWidth: "none" }}
       >
         <button
           onClick={onClose}
@@ -163,9 +159,7 @@ export default function ReportViewer({
           <span className="hidden sm:inline">Back to dashboard</span>
           <span className="sm:hidden">Back</span>
         </button>
-
         <div className="mx-1 h-4 w-px shrink-0 bg-[var(--border)] sm:mx-2" />
-
         {PAGE_TABS.map((tab) => (
           <button
             key={tab.page}
@@ -180,7 +174,6 @@ export default function ReportViewer({
             {tab.label}
           </button>
         ))}
-
         <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
           <button
             onClick={() => window.print()}
@@ -200,374 +193,354 @@ export default function ReportViewer({
         </div>
       </nav>
 
-      {/* ── Scrollable report content ───────────────────────────────── */}
-      <div id="report-scroll" className="flex-1 overflow-y-auto">
-        {/* Branded report header */}
-        <ReportHeader
-          branding={branding}
-          clientName={audit.clientName}
-          sectionLabel={sectionLabel}
-          sectionSubtitle={sectionSubtitle}
-          generatedAt={audit.generatedAt}
-          reportingStart={audit.reportingPeriod.startDate}
-          reportingEnd={audit.reportingPeriod.endDate}
-        />
-
-        {/* Section body */}
-        <div className="mx-auto max-w-6xl px-4 py-6 sm:px-8 sm:py-10">
-          {activePage === 1 && (
-            <SectionDiagnostic
-              audit={audit}
-              liveCpl={liveCpl}
-              liveCtr={liveCtr}
-              industry={industry}
-            />
-          )}
-          {activePage === 2 && (
-            <SectionCreativeAndAge audit={audit} liveCpl={liveCpl} />
-          )}
-          {activePage === 3 && (
-            <SectionRoadmap audit={audit} liveCpl={liveCpl} liveCtr={liveCtr} />
-          )}
-          {activePage === 4 && (
-            <SectionGeoAudit audit={audit} liveCpl={liveCpl} />
-          )}
-        </div>
-
-        {/* Branded footer */}
-        <ReportFooter
-          branding={branding}
-          clientName={audit.clientName}
-        />
+      {/* ── Scrollable content area — one ReportPage per active tab ── */}
+      <div id="report-scroll" className="flex-1 overflow-y-auto py-6">
+        {activePage === 1 && (
+          <ReportPage {...commonReportPageProps} pageLabel={pageLabel}>
+            <PageDiagnostic audit={audit} liveCpl={liveCpl} />
+          </ReportPage>
+        )}
+        {activePage === 2 && (
+          <ReportPage {...commonReportPageProps} pageLabel={pageLabel}>
+            <PageCreativeAge audit={audit} liveCpl={liveCpl} />
+          </ReportPage>
+        )}
+        {activePage === 3 && (
+          <ReportPage {...commonReportPageProps} pageLabel={pageLabel}>
+            <PageRoadmap audit={audit} liveCpl={liveCpl} />
+          </ReportPage>
+        )}
+        {activePage === 4 && (
+          <ReportPage {...commonReportPageProps} pageLabel={pageLabel}>
+            <PageGeo audit={audit} liveCpl={liveCpl} />
+          </ReportPage>
+        )}
       </div>
     </div>
   );
 }
 
 /* ═════════════════════════════════════════════════════════════════════
-   Branded header — agency logo + client + section info
+   PAGE 1 — DIAGNOSTIC
    ═════════════════════════════════════════════════════════════════════ */
-function ReportHeader({
-  branding,
-  clientName,
-  sectionLabel,
-  sectionSubtitle,
-  generatedAt,
-  reportingStart,
-  reportingEnd,
-}: {
-  branding: ReportBranding;
-  clientName: string;
-  sectionLabel: string;
-  sectionSubtitle: string;
-  generatedAt: string;
-  reportingStart: string | null;
-  reportingEnd: string | null;
-}) {
-  // Picking variant via CSS media query at runtime is messy; the
-  // existing dashboard uses dark variants by default and html.light
-  // override flips them via custom CSS. We follow the same pattern.
-  const agencyLogo = branding.agencyLogo;
-  const clientLogo = branding.clientLogo;
+function PageDiagnostic({ audit, liveCpl }: { audit: AuditResult; liveCpl: number }) {
+  const s = audit.spend;
+  const t = audit.tracking;
+  const cplVsTarget = s.blendedCpl > 0 ? (s.blendedCpl / liveCpl) : 0;
+  const cplIsOver = cplVsTarget > 1.1;
 
   return (
-    <div
-      className="border-b"
-      style={{
-        background: "linear-gradient(180deg, var(--card), var(--bg))",
-        borderColor: "var(--border)",
-      }}
-    >
-      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-8 sm:py-8">
-        {/* Top row: agency brand left, client brand right */}
-        <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
-          <div className="flex items-center gap-3 min-w-0">
-            {agencyLogo ? (
-              /* eslint-disable-next-line @next/next/no-img-element */
-              <img
-                src={agencyLogo}
-                alt="Agency logo"
-                className="h-9 sm:h-10 w-auto object-contain"
-                style={{ maxWidth: "180px" }}
-              />
-            ) : (
-              <div className="font-mono text-[10px] uppercase tracking-[3px] text-[var(--text-dim)]">
-                Blank Page Audits
-              </div>
-            )}
-          </div>
+    <>
+      <ReportHero
+        badge="STRATEGIC FORENSIC AUDIT"
+        title="Campaign Infrastructure"
+        titleHighlight="Diagnostic"
+        lead={`A forensic evaluation of the ${audit.clientName} ad ecosystem. This page reconciles spend, surfaces tracking failures, and locates where paid clicks are being lost before they ever reach the site.`}
+      />
 
-          {clientLogo && (
-            <div className="flex items-center gap-2 min-w-0">
-              <span className="font-mono text-[9px] uppercase tracking-[2px] text-[var(--text-dim)] hidden sm:inline">
-                Prepared for
-              </span>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={clientLogo}
-                alt={`${clientName} logo`}
-                className="h-8 sm:h-9 w-auto object-contain"
-                style={{ maxWidth: "140px" }}
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Section title block */}
-        <div>
-          <div
-            className="font-mono text-[10px] uppercase tracking-[3px] mb-2"
-            style={{ color: "var(--red)" }}
-          >
-            &gt; Forensic Audit Report &nbsp;·&nbsp; {sectionLabel}
-          </div>
-          <h1
-            className="text-2xl sm:text-3xl font-bold tracking-tight"
-            style={{ fontFamily: "var(--font-head)" }}
-          >
-            {clientName}
-          </h1>
-          <p className="mt-1.5 text-sm text-[var(--text-dim)]">{sectionSubtitle}</p>
-        </div>
-
-        {/* Meta row: reporting period + generated date */}
-        <div className="mt-5 flex items-center gap-x-5 gap-y-1 flex-wrap font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)]">
-          {reportingStart && reportingEnd && (
-            <span>
-              Reporting period · <span className="text-[var(--text)]">{reportingStart}</span>{" "}
-              → <span className="text-[var(--text)]">{reportingEnd}</span>
-            </span>
-          )}
-          <span>
-            Generated ·{" "}
-            <span className="text-[var(--text)]">
-              {new Date(generatedAt).toLocaleString()}
-            </span>
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ═════════════════════════════════════════════════════════════════════
-   Footer — small branded sign-off
-   ═════════════════════════════════════════════════════════════════════ */
-function ReportFooter({
-  branding,
-  clientName,
-}: {
-  branding: ReportBranding;
-  clientName: string;
-}) {
-  return (
-    <div
-      className="border-t mt-8 py-6"
-      style={{ borderColor: "var(--border)", background: "var(--card)" }}
-    >
-      <div className="mx-auto max-w-6xl px-4 sm:px-8 flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-3">
-          {branding.agencyLogo && (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img
-              src={branding.agencyLogo}
-              alt=""
-              className="h-6 w-auto object-contain opacity-70"
-              style={{ maxWidth: "120px" }}
-            />
-          )}
-          <span className="font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)]">
-            Forensic audit prepared for {clientName}
-          </span>
-        </div>
-        <span className="font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)]">
-          Powered by Blank Page Audits
-        </span>
-      </div>
-    </div>
-  );
-}
-
-/* ═════════════════════════════════════════════════════════════════════
-   Section 1 — DIAGNOSTIC
-   Full health snapshot. AuditRibbon → ExecutiveSummary → KPIs →
-   Benchmarks → Funnel chart → Interactive funnel explorer →
-   Tracking → Weekly trend chart.
-   ═════════════════════════════════════════════════════════════════════ */
-function SectionDiagnostic({
-  audit,
-  liveCpl,
-  liveCtr,
-  industry,
-}: {
-  audit: AuditResult;
-  liveCpl: number;
-  liveCtr: number;
-  industry: string;
-}) {
-  return (
-    <div className="grid grid-cols-12 gap-4 sm:gap-5">
-      {/* Fact ribbon — quick at-a-glance numbers */}
-      <section className="col-span-12">
-        <AuditRibbon audit={audit} />
-      </section>
-
-      <section className="col-span-12">
-        <ExecutiveSummary audit={audit} />
-      </section>
-
-      <section className="col-span-12">
-        <KPISnapshot
-          kpis={audit.spend.kpis}
-          liveCpl={liveCpl}
-          liveCtr={liveCtr}
-          blendedCpl={audit.spend.blendedCpl}
-          weightedCtr={audit.spend.weightedCtr}
-          isPreview={false}
+      <ReportSecTitle>Efficiency Baselines</ReportSecTitle>
+      <ReportStatGrid>
+        <ReportStatCard
+          label="Reconciled Spend"
+          value={fmt$(s.totalSpend)}
+          caption={`${s.totalCampaigns} campaigns over ${audit.reportingPeriod.totalDays} days`}
         />
-      </section>
-
-      <section className="col-span-12">
-        <BenchmarkStatus
-          blendedCpl={audit.spend.blendedCpl}
-          weightedCtr={audit.spend.weightedCtr}
-          liveCpl={liveCpl}
-          liveCtr={liveCtr}
-          industry={industry}
-          reportingPeriod={audit.reportingPeriod}
-          isPreview={false}
+        <ReportStatCard
+          label="Verified Leads"
+          value={fmtN(s.totalLeads)}
+          caption={`Blended CPL ${fmt$(s.blendedCpl)}`}
         />
-      </section>
-
-      <section className="col-span-12 lg:col-span-7">
-        <FunnelLeakageChart funnel={audit.funnel} />
-      </section>
-      <section className="col-span-12 lg:col-span-5">
-        <TrackingFailuresPanel tracking={audit.tracking} />
-      </section>
-
-      {/* Interactive funnel — same component as the dashboard */}
-      <section className="col-span-12">
-        <InteractiveFunnelExplorer
-          funnel={audit.funnel}
-          blendedCpl={audit.spend.blendedCpl}
+        <ReportStatCard
+          label="Weighted CTR"
+          value={fmtPct(s.weightedCtr * 100, 2)}
+          caption={`Avg frequency ${s.averageFrequency.toFixed(2)}`}
         />
-      </section>
+        <ReportStatCard
+          label="Target CPL"
+          value={fmt$(liveCpl)}
+          accent
+          caption={
+            cplIsOver
+              ? `Currently ${(cplVsTarget * 100).toFixed(0)}% — over budget`
+              : `Currently ${(cplVsTarget * 100).toFixed(0)}% — on track`
+          }
+        />
+      </ReportStatGrid>
 
-      {/* Weekly trend — scrubber chart */}
-      {audit.weeklySeries.length > 0 && (
-        <section className="col-span-12">
-          <TimeSeriesScrubber weeks={audit.weeklySeries} />
-        </section>
+      <ReportSecTitle>Funnel Leakage</ReportSecTitle>
+      <ReportFunnel funnel={audit.funnel} />
+
+      {t.brokenLeadCampaigns > 0 && (
+        <ReportInsightBox
+          severity="critical"
+          title={`Critical Tracking Failure — ${t.brokenLeadCampaigns} of ${t.totalLeadCampaigns} lead campaigns`}
+        >
+          <strong>{fmt$(t.totalWastedSpend)}</strong> was spent on lead-objective
+          campaigns where the engine could not verify a single tracked lead. This
+          indicates a misconfigured Instant Form or pixel — tracking repair is the
+          #1 priority before any other optimization.
+        </ReportInsightBox>
       )}
-    </div>
+
+      {t.failures.length > 0 && (
+        <ReportTable
+          headers={["Campaign", "Spend", "Issue", "Status"]}
+          rows={t.failures.slice(0, 6).map((f) => {
+            const r = f as unknown as Record<string, unknown>;
+            const name = String(r.campaignName ?? r.name ?? "—");
+            const spend = typeof r.spend === "number" ? fmt$(r.spend) : "—";
+            const reason = String(r.reason ?? "broken tracking");
+            const sev = String(r.severity ?? "critical");
+            return [
+              <strong key="n">{name}</strong>,
+              spend,
+              reason,
+              <ReportTag key="t" variant={sev === "critical" ? "loss" : "warning"}>
+                {sev}
+              </ReportTag>,
+            ];
+          })}
+          caption="Top tracking failures by wasted spend. Fix these first to recover attribution data."
+        />
+      )}
+    </>
   );
 }
 
 /* ═════════════════════════════════════════════════════════════════════
-   Section 2 — CREATIVE & AGE
-   Creative winners/losers + demographics + placements + devices +
-   dayparting if data exists.
+   PAGE 2 — CREATIVE & AGE
    ═════════════════════════════════════════════════════════════════════ */
-function SectionCreativeAndAge({
-  audit,
-  liveCpl,
-}: {
-  audit: AuditResult;
-  liveCpl: number;
-}) {
+function PageCreativeAge({ audit, liveCpl }: { audit: AuditResult; liveCpl: number }) {
+  const c = audit.creative;
   return (
-    <div className="grid grid-cols-12 gap-4 sm:gap-5">
-      <section className="col-span-12">
-        <CreativeAnalysisGrid creative={audit.creative} liveCpl={liveCpl} />
-      </section>
+    <>
+      <ReportHero
+        badge="CREATIVE & AUDIENCE INSIGHT"
+        title="Where the Money Is"
+        titleHighlight="Working"
+        lead="Which ads convert at the lowest cost per lead, which ones drain budget without returning leads, and which audience age brackets actually generate revenue."
+      />
 
-      {audit.demographics.brackets.some((b) => b.spend > 0) && (
-        <section className="col-span-12">
-          <DemographicsPanel demographics={audit.demographics} targetCpl={liveCpl} />
-        </section>
+      <ReportSecTitle>Creative Heatmap — Winners vs Wasters</ReportSecTitle>
+      <ReportCreativeBars creative={c} max={5} />
+
+      {c.fatigueWarning && (
+        <ReportInsightBox severity="warning" title="Creative Fatigue Signal">
+          {c.fatigueWarning} — {c.frequencyFatigueCount} ad
+          {c.frequencyFatigueCount === 1 ? "" : "s"} crossed the frequency
+          threshold where engagement typically degrades.
+        </ReportInsightBox>
+      )}
+
+      <ReportSecTitle>Cost Per Lead by Age Bracket</ReportSecTitle>
+      <ReportAgeCpl demographics={audit.demographics} targetCpl={liveCpl} />
+
+      {audit.demographics.genderRecommendation && (
+        <ReportInsightBox severity="info" title="Gender Targeting">
+          {audit.demographics.genderRecommendation}
+        </ReportInsightBox>
       )}
 
       {audit.placements.placements.length > 0 && (
-        <section className="col-span-12 lg:col-span-6">
-          <PlacementsPanel placements={audit.placements} targetCpl={liveCpl} />
-        </section>
+        <>
+          <ReportSecTitle>Placement Efficiency</ReportSecTitle>
+          <ReportTable
+            headers={["Placement", "Spend", "Leads", "CPL", "Status"]}
+            rows={audit.placements.placements.slice(0, 8).map((p) => {
+              const r = p as unknown as Record<string, unknown>;
+              const name = String(r.name ?? r.placement ?? "—");
+              const spend = typeof r.spend === "number" ? r.spend : 0;
+              const leads = typeof r.leads === "number" ? r.leads : (typeof r.conversions === "number" ? r.conversions : 0);
+              const cpl = typeof r.cpl === "number" ? r.cpl : 0;
+              const status =
+                cpl === 0
+                  ? <ReportTag variant="neutral">no leads</ReportTag>
+                  : cpl > liveCpl * 1.2
+                    ? <ReportTag variant="loss">over target</ReportTag>
+                    : cpl < liveCpl * 0.85
+                      ? <ReportTag variant="win">winning</ReportTag>
+                      : <ReportTag variant="warning">borderline</ReportTag>;
+              return [
+                <strong key="n">{name}</strong>,
+                fmt$(spend),
+                fmtN(leads),
+                fmt$(cpl),
+                status,
+              ];
+            })}
+            caption={audit.placements.recommendation}
+          />
+        </>
       )}
-      {audit.devices.devices.length > 0 && (
-        <section className="col-span-12 lg:col-span-6">
-          <DevicesPanel devices={audit.devices} />
-        </section>
-      )}
-
-      {audit.timeOfDay.hours.length > 0 && (
-        <section className="col-span-12">
-          <TimeOfDayPanel timeOfDay={audit.timeOfDay} />
-        </section>
-      )}
-    </div>
+    </>
   );
 }
 
 /* ═════════════════════════════════════════════════════════════════════
-   Section 3 — 30-DAY ROADMAP
-   Action plan + weekly trend so the roadmap is anchored in real
-   momentum.
+   PAGE 3 — 30-DAY ROADMAP
    ═════════════════════════════════════════════════════════════════════ */
-function SectionRoadmap({
-  audit,
-  liveCpl,
-  liveCtr,
-}: {
-  audit: AuditResult;
-  liveCpl: number;
-  liveCtr: number;
-}) {
-  return (
-    <div className="grid grid-cols-12 gap-4 sm:gap-5">
-      <section className="col-span-12">
-        <RecommendationCards audit={audit} targetCpl={liveCpl} targetCtr={liveCtr} />
-      </section>
+function PageRoadmap({ audit, liveCpl }: { audit: AuditResult; liveCpl: number }) {
+  const s = audit.spend;
+  const t = audit.tracking;
+  const g = audit.geo;
+  const c = audit.creative;
 
-      {audit.weeklySeries.length > 0 && (
-        <section className="col-span-12">
-          <TimeSeriesScrubber weeks={audit.weeklySeries} />
-        </section>
-      )}
-    </div>
-  );
-}
+  // Recoverable spend estimate from the engine's own components.
+  const recoverable =
+    (t.totalWastedSpend ?? 0) +
+    (g.wasteUSD ?? 0) +
+    (audit.placements.totalWaste ?? 0) +
+    c.wasters.reduce((sum, ad) => sum + (ad.spend ?? 0), 0);
 
-/* ═════════════════════════════════════════════════════════════════════
-   Section 4 — GEO AUDIT
-   Heatmap + the canvas/leaflet map + interactive geo reallocator.
-   ═════════════════════════════════════════════════════════════════════ */
-function SectionGeoAudit({
-  audit,
-  liveCpl,
-}: {
-  audit: AuditResult;
-  liveCpl: number;
-}) {
   return (
-    <div className="grid grid-cols-12 gap-4 sm:gap-5">
-      <section className="col-span-12">
-        <GeographicHeatmap
-          geo={audit.geo}
-          liveCpl={liveCpl}
-          costMetricLabel={audit.spend.blendedCpl > 0 ? "CPL" : "CPC"}
+    <>
+      <ReportHero
+        badge="ACTION PLAN"
+        title="30-Day"
+        titleHighlight="Recovery Roadmap"
+        lead={`Phased execution plan to recover ${fmt$(recoverable)} in wasted spend and bring blended CPL toward the ${fmt$(liveCpl)} target. Sequence matters — tracking repair before optimization, otherwise you optimize against bad data.`}
+      />
+
+      <ReportStatGrid>
+        <ReportStatCard
+          label="Recoverable Spend"
+          value={fmt$(recoverable)}
+          accent
+          caption="Sum of tracking, geographic, placement, and creative waste"
         />
-      </section>
+        <ReportStatCard
+          label="Current Blended CPL"
+          value={fmt$(s.blendedCpl)}
+          caption={`Target ${fmt$(liveCpl)}`}
+        />
+        <ReportStatCard
+          label="Wasters to Pause"
+          value={fmtN(c.wasters.length)}
+          caption={`${fmt$(c.wasters.reduce((a, b) => a + b.spend, 0))} freed up`}
+        />
+      </ReportStatGrid>
 
-      {/* The actual map — Leaflet-backed, loaded client-side */}
-      <section className="col-span-12">
-        <CanvasMapPanel />
-      </section>
+      <ReportSecTitle>Phased Execution</ReportSecTitle>
 
-      {audit.geo.regions.length > 0 && (
-        <section className="col-span-12">
-          <GeoBudgetReallocator geo={audit.geo} />
-        </section>
+      <ReportRoadmapPhase
+        index={1}
+        title="Week 1 — Stop the Bleeding"
+        duration="Days 1–7"
+        items={[
+          <><strong>Pause {c.wasters.length} waster ad{c.wasters.length === 1 ? "" : "s"}</strong> immediately — they are spending {fmt$(c.wasters.reduce((a, b) => a + b.spend, 0))} with little to no lead return.</>,
+          t.brokenLeadCampaigns > 0
+            ? <><strong>Fix tracking</strong> on {t.brokenLeadCampaigns} broken lead campaign{t.brokenLeadCampaigns === 1 ? "" : "s"} — verify pixel + Instant Form, test a real lead submission, confirm event fires in CRM.</>
+            : <><strong>Audit tracking pixel</strong> — confirm Lead event still fires on form submission and reaches the CRM API.</>,
+          <>Export and archive the current 30-day baseline so post-fix performance is comparable.</>,
+        ]}
+      />
+
+      <ReportRoadmapPhase
+        index={2}
+        title="Week 2 — Reallocate Budget"
+        duration="Days 8–14"
+        items={[
+          c.winners.length > 0
+            ? <><strong>Scale the {c.winners.length} winner ad{c.winners.length === 1 ? "" : "s"}</strong> with the freed budget — start at +50% spend and watch CPL daily for 3 days.</>
+            : <>No clear lead-CPL winners yet — launch 2 new creative variants of your best-converting placement.</>,
+          g.wasteUSD > 0
+            ? <><strong>Hard-cap geo delivery</strong> on the regions burning {fmt$(g.wasteUSD)} with low conversion. Tighten the location radius to your actual service area.</>
+            : <>Geographic delivery is within tolerance — no geo changes needed this week.</>,
+          <>Move at least 25% of placement spend out of any &ldquo;over target&rdquo; placements (from the placement table) into &ldquo;winning&rdquo; ones.</>,
+        ]}
+      />
+
+      <ReportRoadmapPhase
+        index={3}
+        title="Week 3 — Optimize Conversion"
+        duration="Days 15–21"
+        items={[
+          <>A/B test the landing page — current click-to-session loss is <strong>{fmtPct(audit.funnel.clickToSessionLossPct)}</strong>. Even a 10-point improvement here recovers significant spend.</>,
+          <>Refresh top-performer creative — frequency caps prevent burnout, but rotate hooks every 2 weeks for safety.</>,
+          <>Tighten audience age targeting toward the brackets that convert under target CPL (see Creative &amp; Age page).</>,
+        ]}
+      />
+
+      <ReportRoadmapPhase
+        index={4}
+        title="Week 4 — Compound &amp; Document"
+        duration="Days 22–30"
+        items={[
+          <>Run a follow-up audit and compare against the Week-1 baseline export. Document the {fmt$(recoverable)} reclaim with screenshots.</>,
+          <>Lock in winning campaigns at higher daily budgets — graduate from testing into scaled-spend mode.</>,
+          <>Establish a weekly review cadence on the dashboard so the next round of waste is caught in days, not weeks.</>,
+        ]}
+      />
+    </>
+  );
+}
+
+/* ═════════════════════════════════════════════════════════════════════
+   PAGE 4 — GEO AUDIT
+   ═════════════════════════════════════════════════════════════════════ */
+function PageGeo({ audit, liveCpl }: { audit: AuditResult; liveCpl: number }) {
+  const g = audit.geo;
+  const regions = [...g.regions].sort((a, b) => b.spend - a.spend);
+  return (
+    <>
+      <ReportHero
+        badge="GEOGRAPHIC DELIVERY"
+        title="Where Spend Is"
+        titleHighlight="Actually Converting"
+        lead={`Region-by-region breakdown of paid delivery. Hot zones converted at or below target CPL; cold zones drained budget with little return. ${g.recommendation}`}
+      />
+
+      <ReportStatGrid>
+        <ReportStatCard
+          label="Core Hot-Zone Spend"
+          value={fmt$(g.coreHotSpend)}
+          caption="Spend in regions performing at or near target"
+        />
+        <ReportStatCard
+          label="Estimated Waste"
+          value={fmt$(g.wasteUSD)}
+          accent
+          caption="Spend in low-converting zones outside your service core"
+        />
+        <ReportStatCard
+          label="Regions Mapped"
+          value={fmtN(g.zonesMapped)}
+          caption="Distinct DMAs surfaced in the breakdown export"
+        />
+      </ReportStatGrid>
+
+      <ReportSecTitle>Region Performance</ReportSecTitle>
+      <ReportTable
+        headers={["Region", "Spend", "Share", "Conversions", "CPL", "Status"]}
+        rows={regions.slice(0, 12).map((r) => {
+          const cplVsTarget = r.cpl > 0 ? r.cpl / liveCpl : 0;
+          const status =
+            r.conversions === 0
+              ? <ReportTag variant="loss">zero return</ReportTag>
+              : cplVsTarget > 1.5
+                ? <ReportTag variant="loss">over target</ReportTag>
+                : cplVsTarget > 1.1
+                  ? <ReportTag variant="warning">borderline</ReportTag>
+                  : <ReportTag variant="win">on target</ReportTag>;
+          return [
+            <strong key="n">{r.name}</strong>,
+            fmt$(r.spend),
+            fmtPct(r.share * 100, 1),
+            fmtN(r.conversions),
+            r.cpl > 0 ? fmt$(r.cpl) : "—",
+            status,
+          ];
+        })}
+        caption={`Ranked by spend. ${regions.filter((r) => r.conversions === 0).length} region${regions.filter((r) => r.conversions === 0).length === 1 ? "" : "s"} returned zero leads — likely candidates for geo-cap.`}
+      />
+
+      {g.wasteUSD > 0 && (
+        <ReportInsightBox severity="warning" title="Recommended Action">
+          Hard-cap delivery on the zero-return regions above. Reallocate the
+          freed <strong>{fmt$(g.wasteUSD)}</strong> into your top-3 hot-zones to compound
+          on what&rsquo;s already converting.
+        </ReportInsightBox>
       )}
-    </div>
+    </>
   );
 }
