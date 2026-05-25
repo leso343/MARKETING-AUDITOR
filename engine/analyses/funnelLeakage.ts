@@ -49,25 +49,41 @@ export function analyzeFunnelLeakage(
   ads: AdRow[],
 ): FunnelLeakageResult {
   const totalImpressions = sum(campaigns.map((c) => c.impressions));
-  // Estimated link clicks per campaign: impressions * CTR. We only count campaigns
-  // whose objective makes link-clicks meaningful (skip Reach / Brand Awareness /
-  // Engagement campaigns whose CTR field is the all-clicks metric, not link clicks).
-  let weightedClicks = 0;
-  for (const c of campaigns) {
-    if (!c.impressions || c.ctr === null) continue;
-    // Skip pure top-of-funnel objectives where CTR isn't link-click rate.
-    if (/reach|brand|engagement/i.test(c.objective)) continue;
-    weightedClicks += c.impressions * (c.ctr / 100);
-  }
-  // Sum of Results from traffic-objective campaigns (Meta reports Link Clicks as Results there).
-  const trafficClicks = sum(
-    campaigns.filter((c) =>
-      /^traffic$/i.test(c.objective) ||
-      /link.?click/i.test(c.objective) ||
-      /link_click/i.test(c.resultIndicator),
-    ).map((c) => c.results),
+  // -- Bug fix: use ONE source for link clicks, not both. -------------------
+  // The earlier implementation added `weightedClicks` (impressions * CTR/100)
+  // AND `trafficClicks` (Results from traffic-objective campaigns) together,
+  // which double-counts every traffic-objective row: Meta reports the same
+  // link-click count in BOTH the CTR-derived total and the Results column
+  // when the objective is Traffic. For take-charge-roofing's "Traffic Ad"
+  // (947 link clicks), the old code surfaced ~2,561 clicks (1,614 CTR-derived
+  // + 947 Results) instead of the true 1,614, inflating click-to-session
+  // loss to 79.5% when the truth is 67.4%.
+  //
+  // Preferred source: the explicit "Link clicks" column from the CSV (raw).
+  // Fallback when that column is empty or absent: impressions * CTR/100,
+  // computed ONCE per campaign with no Results-based addition on top.
+  const rawLinkClicksSum = sum(
+    campaigns.map((c) => {
+      const raw = (c as any).raw || {};
+      const v = raw['Link clicks'] ?? raw['Link Clicks'] ?? raw['link_clicks'];
+      const n = v == null || v === '' ? NaN : Number(v);
+      return Number.isFinite(n) ? n : 0;
+    }),
   );
-  const totalClicks = Math.round(weightedClicks + trafficClicks);
+
+  let totalClicks: number;
+  if (rawLinkClicksSum > 0) {
+    totalClicks = Math.round(rawLinkClicksSum);
+  } else {
+    let weightedClicks = 0;
+    for (const c of campaigns) {
+      if (!c.impressions || c.ctr === null) continue;
+      // Skip pure top-of-funnel objectives where CTR isn't link-click rate.
+      if (/reach|brand|engagement/i.test(c.objective)) continue;
+      weightedClicks += c.impressions * (c.ctr / 100);
+    }
+    totalClicks = Math.round(weightedClicks);
+  }
 
   // Leads: results from lead-objective campaigns; fall back to ad-level results.
   let totalLeads = sum(campaigns.filter((c) => isLeadObjective(c.objective, c.resultIndicator)).map((c) => c.results));
