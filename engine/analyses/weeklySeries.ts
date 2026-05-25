@@ -62,40 +62,43 @@ function parseDate(s: string | undefined): Date | null {
   return isNaN(d.getTime()) ? null : d;
 }
 
-/** Build weekly CPL buckets from campaign + ad rows */
+/** Build weekly CPL buckets from ad rows.
+ *
+ * The `campaigns` parameter is accepted for API compatibility but is
+ * intentionally NOT used here — ads are the leaf records, and each campaign
+ * row is just an aggregate of its ads. Including both arrays would
+ * double-count every dollar of spend (one row at the ad, one at the
+ * campaign). Before this fix the take-charge-roofing dataset reported
+ * ~$6,332 of weekly spend on a real $3,137 account and flattened per-week
+ * CPL to $3.22 vs the true $101.20.
+ */
 export function buildWeeklySeries(
   campaigns: CampaignRow[],
   ads: AdRow[],
 ): WeeklySeriesPoint[] {
+  void campaigns; // intentionally unused — see docblock above
   // Discover the overall window
   let windowStart: Date | null = null;
   let windowEnd: Date | null = null;
-  const all = [
-    ...campaigns.map((c) => {
-      const ri = c.resultIndicator || (c.raw && (c.raw['Result indicator'] || c.raw['Result Indicator'])) || '';
-      return {
-        start: parseDate(c.raw["Reporting starts"]),
-        end: parseDate(c.raw["Reporting ends"]),
-        spend: c.amountSpent ?? 0,
-        leads: c.results ?? 0,
-        verifiedLeads: isLeadIndicator(ri) ? (c.results ?? 0) : 0,
-        hasIndicator: ri !== '',
-        adsetName: c.campaignName,
-      };
-    }),
-    ...ads.map((a) => {
-      const ri = (a.raw && (a.raw['Result indicator'] || a.raw['Result Indicator'])) || '';
-      return {
-        start: parseDate(a.raw["Reporting starts"]),
-        end: parseDate(a.raw["Reporting ends"]),
-        spend: a.amountSpent ?? 0,
-        leads: a.results ?? 0,
-        verifiedLeads: isLeadIndicator(ri) ? (a.results ?? 0) : 0,
-        hasIndicator: ri !== '',
-        adsetName: a.adsetName || a.adName,
-      };
-    }),
-  ].filter((r) => r.start && r.end && (r.spend > 0 || r.leads > 0));
+  const all = ads.map((a) => {
+    const ri = (a.raw && (a.raw['Result indicator'] || a.raw['Result Indicator'])) || '';
+    const isLead = isLeadIndicator(ri);
+    const rawLeads = a.results ?? 0;
+    return {
+      start: parseDate(a.raw["Reporting starts"]),
+      end: parseDate(a.raw["Reporting ends"]),
+      spend: a.amountSpent ?? 0,
+      // -- Bug fix: lead-objective rows only contribute to the lead
+      // denominator. Traffic-objective ads with link-click Results still
+      // pour their spend into the bucket but contribute zero leads — so
+      // per-week CPL is no longer flattened by 947 link clicks counted as
+      // "leads".
+      leads: isLead ? rawLeads : 0,
+      verifiedLeads: isLead ? rawLeads : 0,
+      hasIndicator: ri !== '',
+      adsetName: a.adsetName || a.adName,
+    };
+  }).filter((r) => r.start && r.end && (r.spend > 0 || r.leads > 0));
 
   // If no rows have result-indicator data, fall back: verifiedLeads = leads
   const hasAnyIndicator = all.some((r) => r.hasIndicator);
