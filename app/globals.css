@@ -916,7 +916,9 @@ html.light {
   max-width: 78%;
 }
 .ios-bubble--user {
-  background: linear-gradient(180deg, var(--ios-system-red-2), var(--ios-system-red));
+  /* iMessage canonical blue (iOS dark: #0A84FF, light: #007AFF).
+     Use system blue token so it auto-flips with html.light. */
+  background: linear-gradient(180deg, var(--ios-system-blue), color-mix(in srgb, var(--ios-system-blue) 85%, #000));
   color: #fff;
   border-bottom-right-radius: 6px; /* iMessage tail */
   box-shadow: 0 1px 2px rgba(0,0,0,0.15);
@@ -1106,10 +1108,11 @@ html.light {
   flex-shrink: 0;
 }
 .ios-send--active {
-  background: linear-gradient(180deg, var(--ios-system-red-2), var(--ios-system-red));
+  /* Match the user-bubble blue so the action chain reads as one colour. */
+  background: linear-gradient(180deg, var(--ios-system-blue), color-mix(in srgb, var(--ios-system-blue) 85%, #000));
   color: #fff;
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(255, 69, 58, 0.30);
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--ios-system-blue) 35%, transparent);
 }
 .ios-send--active:hover { transform: scale(1.05); }
 .ios-send--active:active { transform: scale(0.90); }

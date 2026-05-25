@@ -50,7 +50,13 @@ import path from "node:path";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-const MODEL = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6";
+/**
+ * Default model. Anthropic publishes both dated IDs (e.g. claude-sonnet-
+ * 4-5-20250929) and short aliases. Pick the alias most likely to resolve
+ * in production. Override via ANTHROPIC_MODEL env var if it ever stops
+ * working — e.g. set to a dated ID like "claude-sonnet-4-5-20250929".
+ */
+const MODEL = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-5";
 const MAX_OUTPUT_TOKENS = 1024;
 
 function badConfig() {
@@ -60,7 +66,23 @@ function badConfig() {
   );
 }
 
+/**
+ * Wrap the whole handler so any uncaught throw surfaces as a JSON body
+ * with the real message instead of a blank 500 — the UI shows that
+ * body, which makes debugging Anthropic/DB issues an order of magnitude
+ * faster.
+ */
 export async function POST(req: Request) {
+  try {
+    return await handlePost(req);
+  } catch (err) {
+    log.error("[ai-chat] uncaught", err);
+    const msg = err instanceof Error ? err.message : "Unknown server error";
+    return NextResponse.json({ error: `AI assistant error: ${msg}` }, { status: 500 });
+  }
+}
+
+async function handlePost(req: Request) {
   if (!authEnabled || !dbAvailable) return badConfig();
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return badConfig();
