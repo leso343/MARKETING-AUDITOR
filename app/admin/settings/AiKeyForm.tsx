@@ -10,6 +10,9 @@ import {
   AlertCircle,
   ExternalLink,
   Lock,
+  Clock,
+  Zap,
+  Shield,
 } from "lucide-react";
 
 interface KeyStatus {
@@ -19,17 +22,106 @@ interface KeyStatus {
   lastValidatedAt?: number | null;
 }
 
+interface Props {
+  planId: "free" | "pro" | "agency";
+  /**
+   * Live state of the BYO-key feature. When false, the component
+   * renders a "Coming soon" pitch card for every plan. When true, the
+   * Agency tier sees the working manage-key form and other tiers see
+   * the upgrade prompt. The feature flag is owned by the server via
+   * BYO_KEYS_ENABLED env var; this prop is the same value reflected
+   * client-side so we don't need an extra fetch.
+   */
+  featureEnabled: boolean;
+}
+
 /**
- * Settings UI for BYO Anthropic key (Agency tier only).
+ * Settings UI for BYO Anthropic key.
  *
- * - On mount, fetches current key status (masked).
- * - User can paste a new key; we POST to validate + encrypt + store.
- * - User can revoke; we DELETE and fall back to server key.
- *
- * Plaintext key never leaves the client → server boundary, and never
- * comes back from the server (only the mask).
+ *   - featureEnabled === false  → "Coming soon" pitch card (current state).
+ *   - featureEnabled === true   → real management UI:
+ *       · Free/Pro → "Upgrade to Agency" lock card
+ *       · Agency   → paste / validate / remove key
  */
-export default function AiKeyForm({ planId }: { planId: "free" | "pro" | "agency" }) {
+export default function AiKeyForm({ planId, featureEnabled }: Props) {
+  // ── Coming-soon mode (feature flag off) ────────────────────────────────
+  if (!featureEnabled) {
+    return <ComingSoonCard />;
+  }
+
+  return <ActiveKeyForm planId={planId} />;
+}
+
+/* ── Coming soon card ────────────────────────────────────────────────── */
+function ComingSoonCard() {
+  return (
+    <div className="panel relative overflow-hidden">
+      {/* Coming-soon badge */}
+      <div className="absolute top-4 right-4 inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 font-mono text-[9px] uppercase tracking-widest text-amber-400">
+        <Clock className="h-2.5 w-2.5" />
+        Coming soon
+      </div>
+
+      <div className="flex items-start gap-3 pr-32">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--red)]/30 bg-[var(--red)]/10">
+          <Sparkles className="h-4 w-4 text-[var(--red)]" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="text-sm font-semibold">Bring your own Anthropic key</div>
+          <p className="text-xs text-[var(--text-dim)] mt-1 leading-relaxed">
+            We&apos;re wrapping up the final security review on this feature. Soon you&apos;ll be
+            able to connect your own Anthropic API key for unmetered AI assistant usage,
+            billed directly to your account.
+          </p>
+        </div>
+      </div>
+
+      {/* Value proposition grid */}
+      <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <BenefitCard
+          icon={<Zap className="h-3.5 w-3.5" />}
+          title="Unmetered usage"
+          body="No monthly message cap — drive the AI as hard as your audits need."
+        />
+        <BenefitCard
+          icon={<Shield className="h-3.5 w-3.5" />}
+          title="Encrypted at rest"
+          body="Your key is sealed with AES-256-GCM and never returned in full."
+        />
+        <BenefitCard
+          icon={<Sparkles className="h-3.5 w-3.5" />}
+          title="Agency-tier only"
+          body="Reserved for Agency plan customers at launch."
+        />
+      </div>
+
+      <p className="mt-5 font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)] text-center">
+        Until then, the AI assistant uses your plan&apos;s included message allowance.
+      </p>
+    </div>
+  );
+}
+
+function BenefitCard({
+  icon,
+  title,
+  body,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  body: string;
+}) {
+  return (
+    <div className="rounded-lg border border-[var(--border)] bg-[var(--bg)] p-3">
+      <div className="flex items-center gap-1.5 text-[var(--red)] mb-1.5">{icon}</div>
+      <div className="text-xs font-semibold">{title}</div>
+      <p className="text-[11px] text-[var(--text-dim)] mt-1 leading-relaxed">{body}</p>
+    </div>
+  );
+}
+
+/* ── Real management form (feature enabled) ──────────────────────────── */
+function ActiveKeyForm({ planId }: { planId: "free" | "pro" | "agency" }) {
   const [status, setStatus] = useState<KeyStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -103,7 +195,6 @@ export default function AiKeyForm({ planId }: { planId: "free" | "pro" | "agency
     }
   };
 
-  // ── Free / Pro: locked behind upgrade ──────────────────────────────────
   if (planId !== "agency") {
     return (
       <div className="panel">
@@ -140,7 +231,6 @@ export default function AiKeyForm({ planId }: { planId: "free" | "pro" | "agency
 
   return (
     <div className="panel space-y-4">
-      {/* Status row */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3 min-w-0">
           <div
@@ -193,7 +283,6 @@ export default function AiKeyForm({ planId }: { planId: "free" | "pro" | "agency
         )}
       </div>
 
-      {/* Toggle to show input */}
       {!showInput && (
         <button
           type="button"
@@ -205,7 +294,6 @@ export default function AiKeyForm({ planId }: { planId: "free" | "pro" | "agency
         </button>
       )}
 
-      {/* Input form */}
       {showInput && (
         <form onSubmit={onSave} className="space-y-2">
           <label className="block">
@@ -264,7 +352,6 @@ export default function AiKeyForm({ planId }: { planId: "free" | "pro" | "agency
         </form>
       )}
 
-      {/* Error / success surfaces */}
       {error && (
         <div className="flex items-start gap-2 rounded bg-[var(--red)]/10 border border-[var(--red)]/20 px-3 py-2">
           <AlertCircle className="h-3.5 w-3.5 shrink-0 text-[var(--red)] mt-0.5" />
@@ -278,7 +365,6 @@ export default function AiKeyForm({ planId }: { planId: "free" | "pro" | "agency
         </div>
       )}
 
-      {/* Footnote */}
       <p className="font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)] leading-relaxed">
         Encrypted at rest (AES-256-GCM). Validated against Anthropic on save. Never shown back in full —
         only the last 4 chars. You pay Anthropic directly when active.

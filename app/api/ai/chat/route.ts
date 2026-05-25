@@ -133,10 +133,12 @@ export async function POST(req: Request) {
 
   // Agency tier can BYO their own Anthropic key — when present, they pay
   // Anthropic directly and bypass the monthly tier cap (the hourly
-  // throttle still applies above).
+  // throttle still applies above). Gated behind BYO_KEYS_ENABLED env
+  // flag so the feature can be soft-launched without code changes.
   let effectiveApiKey = apiKey;
   let usingByoKey = false;
-  if (planId === "agency" && user.agencyId && isCryptoConfigured()) {
+  const byoEnabled = process.env.BYO_KEYS_ENABLED === "true";
+  if (byoEnabled && planId === "agency" && user.agencyId && isCryptoConfigured()) {
     try {
       const byoRows = await db
         .select({ encryptedKey: schema.agencyAiConfigs.encryptedKey })

@@ -29,6 +29,26 @@ function badConfig() {
   );
 }
 
+/**
+ * Feature flag — flip on by setting BYO_KEYS_ENABLED=true on Vercel.
+ * When off, the endpoint returns 503 with a "coming soon" message and
+ * the chat route ignores any stored BYO keys (so nothing leaks if a
+ * key was added during testing).
+ */
+function isByoEnabled(): boolean {
+  return process.env.BYO_KEYS_ENABLED === "true";
+}
+
+function comingSoonResponse() {
+  return NextResponse.json(
+    {
+      error: "Coming soon — BYO key is in private beta. Available on the Agency plan at launch.",
+      code: "COMING_SOON",
+    },
+    { status: 503 },
+  );
+}
+
 async function requireAgencyUser() {
   if (!authEnabled || !dbAvailable) return { error: "Auth disabled.", status: 503 };
   const user = await tryGetUser();
@@ -48,6 +68,7 @@ async function requireAgencyUser() {
 }
 
 export async function GET() {
+  if (!isByoEnabled()) return comingSoonResponse();
   const auth = await requireAgencyUser();
   if ("error" in auth) {
     return NextResponse.json(
@@ -75,6 +96,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  if (!isByoEnabled()) return comingSoonResponse();
   if (!isCryptoConfigured()) return badConfig();
   const auth = await requireAgencyUser();
   if ("error" in auth) {
@@ -151,6 +173,7 @@ export async function POST(req: Request) {
 }
 
 export async function DELETE() {
+  if (!isByoEnabled()) return comingSoonResponse();
   const auth = await requireAgencyUser();
   if ("error" in auth) {
     return NextResponse.json(

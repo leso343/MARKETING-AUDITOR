@@ -16,6 +16,9 @@ export default async function AdminSettingsPage() {
   const billing = agency ? await getBillingState(agency.id) : null;
   const planId = billing?.ok ? billing.plan.id : "free";
 
+  // BYO key feature flag — flip on by setting BYO_KEYS_ENABLED=true in env.
+  const byoFeatureEnabled = process.env.BYO_KEYS_ENABLED === "true";
+
   return (
     <div className="space-y-8">
       <div>
@@ -85,7 +88,7 @@ export default async function AdminSettingsPage() {
           </div>
         </div>
 
-        <AiKeyForm planId={planId} />
+        <AiKeyForm planId={planId} featureEnabled={byoFeatureEnabled} />
       </div>
 
       {/* ── divider ──────────────────────────────────────────────── */}
