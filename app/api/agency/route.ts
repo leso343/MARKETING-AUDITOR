@@ -39,6 +39,7 @@ export async function PATCH(req: Request) {
       accentColor?: string | null;
       highlightColor?: string | null;
       popColor?: string | null;
+      bgColor?: string | null;
     };
 
     // Resolve target agency
@@ -69,6 +70,7 @@ export async function PATCH(req: Request) {
     setColorField("accentColor", body.accentColor);
     setColorField("highlightColor", body.highlightColor);
     setColorField("popColor", body.popColor);
+    setColorField("bgColor", body.bgColor);
 
     if (Object.keys(updates).length === 0) {
       return NextResponse.json({ error: "Nothing to update" }, { status: 400 });

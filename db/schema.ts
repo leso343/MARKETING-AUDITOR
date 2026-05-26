@@ -22,6 +22,9 @@ export const agencies = sqliteTable("agencies", {
   accentColor: text("accent_color"),
   highlightColor: text("highlight_color"),
   popColor: text("pop_color"),
+  /** Agency-pickable background color. Card / border / sidebar shades
+   *  are derived in lib/BrandTheme.tsx so the user only manages one. */
+  bgColor: text("bg_color"),
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().default(sql`(unixepoch() * 1000)`),
 });
 

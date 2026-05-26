@@ -199,6 +199,7 @@ export default async function Home() {
         accentColor={agency?.accentColor}
         highlightColor={agency?.highlightColor}
         popColor={agency?.popColor}
+        bgColor={agency?.bgColor}
       />
       {/* header */}
       <div className="mb-10 flex flex-col gap-4 sm:mb-14 sm:flex-row sm:items-end sm:justify-between">

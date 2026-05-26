@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requireUser } from "@/lib/access";
+import { requireUser, getCurrentAgency } from "@/lib/access";
 import { authEnabled } from "@/auth";
 import { dbAvailable } from "@/lib/db";
 import { redirect } from "next/navigation";
@@ -15,6 +15,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import NotificationBell from "@/components/NotificationBell";
 import SubscriptionBanner from "@/components/SubscriptionBanner";
 import AuditAssistant from "@/components/ai/AuditAssistant";
+import BrandTheme from "@/components/BrandTheme";
 
 /**
  * Admin shell — polished sidebar-style nav.
@@ -57,6 +58,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const user = await requireUser();
   if (user.role !== "admin" && user.role !== "agency") redirect("/");
 
+  // Load agency for brand-theme overrides so the whole admin shell
+  // (settings, clients list, billing, etc.) reflects the agency's
+  // saved colors — not just the audit page.
+  const agency = await getCurrentAgency();
+
   const navItems = [
     { href: "/admin/clients", label: "Clients", icon: Building2 },
     ...(user.role === "admin"
@@ -71,6 +77,16 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <div className="min-h-screen">
+      {/* ── agency brand colors (CSS variable overrides) ──────── */}
+      <BrandTheme
+        primaryColor={agency?.primaryColor}
+        secondaryColor={agency?.secondaryColor}
+        accentColor={agency?.accentColor}
+        highlightColor={agency?.highlightColor}
+        popColor={agency?.popColor}
+        bgColor={agency?.bgColor}
+      />
+
       {/* ── subscription warning banner ────────────────────────── */}
       <SubscriptionBanner />
 

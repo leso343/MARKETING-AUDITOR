@@ -58,6 +58,7 @@ export default async function AdminSettingsPage() {
               accentColor: agency.accentColor ?? "",
               highlightColor: agency.highlightColor ?? "",
               popColor: agency.popColor ?? "",
+              bgColor: agency.bgColor ?? "",
             }}
           />
         ) : (
