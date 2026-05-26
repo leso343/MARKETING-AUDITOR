@@ -203,17 +203,32 @@ export default function RecommendationCards({ audit, targetCpl }: Props) {
   const tgt = targetCpl ?? audit.benchmarks.targetCpl;
   const curAboveTgt = cur > tgt;
 
-  // Budget intelligence — computed from engine data
+  // Budget intelligence — computed from engine data.
+  //
+  // Chart audit P1 fix: previous implementation summed creative and geo
+  // waste (which often overlap — a waster ad can deliver in a wasteful
+  // region, and the two engines would double-count it) and clamped the
+  // total at a magic totalSpend * 0.7. That clamp masked the
+  // double-counting rather than fixing it.
+  //
+  // New rule (honest + conservative):
+  //   winnerSpend = explicit creative.winners spend
+  //   wasteSpend  = max(creative.wasters, geo.wasteUSD)
+  //                 — take the worst of the two as a single ceiling
+  //                 rather than adding them. Avoids double-counting.
+  //   otherSpend  = total - winners - waste
+  //                 — labeled "Other" not "Mixed" so users don't infer
+  //                 a performance verdict the engine never made.
   const winnerSpend = audit.creative.winners.reduce((s, w) => s + w.spend, 0);
   const wasteCreative = audit.creative.wasters.reduce((s, w) => s + w.spend, 0);
   const wasteGeo = audit.geo.wasteUSD;
-  const totalWaste = Math.min(wasteCreative + wasteGeo, audit.spend.totalSpend * 0.7);
-  const mixedSpend = Math.max(0, audit.spend.totalSpend - winnerSpend - totalWaste);
+  const totalWaste = Math.max(wasteCreative, wasteGeo);
+  const otherSpend = Math.max(0, audit.spend.totalSpend - winnerSpend - totalWaste);
   const totalBudget = audit.spend.totalSpend;
   const budgetSegments = [
-    { label: "Converting", sub: "Winners & top performers", value: winnerSpend, color: "#4ade80" },
-    { label: "Mixed", sub: "Running but inconsistent", value: mixedSpend, color: "#fbbf24" },
-    { label: "Dead Weight", sub: "Zero return — cut immediately", value: totalWaste, color: "#ff0000" },
+    { label: "Converting", sub: "Sum of creative.winners spend", value: winnerSpend, color: "#4ade80" },
+    { label: "Other",      sub: "Unranked — neither winner nor waster", value: otherSpend, color: "#fbbf24" },
+    { label: "Waste",      sub: "Worst of creative-wasters / geo-waste", value: totalWaste, color: "#ff0000" },
   ].filter((s) => s.value > 0);
   const rec70 = Math.round(totalBudget * 0.70);
   const rec20 = Math.round(totalBudget * 0.20);
@@ -532,11 +547,18 @@ export default function RecommendationCards({ audit, targetCpl }: Props) {
             </div>
             <div className="flex flex-col gap-1">
               {budgetSegments.map((seg, i) => (
-                <div key={i} className="flex items-center gap-1.5">
+                <div key={i} className="flex items-center gap-1.5"
+                  title={seg.sub /* hover reveals the underlying methodology for each segment */}>
                   <div style={{ width: 7, height: 7, background: seg.color, borderRadius: 1, opacity: 0.85, flexShrink: 0 }} />
                   <span className="font-mono text-[9px] text-[var(--text-dim)]">{seg.label} — {totalBudget > 0 ? Math.round((seg.value / totalBudget) * 100) : 0}%</span>
                 </div>
               ))}
+              <div
+                className="mt-1 font-mono text-[8px] leading-snug text-[var(--text-dim)] opacity-70 max-w-[140px]"
+                title="Converting = explicit winners. Waste = the larger of creative-wasters or geo-waste (avoids double-counting overlap). Other = everything else."
+              >
+                ⓘ How buckets are computed
+              </div>
             </div>
           </div>
 

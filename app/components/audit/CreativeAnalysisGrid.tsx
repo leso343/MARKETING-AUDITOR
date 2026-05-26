@@ -1,7 +1,7 @@
 "use client";
 
 import type { CreativeAnalysisResult, AdScore } from "@/engine/analyses/creativeAnalysis";
-import { Image as ImageIcon, TrendingUp, TrendingDown } from "lucide-react";
+import { Image as ImageIcon, TrendingUp, TrendingDown, MousePointerClick } from "lucide-react";
 import { useLang } from "@/context/LangContext";
 import { useReport } from "@/context/ReportContext";
 
@@ -63,6 +63,31 @@ export default function CreativeAnalysisGrid({ creative, liveCpl }: Props) {
         ))}
       </div>
 
+      {/* Chart audit P1 fix: render creative.clickWinners. The engine
+          emits this array for Traffic-objective accounts specifically so
+          the "Winners" list isn't blank — they're ranked by CPC (not CPL)
+          and labeled distinctly so a $0.40 click cost can't masquerade as
+          a $0.40 lead. Previously the UI dropped this array entirely. */}
+      {creative.clickWinners.length > 0 && (
+        <>
+          <div className="mt-5 mb-1 flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-[#60A5FA]">
+            <MousePointerClick className="h-3.5 w-3.5" />
+            {t("Traffic-Objective Top Performers", "Best traffic-only ads")} ({creative.clickWinners.length})
+          </div>
+          <p className="mb-3 text-[10px] text-[var(--text-dim)] italic">
+            {t(
+              "Ranked by CPC — these are traffic-objective ads, not lead-gen, so they're scored separately.",
+              "These ads buy clicks, not leads — ranked by cheapest click cost, kept separate so they don't fake a winning lead-CPL.",
+            )}
+          </p>
+          <div className="space-y-2">
+            {creative.clickWinners.slice(0, 3).map((w, i) => (
+              <AdCard key={`click-${w.adName}-${i}`} ad={w} tone="click" liveCpl={liveCpl} />
+            ))}
+          </div>
+        </>
+      )}
+
       <button
         onClick={() => openReport(2)}
         className="mt-4 flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-wider text-[var(--red)] opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
@@ -73,9 +98,9 @@ export default function CreativeAnalysisGrid({ creative, liveCpl }: Props) {
   );
 }
 
-function AdCard({ ad, tone, liveCpl }: { ad: AdScore; tone: "ok" | "critical"; liveCpl?: number }) {
+function AdCard({ ad, tone, liveCpl }: { ad: AdScore; tone: "ok" | "critical" | "click"; liveCpl?: number }) {
   const { t } = useLang();
-  const border = tone === "ok" ? "#4ade80" : "var(--red)";
+  const border = tone === "ok" ? "#4ade80" : tone === "click" ? "#60A5FA" : "var(--red)";
 
   // Live target badge — honest comparison vs. slider value
   const liveTag = liveCpl != null && liveCpl > 0 && ad.cpl > 0

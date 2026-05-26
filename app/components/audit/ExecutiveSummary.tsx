@@ -62,13 +62,22 @@ function topFindings(a: AuditResult): Finding[] {
     });
   }
 
-  return out.sort((x, y) => y.impactUSD - x.impactUSD).slice(0, 3);
+  // Chart audit P1 fix: return the FULL sorted list (not sliced).
+  // Callers can slice for display, but the recoverable-spend total
+  // must sum every finding the engine emitted — previously the
+  // headline number understated the true recoverable when more than
+  // 3 critical findings existed.
+  return out.sort((x, y) => y.impactUSD - x.impactUSD);
 }
 
 export default function ExecutiveSummary({ audit }: Props) {
   const { t, plain } = useLang();
-  const findings = topFindings(audit);
-  const totalRecoverable = findings.reduce((s, f) => s + f.impactUSD, 0);
+  const allFindings = topFindings(audit);
+  const findings = allFindings.slice(0, 3); // top 3 displayed
+  const visibleRecoverable = findings.reduce((s, f) => s + f.impactUSD, 0);
+  const totalRecoverable = allFindings.reduce((s, f) => s + f.impactUSD, 0);
+  const hiddenCount = Math.max(0, allFindings.length - findings.length);
+  const hiddenRecoverable = totalRecoverable - visibleRecoverable;
 
   return (
     <div className="panel">
@@ -101,6 +110,18 @@ export default function ExecutiveSummary({ audit }: Props) {
           <div className="font-mono text-3xl font-extrabold text-[var(--red)]">
             ${totalRecoverable.toLocaleString()}
           </div>
+          {hiddenCount > 0 && (
+            <div
+              className="mt-1 font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)]"
+              title={`${hiddenCount} additional finding${hiddenCount === 1 ? "" : "s"} below the top 3 — see the report or scroll for full detail`}
+            >
+              Top 3 of {allFindings.length} ·{" "}
+              <span className="text-[var(--text)]">
+                ${hiddenRecoverable.toLocaleString()}
+              </span>{" "}
+              more in {hiddenCount} other finding{hiddenCount === 1 ? "" : "s"}
+            </div>
+          )}
         </div>
       </div>
 

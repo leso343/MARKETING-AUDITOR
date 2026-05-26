@@ -4,8 +4,9 @@ import type { DemographicsResult } from "@/engine/analyses/demographics";
 import { useLang } from "@/context/LangContext";
 import { useReport } from "@/context/ReportContext";
 import {
-  AreaChart,
-  Area,
+  BarChart,
+  Bar,
+  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -40,7 +41,28 @@ const OUTCOME_LABEL_PLAIN: Record<string, string> = {
   NO_DATA: "—",
 };
 
-const BRACKET_ORDER = ["25-34", "35-44", "45-54", "55-64", "65+"];
+// Chart audit P1 fix: include the 18-24 bracket. Previously missing,
+// which silently dropped young-audience data from the chart even when
+// the export contained spend in that bracket.
+const BRACKET_ORDER = ["18-24", "25-34", "35-44", "45-54", "55-64", "65+"];
+
+/**
+ * Color encoding by CPL VALUE (not X-axis position). Previously the chart
+ * used a gradient stroke that ran green → red across the X-axis, so a
+ * $200-CPL 25-34 bar would render green and a $20-CPL 65+ bar would
+ * render red — color encoded the position, not the metric.
+ *   - CPL <= 0.85× target → green (well under target)
+ *   - CPL <= 1.15× target → amber (near target)
+ *   - CPL >  1.15× target → red   (over target)
+ * Falls back to gray when no target is supplied.
+ */
+function cplBarColor(cpl: number, target: number | undefined): string {
+  if (cpl <= 0) return "#374151";
+  if (target == null || target <= 0) return "#60A5FA";
+  if (cpl <= target * 0.85) return "#10B981";
+  if (cpl <= target * 1.15) return "#F59E0B";
+  return "#EF4444";
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function CplTooltip({ active, payload }: any) {
@@ -104,22 +126,10 @@ export default function DemographicsPanel({ demographics, targetCpl }: Props) {
             className="mb-1 text-right font-mono"
             style={{ fontSize: 9, color: "var(--red-dim, #7f1d1d)", letterSpacing: "0.1em", textTransform: "uppercase" }}
           >
-            CPL CURVE
+            CPL BY AGE BRACKET
           </div>
-          <ResponsiveContainer width="100%" height={180}>
-            <AreaChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
-              <defs>
-                <linearGradient id="cplGradient" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="#4ade80" />
-                  <stop offset="50%" stopColor="#fbbf24" />
-                  <stop offset="100%" stopColor="#ff0000" />
-                </linearGradient>
-                <linearGradient id="cplFill" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="#4ade80" stopOpacity={0.15} />
-                  <stop offset="50%" stopColor="#fbbf24" stopOpacity={0.08} />
-                  <stop offset="100%" stopColor="#ff0000" stopOpacity={0.15} />
-                </linearGradient>
-              </defs>
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid vertical={false} className="chart-grid" stroke="#1a1a1a" />
               <XAxis
                 dataKey="bracket"
@@ -134,24 +144,21 @@ export default function DemographicsPanel({ demographics, targetCpl }: Props) {
                 tickLine={false}
                 width={40}
               />
-              <Tooltip content={<CplTooltip />} />
+              <Tooltip content={<CplTooltip />} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
               {targetCpl != null && (
                 <ReferenceLine
                   y={targetCpl}
-                  stroke="#fbbf24"
+                  stroke="#F59E0B"
                   strokeDasharray="4 4"
-                  label={{ value: "Target", position: "insideRight", fill: "#fbbf24", fontSize: 9, fontFamily: "monospace" }}
+                  label={{ value: `Target $${targetCpl}`, position: "insideTopRight", fill: "#F59E0B", fontSize: 9, fontFamily: "monospace" }}
                 />
               )}
-              <Area
-                type="monotone"
-                dataKey="cpl"
-                stroke="url(#cplGradient)"
-                strokeWidth={2}
-                fill="url(#cplFill)"
-                dot={false}
-              />
-            </AreaChart>
+              <Bar dataKey="cpl" radius={[3, 3, 0, 0]}>
+                {chartData.map((d) => (
+                  <Cell key={d.bracket} fill={cplBarColor(d.cpl, targetCpl)} />
+                ))}
+              </Bar>
+            </BarChart>
           </ResponsiveContainer>
         </div>
       )}

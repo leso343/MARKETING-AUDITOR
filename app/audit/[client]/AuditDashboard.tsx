@@ -23,13 +23,16 @@ import BenchmarkStatus from "@/components/audit/BenchmarkStatus";
 import InteractiveFunnelExplorer from "@/components/visualizers/InteractiveFunnelExplorer";
 import TimeSeriesScrubber from "@/components/visualizers/TimeSeriesScrubber";
 import GeoBudgetReallocator from "@/components/visualizers/GeoBudgetReallocator";
-import dynamic from "next/dynamic";
+// next/dynamic import removed — only consumer was CanvasMapPanel which is
+// now hidden until its hardcoded Atlanta data is replaced (chart audit P0).
 import DensityControl, { type Density } from "@/components/audit/DensityControl";
 import { Languages } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 import AuditAssistant from "@/components/ai/AuditAssistant";
 
-const CanvasMapPanel = dynamic(() => import("@/components/audit/CanvasMapPanel"), { ssr: false });
+// CanvasMapPanel import removed — component is hidden until its hardcoded
+// Atlanta storm/lead data is replaced with live audit.geo + agency area.
+// File preserved at app/components/audit/CanvasMapPanel.tsx.
 
 interface Props {
   audit: AuditResult;
@@ -412,12 +415,12 @@ export default function AuditDashboard({
                 </section>
               )}
 
-              {/* Canvas priority map */}
-              <section id="canvas-map" className="col-span-12">
-                <CanvasMapPanel />
-              </section>
-
-              {/* Recommendations */}
+              {/* Canvas priority map — temporarily hidden. The component
+                  is hardcoded with Atlanta storm/lead data and ships the
+                  same map for every client (chart audit P0 finding).
+                  Hidden in production until it's wired to live audit.geo
+                  + a real storm-data source. Component file preserved at
+                  app/components/audit/CanvasMapPanel.tsx for the rewrite. */}
               <section id="plan" className="col-span-12">
                 <RecommendationCards audit={audit} targetCpl={liveCpl} targetCtr={liveCtr} />
               </section>
