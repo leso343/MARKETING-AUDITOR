@@ -8,15 +8,20 @@
  *   --brand-highlight(-dim)    ← highlightColor
  *   --brand-pop(-dim)          ← popColor
  *   --bg / --card / --border / --sidebar / --header-bg  ← derived from bgColor
- *   --text / --text-dim        ← auto-flipped to dark when bgColor is light
  *
- * Previously this component only overrode the brand-color tokens, which
- * meant the dominant surface colors (--bg/--card/--border, used by every
- * panel) kept their defaults. Saving a palette would change buttons and
- * a few accents but the whole dashboard still looked like the default.
- *
- * The bgColor slot fixes that: pick one background colour and we derive
- * card / border / sidebar shades automatically, plus flip text contrast.
+ * IMPORTANT — ThemeToggle co-existence:
+ *   ThemeToggle adds/removes the `html.light` class on <html>.
+ *   globals.css defines :root (dark) and html.light (light) surfaces.
+ *   BrandTheme must NOT put the same surface values into both blocks —
+ *   that would make the toggle a no-op. Instead we compute TWO distinct
+ *   surface palettes:
+ *     • darkSurfaces  → applied to :root    (dark mode)
+ *     • lightSurfaces → applied to html.light (light mode)
+ *   --text / --text-dim are intentionally left to globals.css /
+ *   ThemeToggle — we never override those here.
+ *   No `!important` on html/body background — that would prevent the
+ *   `html.light body { background: var(--bg) }` rule in globals.css
+ *   from working.
  */
 
 interface BrandThemeProps {
@@ -74,6 +79,16 @@ function surfaceShade(hex: string, amount: number): string {
   return luminance(hex) > 0.5 ? darken(hex, amount) : lighten(hex, amount);
 }
 
+/** Build a CSS surface block for a given bg color. */
+function buildSurfaces(bg: string): string {
+  return `
+      --bg: ${bg};
+      --sidebar: ${surfaceShade(bg, 0.025)};
+      --card: ${surfaceShade(bg, 0.05)};
+      --border: ${surfaceShade(bg, 0.10)};
+      --header-bg: ${hexToRgba(bg, 0.95)};`;
+}
+
 export default function BrandTheme({
   primaryColor,
   secondaryColor,
@@ -95,37 +110,27 @@ export default function BrandTheme({
   const primaryLight = lighten(primary, 0.2);
 
   // ── Surface derivation from bgColor ────────────────────────────────
-  // Defaults match the original globals.css tokens:
-  //   --bg #030303  --sidebar #060606  --card #0a0a0a  --border #151515
+  // Compute two distinct bg palettes so each theme mode gets different surfaces.
+  // This is the key fix: :root and html.light must NOT share the same values,
+  // otherwise the ThemeToggle is a no-op.
   const bg = bgColor ?? null;
   const isLightBg = bg ? luminance(bg) > 0.5 : false;
 
-  // Compute surface shades only when bg is explicitly set
-  const sidebar  = bg ? surfaceShade(bg, 0.025) : null;
-  const card     = bg ? surfaceShade(bg, 0.05)  : null;
-  const border   = bg ? surfaceShade(bg, 0.10)  : null;
+  // Dark-mode palette: if the agency chose a light bg, derive a very dark
+  // tinted version of it; if they chose dark, use it directly.
+  const darkBg = !bg ? null : isLightBg ? darken(bg, 0.88) : bg;
 
-  // Text contrast — flip to dark on light bg
-  const text     = bg ? (isLightBg ? "#0f172a" : "#ffffff") : null;
-  const textDim  = bg ? (isLightBg ? "#475569" : "#a0a0a0") : null;
-  const headerBg = bg ? hexToRgba(bg, 0.95) : null;
+  // Light-mode palette: if the agency chose a light bg, use it directly;
+  // if they chose dark, derive a very light tinted version of it.
+  const lightBg = !bg ? null : isLightBg ? bg : lighten(bg, 0.88);
 
-  // Build the override block. We override BOTH :root (dark default) and
-  // html.light so the theme toggle still works — the brand colors are
-  // identical, but the surface shades use the same agency-picked bg.
-  const surfaceBlock = bg
-    ? `
-      --bg: ${bg};
-      --sidebar: ${sidebar};
-      --card: ${card};
-      --border: ${border};
-      --text: ${text};
-      --text-dim: ${textDim};
-      --header-bg: ${headerBg};`
-    : "";
+  // CSS blocks for surfaces — only emitted when bg is set
+  const darkSurfaces  = darkBg  ? buildSurfaces(darkBg)  : "";
+  const lightSurfaces = lightBg ? buildSurfaces(lightBg) : "";
 
-  const css = `
-    :root {
+  // Brand-color tokens are identical in both modes (the accent palette
+  // doesn't change between dark/light — only the opacity dims slightly).
+  const brandTokensDark = `
       --red: ${primary};
       --red-dim: ${hexToRgba(primary, 0.1)};
       --brand-secondary: ${secondary};
@@ -135,9 +140,9 @@ export default function BrandTheme({
       --brand-highlight: ${highlight};
       --brand-highlight-dim: ${hexToRgba(highlight, 0.1)};
       --brand-pop: ${pop};
-      --brand-pop-dim: ${hexToRgba(pop, 0.1)};${surfaceBlock}
-    }
-    html.light {
+      --brand-pop-dim: ${hexToRgba(pop, 0.1)};`;
+
+  const brandTokensLight = `
       --red: ${primary};
       --red-dim: ${hexToRgba(primary, 0.08)};
       --brand-secondary: ${secondary};
@@ -147,14 +152,15 @@ export default function BrandTheme({
       --brand-highlight: ${highlight};
       --brand-highlight-dim: ${hexToRgba(highlight, 0.08)};
       --brand-pop: ${pop};
-      --brand-pop-dim: ${hexToRgba(pop, 0.08)};${surfaceBlock}
+      --brand-pop-dim: ${hexToRgba(pop, 0.08)};`;
+
+  const css = `
+    :root {${brandTokensDark}${darkSurfaces}
+    }
+    html.light {${brandTokensLight}${lightSurfaces}
     }
 
-    /* Body and html backgrounds use default tokens, so force them
-       when bgColor is set so the page edge matches every surface. */
-    ${bg ? "html, body { background: var(--bg) !important; color: var(--text); }" : ""}
-
-    /* Scrollbar branding */
+    /* Scrollbar branding (dark mode) */
     * { scrollbar-color: ${primary} var(--bg); }
     *::-webkit-scrollbar-thumb { background: ${primary} !important; }
     html.is-scrolling *::-webkit-scrollbar-thumb:vertical {
