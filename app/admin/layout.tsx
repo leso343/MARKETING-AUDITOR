@@ -11,8 +11,7 @@ import {
   CreditCard,
   Shield,
 } from "lucide-react";
-import ThemeToggle from "@/components/ThemeToggle";
-import NotificationBell from "@/components/NotificationBell";
+import TopNavActions from "@/components/TopNavActions";
 import SubscriptionBanner from "@/components/SubscriptionBanner";
 import AuditAssistant from "@/components/ai/AuditAssistant";
 import BrandTheme from "@/components/BrandTheme";
@@ -85,6 +84,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         highlightColor={agency?.highlightColor}
         popColor={agency?.popColor}
         bgColor={agency?.bgColor}
+        cardColor={agency?.cardColor}
+        borderColor={agency?.borderColor}
+        textColor={agency?.textColor}
       />
 
       {/* ── subscription warning banner ────────────────────────── */}
@@ -120,11 +122,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             </div>
           </div>
 
-          {/* right: theme toggle + user info */}
+          {/* right: full nav actions (bell, theme, pricing, signout) + user info */}
           <div className="flex items-center gap-3">
-            <NotificationBell />
-            <ThemeToggle />
-            <div className="flex items-center gap-2">
+            <TopNavActions variant="admin" />
+            <div className="flex items-center gap-2 border-l border-[var(--border)] pl-3 ml-1">
               <div className="flex h-6 w-6 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--card)]">
                 <Shield className="h-3 w-3 text-[var(--red)]" />
               </div>

@@ -16,13 +16,12 @@
 import Link from "next/link";
 import fs from "node:fs";
 import path from "node:path";
-import { Activity, Plus, Settings2, LogOut } from "lucide-react";
-import ThemeToggle from "@/components/ThemeToggle";
+import { Activity, Plus } from "lucide-react";
 import Logo from "@/components/Logo";
-import NotificationBell from "@/components/NotificationBell";
 import OnboardingWizard from "@/components/OnboardingWizard";
 import ClientLogo from "@/components/ClientLogo";
-import { auth, authEnabled, signOut } from "@/auth";
+import TopNavActions from "@/components/TopNavActions";
+import { auth, authEnabled } from "@/auth";
 import { redirect } from "next/navigation";
 import { dbAvailable } from "@/lib/db";
 import { listVisibleClients, getCurrentAgency } from "@/lib/access";
@@ -101,11 +100,25 @@ export default async function Home() {
     const headerAccent = "var(--red)";
 
     return (
-      <main id="main-content" className="min-h-screen p-5 sm:p-8 lg:p-16">
-        <div className="mb-10 flex flex-col gap-4 sm:mb-14 sm:flex-row sm:items-end sm:justify-between">
+      <main id="main-content" className="min-h-screen">
+        {/* Sticky global nav — reachable from anywhere on the page */}
+        <div
+          className="sticky top-0 z-50 border-b border-[var(--border)] backdrop-blur-xl"
+          style={{ background: "var(--header-bg, rgba(3,3,3,0.85))" }}
+        >
+          <div className="flex items-center justify-between px-5 sm:px-8 lg:px-16 py-3">
+            <div className="font-mono text-[10px] uppercase tracking-[3px] text-[var(--text-dim)]">
+              &gt; Blank Page Audits
+            </div>
+            <TopNavActions variant="full" engineAccent={headerAccent} />
+          </div>
+        </div>
+
+        <div className="p-5 sm:p-8 lg:p-16">
+        <div className="mb-10 flex flex-col gap-4 sm:mb-14">
           <div>
             <div className="mb-3 font-mono text-[10px] uppercase tracking-[3px] text-[var(--text-dim)]">
-              &gt; Blank Page Audits / Active Audits
+              &gt; Active Audits
             </div>
             <Logo size="lg" />
             <p className="mt-2 max-w-xl text-sm text-[var(--text-dim)]">
@@ -117,18 +130,6 @@ export default async function Home() {
               Legacy mode · multi-tenant features disabled.{" "}
               {!authEnabled ? "Set AUTH_SECRET" : "Set DATABASE_URL"} to enable.
             </p>
-          </div>
-          <div className="flex items-center gap-4">
-            <ThemeToggle />
-            <div className="hidden items-center gap-2 lg:flex">
-              <div className="pulse" style={{ background: headerAccent }} />
-              <span
-                className="font-mono text-[10px] uppercase tracking-wider"
-                style={{ color: headerAccent }}
-              >
-                Engine: Online
-              </span>
-            </div>
           </div>
         </div>
 
@@ -168,6 +169,7 @@ export default async function Home() {
             </div>
           )}
         </div>
+        </div>
       </main>
     );
   }
@@ -192,7 +194,7 @@ export default async function Home() {
   const BrandTheme = (await import("@/components/BrandTheme")).default;
 
   return (
-    <main id="main-content" className="min-h-screen p-5 sm:p-8 lg:p-16">
+    <main id="main-content" className="min-h-screen">
       <BrandTheme
         primaryColor={agency?.primaryColor}
         secondaryColor={agency?.secondaryColor}
@@ -200,64 +202,49 @@ export default async function Home() {
         highlightColor={agency?.highlightColor}
         popColor={agency?.popColor}
         bgColor={agency?.bgColor}
+        cardColor={agency?.cardColor}
+        borderColor={agency?.borderColor}
+        textColor={agency?.textColor}
       />
-      {/* header */}
-      <div className="mb-10 flex flex-col gap-4 sm:mb-14 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <div className="mb-3 font-mono text-[10px] uppercase tracking-[3px] text-[var(--text-dim)]">
-            &gt; Blank Page Audits / Active Audits
+
+      {/* Sticky global nav — reachable from anywhere on the page */}
+      <div
+        className="sticky top-0 z-50 border-b border-[var(--border)] backdrop-blur-xl"
+        style={{ background: "var(--header-bg, rgba(3,3,3,0.85))" }}
+      >
+        <div className="flex items-center justify-between px-5 sm:px-8 lg:px-16 py-3">
+          <div className="font-mono text-[10px] uppercase tracking-[3px] text-[var(--text-dim)]">
+            &gt; Blank Page Audits
           </div>
-          {agency?.logoUrl ? (
-            <div className="flex items-center gap-4">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={agency.logoUrl} alt={agency.name} className="h-12 w-auto" />
-              <h1
-                className="text-3xl font-bold tracking-tight lg:text-4xl"
-                style={{ fontFamily: "var(--font-head)" }}
-              >
-                {agency.name}
-              </h1>
-            </div>
-          ) : (
-            <Logo size="lg" />
-          )}
-          <p className="mt-2 max-w-xl text-sm text-[var(--text-dim)]">
-            Drop a folder of Meta Ads Manager CSVs. The engine surfaces tracking
-            failures, funnel leaks, geographic waste, and creative dead weight —
-            then quantifies the dollar impact.
-          </p>
+          <TopNavActions variant="full" engineAccent={headerAccent} />
         </div>
-        <div className="flex items-center gap-4">
-          <div className="hidden items-center gap-2 lg:flex">
-            <div className="pulse" style={{ background: headerAccent }} />
-            <span className="font-mono text-[10px] uppercase tracking-wider" style={{ color: headerAccent }}>
-              Engine: Online
-            </span>
+      </div>
+
+      <div className="p-5 sm:p-8 lg:p-16">
+      {/* page header (left-aligned now that nav is in the sticky bar) */}
+      <div className="mb-10 sm:mb-14">
+        <div className="mb-3 font-mono text-[10px] uppercase tracking-[3px] text-[var(--text-dim)]">
+          &gt; Active Audits
+        </div>
+        {agency?.logoUrl ? (
+          <div className="flex items-center gap-4">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={agency.logoUrl} alt={agency.name} className="h-12 w-auto" />
+            <h1
+              className="text-3xl font-bold tracking-tight lg:text-4xl"
+              style={{ fontFamily: "var(--font-head)" }}
+            >
+              {agency.name}
+            </h1>
           </div>
-          <NotificationBell />
-          <ThemeToggle />
-          {isAdmin && (
-            <Link href="/admin/clients" className="flex items-center gap-1.5 rounded border border-[var(--border)] px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)] transition-all hover:border-[var(--red)] hover:text-[var(--red)]">
-              <Settings2 className="h-3 w-3" />
-              Admin
-            </Link>
-          )}
-          {!isAdmin && session.user.role === "agency" && (
-            <Link href="/admin/clients" className="flex items-center gap-1.5 rounded border border-[var(--border)] px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)] transition-all hover:border-[var(--red)] hover:text-[var(--red)]">
-              <Plus className="h-3 w-3" />
-              Clients
-            </Link>
-          )}
-          <Link href="/pricing" className="flex items-center gap-1.5 rounded border border-[var(--border)] px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)] transition-all hover:border-[var(--red)] hover:text-[var(--red)]">
-            Pricing
-          </Link>
-          <form action={async () => { "use server"; await signOut({ redirectTo: "/login" }); }}>
-            <button type="submit" className="flex items-center gap-1.5 rounded border border-[var(--border)] px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)] transition-all hover:border-[var(--red)] hover:text-[var(--red)]">
-              <LogOut className="h-3 w-3" />
-              Sign out
-            </button>
-          </form>
-        </div>
+        ) : (
+          <Logo size="lg" />
+        )}
+        <p className="mt-2 max-w-xl text-sm text-[var(--text-dim)]">
+          Drop a folder of Meta Ads Manager CSVs. The engine surfaces tracking
+          failures, funnel leaks, geographic waste, and creative dead weight —
+          then quantifies the dollar impact.
+        </p>
       </div>
 
       {/* Onboarding wizard — shown when user has no clients */}
@@ -305,6 +292,7 @@ export default async function Home() {
             Upload CSVs &rarr; audit
           </div>
         </Link>
+      </div>
       </div>
     </main>
   );

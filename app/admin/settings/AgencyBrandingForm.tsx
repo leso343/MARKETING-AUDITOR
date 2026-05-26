@@ -33,6 +33,14 @@ interface Props {
     highlightColor: string;
     popColor: string;
     bgColor: string;
+    /**
+     * Optional surface overrides — when null/empty, the form treats the
+     * field as "auto" and falls back to the derived value. Saving "auto"
+     * clears the column in DB so BrandTheme re-derives.
+     */
+    cardColor: string | null;
+    borderColor: string | null;
+    textColor: string | null;
   };
 }
 
@@ -163,6 +171,66 @@ function ColorSwatch({
   );
 }
 
+/* ── surface override swatch (Card/Border/Text — null = auto-derive) ─── */
+function SurfaceOverrideSwatch({
+  label, hint, value, autoValue, onChange,
+}: {
+  label: string;
+  hint: string;
+  /** null = "auto" — derived from bgColor at render time */
+  value: string | null;
+  autoValue: string;
+  onChange: (v: string | null) => void;
+}) {
+  const isAuto = value === null;
+  const shown = value ?? autoValue;
+  const isLight = luminance(shown) > 0.5;
+  return (
+    <div className="rounded-lg border border-[var(--border)] p-3 space-y-2">
+      <div className="flex items-center justify-between gap-2">
+        <label className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-dim)]">
+          {label}
+        </label>
+        {isAuto ? (
+          <span className="font-mono text-[8px] uppercase tracking-widest text-[var(--text-dim)] bg-[var(--border)] px-1.5 py-0.5 rounded-full">
+            Auto
+          </span>
+        ) : (
+          <button
+            type="button"
+            onClick={() => onChange(null)}
+            className="font-mono text-[8px] uppercase tracking-widest text-[var(--red)] hover:underline"
+            title="Reset to auto-derived value"
+          >
+            Reset → Auto
+          </button>
+        )}
+      </div>
+      <div className="flex items-stretch gap-2">
+        <label
+          className="relative flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded border border-[var(--border)] transition-transform hover:scale-105"
+          style={{ background: shown, boxShadow: `0 0 10px ${rgba(shown, 0.3)}` }}
+        >
+          <input
+            type="color"
+            value={shown}
+            onChange={(e) => onChange(e.target.value)}
+            className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+          />
+          <Palette className="h-3 w-3" style={{ color: isLight ? "#0f172a" : "#ffffff" }} />
+        </label>
+        <input
+          value={shown}
+          onChange={(e) => onChange(e.target.value)}
+          spellCheck={false}
+          className="flex-1 bg-[var(--bg)] border border-[var(--border)] rounded px-2 py-1.5 text-xs font-mono uppercase focus:border-[var(--red)] outline-none"
+        />
+      </div>
+      <p className="text-[10px] font-mono text-[var(--text-dim)] leading-snug">{hint}</p>
+    </div>
+  );
+}
+
 /* ── main form ────────────────────────────────────────────────────────── */
 export default function AgencyBrandingForm({ agencyId, defaults }: Props) {
   const router = useRouter();
@@ -174,6 +242,10 @@ export default function AgencyBrandingForm({ agencyId, defaults }: Props) {
   const [highlightColor, setHighlightColor] = useState(defaults.highlightColor || "#ff6b35");
   const [popColor, setPopColor]           = useState(defaults.popColor || "#ffd700");
   const [bgColor, setBgColor]             = useState(defaults.bgColor || DEFAULT_BG_DARK);
+  // Surface overrides — null = "auto" (derive from bgColor).
+  const [cardColor, setCardColor]         = useState<string | null>(defaults.cardColor);
+  const [borderColor, setBorderColor]     = useState<string | null>(defaults.borderColor);
+  const [textColor, setTextColor]         = useState<string | null>(defaults.textColor);
   const [error, setError]                 = useState<string | null>(null);
   const [info, setInfo]                   = useState<string | null>(null);
   const [pending, startTransition]        = useTransition();
@@ -185,6 +257,10 @@ export default function AgencyBrandingForm({ agencyId, defaults }: Props) {
     setHighlightColor(p.highlight);
     setPopColor(p.pop);
     setBgColor(p.bg);
+    // Presets reset surface overrides — let auto-derive run again.
+    setCardColor(null);
+    setBorderColor(null);
+    setTextColor(null);
   }
 
   function isActive(p: Preset) {
@@ -203,6 +279,9 @@ export default function AgencyBrandingForm({ agencyId, defaults }: Props) {
     setHighlightColor(defaults.highlightColor || "#ff6b35");
     setPopColor(defaults.popColor || "#ffd700");
     setBgColor(defaults.bgColor || DEFAULT_BG_DARK);
+    setCardColor(defaults.cardColor);
+    setBorderColor(defaults.borderColor);
+    setTextColor(defaults.textColor);
     setError(null);
     setInfo(null);
   }
@@ -225,6 +304,10 @@ export default function AgencyBrandingForm({ agencyId, defaults }: Props) {
           highlightColor: highlightColor || null,
           popColor: popColor || null,
           bgColor: bgColor || null,
+          // null on these clears the override → BrandTheme re-derives
+          cardColor: cardColor || null,
+          borderColor: borderColor || null,
+          textColor: textColor || null,
         }),
       });
       if (!res.ok) {
@@ -237,11 +320,16 @@ export default function AgencyBrandingForm({ agencyId, defaults }: Props) {
     });
   };
 
-  // Live preview surface shades (mirror BrandTheme.tsx derivation)
-  const surfaceCard   = useMemo(() => surfaceShade(bgColor, 0.05), [bgColor]);
-  const surfaceBorder = useMemo(() => surfaceShade(bgColor, 0.10), [bgColor]);
-  const isLightBg     = useMemo(() => luminance(bgColor) > 0.5, [bgColor]);
-  const surfaceText   = isLightBg ? "#0f172a" : "#ffffff";
+  // Auto-derived surface shades (mirror BrandTheme.tsx derivation).
+  // Manual overrides win when set; otherwise the derived value is used.
+  const autoCard   = useMemo(() => surfaceShade(bgColor, 0.05), [bgColor]);
+  const autoBorder = useMemo(() => surfaceShade(bgColor, 0.10), [bgColor]);
+  const isLightBg  = useMemo(() => luminance(bgColor) > 0.5, [bgColor]);
+  const autoText   = isLightBg ? "#0f172a" : "#ffffff";
+
+  const surfaceCard   = cardColor ?? autoCard;
+  const surfaceBorder = borderColor ?? autoBorder;
+  const surfaceText   = textColor ?? autoText;
   const surfaceDim    = isLightBg ? "#475569" : "#a0a0a0";
 
   return (
@@ -404,43 +492,50 @@ export default function AgencyBrandingForm({ agencyId, defaults }: Props) {
         </div>
       </div>
 
-      {/* ── Surface (background color) ───────────────────────────── */}
+      {/* ── Surface (background color + manual overrides) ────────── */}
       <div className="panel space-y-5">
         <div className="panel-label">
           <Square className="h-3.5 w-3.5 text-[var(--red)]" />
           Surface
         </div>
         <p className="text-xs text-[var(--text-dim)] -mt-3">
-          The page background. Card, border, and sidebar shades + text contrast are derived from this automatically —
-          pick a dark color for a dark dashboard, a light color for a paper-style report look.
+          The page background. Card, border, and text are auto-derived from this for a balanced look —
+          but if a combo doesn&apos;t feel right, override any of them below.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <ColorSwatch
             label="Background"
             hint={isLightBg
-              ? "Light surface — text will auto-flip to dark for legibility"
-              : "Dark surface — text stays white"}
+              ? "Light surface — picks dark text by default for legibility"
+              : "Dark surface — picks white text by default"}
             value={bgColor}
             onChange={setBgColor}
           />
-          {/* Read-only swatches showing the derived shades */}
-          <div className="rounded-lg border border-[var(--border)] p-3">
-            <div className="font-mono text-[9px] uppercase tracking-widest text-[var(--text-dim)] mb-2.5">
-              Derived from background
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { label: "Card",   color: surfaceCard },
-                { label: "Border", color: surfaceBorder },
-                { label: "Text",   color: surfaceText },
-              ].map((d) => (
-                <div key={d.label} className="flex flex-col items-center gap-1.5">
-                  <div className="h-9 w-full rounded border" style={{ background: d.color, borderColor: rgba("#ffffff", 0.10) }} />
-                  <span className="font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)]">{d.label}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+        </div>
+
+        {/* Manual override swatches — Auto badge when null */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <SurfaceOverrideSwatch
+            label="Card"
+            hint="Panel backgrounds. Override if cards blend into the page."
+            value={cardColor}
+            autoValue={autoCard}
+            onChange={setCardColor}
+          />
+          <SurfaceOverrideSwatch
+            label="Border"
+            hint="Panel borders. Override for stronger / subtler edges."
+            value={borderColor}
+            autoValue={autoBorder}
+            onChange={setBorderColor}
+          />
+          <SurfaceOverrideSwatch
+            label="Text"
+            hint="Body text. Override if the auto pick has low contrast."
+            value={textColor}
+            autoValue={autoText}
+            onChange={setTextColor}
+          />
         </div>
       </div>
 

@@ -127,6 +127,9 @@ export default async function AuditPage({ params, searchParams }: PageProps) {
   let agencyHighlightColor: string | null = null;
   let agencyPopColor: string | null = null;
   let agencyBgColor: string | null = null;
+  let agencyCardColor: string | null = null;
+  let agencyBorderColor: string | null = null;
+  let agencyTextColor: string | null = null;
   if (dbClient) {
     const agency = await safe(() => getAgencyById(dbClient.agencyId));
     agencyLogo = agency?.logoUrl ?? findAsset(path.join(process.cwd(), "public", "logos"), "agency");
@@ -136,6 +139,9 @@ export default async function AuditPage({ params, searchParams }: PageProps) {
     agencyHighlightColor = agency?.highlightColor ?? null;
     agencyPopColor = agency?.popColor ?? null;
     agencyBgColor = agency?.bgColor ?? null;
+    agencyCardColor = agency?.cardColor ?? null;
+    agencyBorderColor = agency?.borderColor ?? null;
+    agencyTextColor = agency?.textColor ?? null;
   } else {
     agencyLogo = findAsset(path.join(process.cwd(), "public", "logos"), "agency");
   }
@@ -289,6 +295,9 @@ export default async function AuditPage({ params, searchParams }: PageProps) {
       highlightColor={agencyHighlightColor}
       popColor={agencyPopColor}
       bgColor={agencyBgColor}
+      cardColor={agencyCardColor}
+      borderColor={agencyBorderColor}
+      textColor={agencyTextColor}
     />
     <AuditDashboard
       audit={audit}

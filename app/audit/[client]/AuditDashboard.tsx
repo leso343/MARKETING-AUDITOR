@@ -27,7 +27,7 @@ import GeoBudgetReallocator from "@/components/visualizers/GeoBudgetReallocator"
 // now hidden until its hardcoded Atlanta data is replaced (chart audit P0).
 import DensityControl, { type Density } from "@/components/audit/DensityControl";
 import { Languages } from "lucide-react";
-import ThemeToggle from "@/components/ThemeToggle";
+import TopNavActions from "@/components/TopNavActions";
 import AuditAssistant from "@/components/ai/AuditAssistant";
 
 // CanvasMapPanel import removed — component is hidden until its hardcoded
@@ -276,11 +276,12 @@ export default function AuditDashboard({
                 <div className="flex flex-wrap items-center gap-2">
                   <ReportOpenButton />
                   <HeaderLangToggle />
-                  <ThemeToggle />
                   <div className="flex items-center gap-2 border border-[var(--red-dim)] bg-[rgba(255,0,0,0.05)] px-2 py-1.5 font-mono text-[9px] uppercase tracking-wider text-[var(--red)] sm:gap-3 sm:px-3">
                     <div className="pulse" />
                     <EngineStatusLabel isPending={isPending} />
                   </div>
+                  {/* Global nav actions — bell / theme / admin / pricing / signout */}
+                  <TopNavActions variant="compact" />
                 </div>
               )}
             </header>

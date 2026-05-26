@@ -31,6 +31,15 @@ interface BrandThemeProps {
   highlightColor?: string | null;
   popColor?: string | null;
   bgColor?: string | null;
+  /**
+   * Optional manual overrides for surface tokens. When omitted, the
+   * corresponding token is auto-derived from bgColor via surfaceShade.
+   * When set, the agency's explicit color wins — useful when the
+   * auto-derived combo doesn't have enough contrast.
+   */
+  cardColor?: string | null;
+  borderColor?: string | null;
+  textColor?: string | null;
 }
 
 function hexToRgb(hex: string): { r: number; g: number; b: number } {
@@ -79,13 +88,22 @@ function surfaceShade(hex: string, amount: number): string {
   return luminance(hex) > 0.5 ? darken(hex, amount) : lighten(hex, amount);
 }
 
-/** Build a CSS surface block for a given bg color. */
-function buildSurfaces(bg: string): string {
+/** Build a CSS surface block for a given bg color, with optional
+ *  per-token manual overrides. Any override that's null/undefined
+ *  falls back to the auto-derived surfaceShade value. textColor is
+ *  intentionally NOT emitted here — globals.css owns --text via the
+ *  html.light toggle. textColor override is handled separately. */
+function buildSurfaces(
+  bg: string,
+  overrides?: { card?: string | null; border?: string | null }
+): string {
+  const card = overrides?.card || surfaceShade(bg, 0.05);
+  const border = overrides?.border || surfaceShade(bg, 0.10);
   return `
       --bg: ${bg};
       --sidebar: ${surfaceShade(bg, 0.025)};
-      --card: ${surfaceShade(bg, 0.05)};
-      --border: ${surfaceShade(bg, 0.10)};
+      --card: ${card};
+      --border: ${border};
       --header-bg: ${hexToRgba(bg, 0.95)};`;
 }
 
@@ -96,6 +114,9 @@ export default function BrandTheme({
   highlightColor,
   popColor,
   bgColor,
+  cardColor,
+  borderColor,
+  textColor,
 }: BrandThemeProps) {
   // Nothing to do when no colors at all are set.
   if (!primaryColor && !bgColor) return null;
@@ -124,9 +145,20 @@ export default function BrandTheme({
   // if they chose dark, derive a very light tinted version of it.
   const lightBg = !bg ? null : isLightBg ? bg : lighten(bg, 0.88);
 
-  // CSS blocks for surfaces — only emitted when bg is set
-  const darkSurfaces  = darkBg  ? buildSurfaces(darkBg)  : "";
-  const lightSurfaces = lightBg ? buildSurfaces(lightBg) : "";
+  // CSS blocks for surfaces — only emitted when bg is set.
+  // Manual overrides for card/border are applied to BOTH modes (the
+  // agency picked one explicit colour and it should win regardless of
+  // theme toggle).
+  const overrides = { card: cardColor, border: borderColor };
+  const darkSurfaces  = darkBg  ? buildSurfaces(darkBg,  overrides) : "";
+  const lightSurfaces = lightBg ? buildSurfaces(lightBg, overrides) : "";
+
+  // Text-color override is independent of bg luminance — when set, it
+  // applies in both dark and light mode. Without an override, the
+  // ThemeToggle/globals.css cascade controls --text and --text-dim.
+  const textOverride = textColor
+    ? `\n      --text: ${textColor};\n      --text-dim: ${hexToRgba(textColor, 0.6)};`
+    : "";
 
   // Brand-color tokens are identical in both modes (the accent palette
   // doesn't change between dark/light — only the opacity dims slightly).
@@ -155,9 +187,9 @@ export default function BrandTheme({
       --brand-pop-dim: ${hexToRgba(pop, 0.08)};`;
 
   const css = `
-    :root {${brandTokensDark}${darkSurfaces}
+    :root {${brandTokensDark}${darkSurfaces}${textOverride}
     }
-    html.light {${brandTokensLight}${lightSurfaces}
+    html.light {${brandTokensLight}${lightSurfaces}${textOverride}
     }
 
     /* Scrollbar branding (dark mode) */

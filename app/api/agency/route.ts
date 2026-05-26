@@ -40,6 +40,9 @@ export async function PATCH(req: Request) {
       highlightColor?: string | null;
       popColor?: string | null;
       bgColor?: string | null;
+      cardColor?: string | null;
+      borderColor?: string | null;
+      textColor?: string | null;
     };
 
     // Resolve target agency
@@ -71,6 +74,10 @@ export async function PATCH(req: Request) {
     setColorField("highlightColor", body.highlightColor);
     setColorField("popColor", body.popColor);
     setColorField("bgColor", body.bgColor);
+    // Manual surface overrides — null clears (=fall back to auto-derive).
+    setColorField("cardColor", body.cardColor);
+    setColorField("borderColor", body.borderColor);
+    setColorField("textColor", body.textColor);
 
     if (Object.keys(updates).length === 0) {
       return NextResponse.json({ error: "Nothing to update" }, { status: 400 });

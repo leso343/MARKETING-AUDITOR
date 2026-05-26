@@ -23,8 +23,18 @@ export const agencies = sqliteTable("agencies", {
   highlightColor: text("highlight_color"),
   popColor: text("pop_color"),
   /** Agency-pickable background color. Card / border / sidebar shades
-   *  are derived in lib/BrandTheme.tsx so the user only manages one. */
+   *  are derived in lib/BrandTheme.tsx by default. */
   bgColor: text("bg_color"),
+  /**
+   * Optional manual overrides for the auto-derived surface tokens.
+   * When NULL, BrandTheme falls back to surfaceShade(bgColor) for
+   * card/border and luminance-based contrast for text. When set, the
+   * agency's explicit value wins — useful when the auto-derived combo
+   * doesn't have enough contrast (e.g. red bg with red-tinted cards).
+   */
+  cardColor: text("card_color"),
+  borderColor: text("border_color"),
+  textColor: text("text_color"),
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().default(sql`(unixepoch() * 1000)`),
 });
 

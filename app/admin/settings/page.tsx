@@ -59,6 +59,9 @@ export default async function AdminSettingsPage() {
               highlightColor: agency.highlightColor ?? "",
               popColor: agency.popColor ?? "",
               bgColor: agency.bgColor ?? "",
+              cardColor: agency.cardColor ?? null,
+              borderColor: agency.borderColor ?? null,
+              textColor: agency.textColor ?? null,
             }}
           />
         ) : (
