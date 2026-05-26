@@ -23,11 +23,11 @@ export type BillingState =
  * privileged actions are allowed.
  *
  * Joint plan + status decision:
- *   - free + trialing within 14 days → ok
- *   - free + trialing after 14 days  → not ok (expired)
- *   - paid + active                   → ok
- *   - paid + trialing                 → ok (Stripe trial)
- *   - past_due → ok within 7-day grace, then not ok
+ *   - free + trialing within FREE_TRIAL_DAYS → ok
+ *   - free + trialing after FREE_TRIAL_DAYS  → not ok (expired — hard lock)
+ *   - paid + active                          → ok
+ *   - paid + trialing                        → ok (Stripe trial)
+ *   - past_due → ok within PAST_DUE_GRACE_DAYS grace, then not ok
  *   - canceled / incomplete → not ok
  */
 export async function getBillingState(agencyId: string): Promise<BillingState> {

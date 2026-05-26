@@ -3,6 +3,11 @@
  *
  * Subscribe buttons POST to /api/billing/checkout, which creates a Stripe
  * Checkout session and redirects the user to Stripe's hosted payment page.
+ *
+ * Tier ladder (see lib/plans.ts for the canonical limits):
+ *   Free trial → Starter $49 → Pro $99 → Agency $249 → Enterprise.
+ *   Hard lock after the 7-day trial — user MUST upgrade to keep using
+ *   the account (enforced by lib/billing-access.getBillingState).
  */
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -14,6 +19,7 @@ import {
   Check,
   Minus,
   ChevronDown,
+  Rocket,
 } from "lucide-react";
 import PricingCard from "./PricingCard";
 import BillingToggle, { BillingProvider } from "./BillingToggle";
@@ -25,21 +31,48 @@ const PLANS = [
     plan: "free" as const,
     name: "Free Trial",
     price: "$0",
-    period: "for 14 days",
+    period: "for 7 days",
     description:
-      "Get full access for 14 days. One client account with basic analysis to evaluate the platform.",
+      "Full Pro-tier access for 7 days. After that, upgrade to keep your account.",
     features: [
+      "Full feature access",
       "1 client account",
-      "1 audit per month",
-      "Basic funnel leakage analysis",
-      "Basic tracking failure detection",
-      "Watermarked PDF export",
-      "Community support",
-      "14-day full access trial",
+      "Unlimited audits",
+      "Full funnel leakage analysis",
+      "Tracking failure detection",
+      "Creative performance scoring",
+      "Geographic waste heatmap",
+      "AI assistant (25 messages)",
+      "Branded PDF exports",
+      "7-day hard lock — no credit card needed",
     ],
     cta: "Start free trial",
     highlighted: false,
     icon: Zap,
+  },
+  {
+    plan: "starter" as const,
+    name: "Starter",
+    price: "$49",
+    annualPrice: "$39",
+    period: "per month",
+    description:
+      "For solo consultants and freelancers running one client account end-to-end.",
+    features: [
+      "1 client account",
+      "Unlimited audits",
+      "Full funnel leakage analysis",
+      "Tracking failure detection",
+      "Geographic waste heatmap",
+      "Creative performance scoring",
+      "Demographic deep-dive (age + gender)",
+      "Branded PDF exports (no watermark)",
+      "AI assistant (200 messages / month)",
+      "Email support",
+    ],
+    cta: "Get started",
+    highlighted: false,
+    icon: Rocket,
   },
   {
     plan: "pro" as const,
@@ -52,14 +85,10 @@ const PLANS = [
     features: [
       "Up to 5 client accounts",
       "Unlimited audits",
-      "Full funnel leakage analysis",
-      "Tracking failure detection",
-      "Geographic waste heatmap",
-      "Creative performance scoring",
+      "Everything in Starter, plus:",
       "Placement & device analysis",
       "Weekly trend tracking",
-      "Branded PDF exports (no watermark)",
-      "Demographic deep-dive (age + gender)",
+      "AI assistant (500 messages / month)",
       "Email + chat support",
     ],
     cta: "Get started",
@@ -69,17 +98,18 @@ const PLANS = [
   {
     plan: "agency" as const,
     name: "Agency",
-    price: "$299",
-    annualPrice: "$239",
+    price: "$249",
+    annualPrice: "$199",
     period: "per month",
     description:
       "For agencies managing multiple clients. White-label branding, team seats, and advanced automation.",
     features: [
-      "Unlimited client accounts",
+      "Up to 50 client accounts",
       "Everything in Pro, plus:",
       "White-label branding (logo, colors, fonts)",
       "Multiple user seats (up to 10)",
       "Time-of-day optimization analysis",
+      "AI assistant (100/day per seat)",
       "Priority support (< 4hr response)",
       "Budget utilization monitoring",
     ],
@@ -91,6 +121,7 @@ const PLANS = [
 
 const ENTERPRISE_FEATURES = [
   "Everything in Agency, plus:",
+  "Unlimited client accounts",
   "Unlimited user seats",
   "Full API access (no rate limits)",
   "SSO / SAML authentication",
@@ -108,33 +139,35 @@ type CellValue = boolean | string;
 interface ComparisonRow {
   feature: string;
   free: CellValue;
+  starter: CellValue;
   pro: CellValue;
   agency: CellValue;
   enterprise: CellValue;
 }
 
 const COMPARISON: ComparisonRow[] = [
-  { feature: "Client accounts", free: "1", pro: "Up to 5", agency: "Unlimited", enterprise: "Unlimited" },
-  { feature: "Audits per month", free: "1", pro: "Unlimited", agency: "Unlimited", enterprise: "Unlimited" },
-  { feature: "User seats", free: "1", pro: "1", agency: "Up to 10", enterprise: "Unlimited" },
-  { feature: "Funnel leakage analysis", free: "Basic", pro: true, agency: true, enterprise: true },
-  { feature: "Tracking failure detection", free: "Basic", pro: true, agency: true, enterprise: true },
-  { feature: "Geographic waste heatmap", free: false, pro: true, agency: true, enterprise: true },
-  { feature: "Creative performance scoring", free: false, pro: true, agency: true, enterprise: true },
-  { feature: "Placement & device analysis", free: false, pro: true, agency: true, enterprise: true },
-  { feature: "Weekly trend tracking", free: false, pro: true, agency: true, enterprise: true },
-  { feature: "Demographic deep-dive", free: false, pro: true, agency: true, enterprise: true },
-  { feature: "PDF export", free: "Watermarked", pro: "Branded", agency: "Branded", enterprise: "Branded" },
-  { feature: "White-label branding", free: false, pro: false, agency: true, enterprise: true },
-  { feature: "Time-of-day optimization", free: false, pro: false, agency: true, enterprise: true },
-  { feature: "Budget utilization monitoring", free: false, pro: false, agency: true, enterprise: true },
-  { feature: "SSO / SAML authentication", free: false, pro: false, agency: false, enterprise: true },
-  { feature: "Dedicated onboarding specialist", free: false, pro: false, agency: false, enterprise: true },
-  { feature: "Custom analysis modules", free: false, pro: false, agency: false, enterprise: true },
-  { feature: "SLA guarantee (99.9% uptime)", free: false, pro: false, agency: false, enterprise: true },
-  { feature: "Dedicated Slack channel support", free: false, pro: false, agency: false, enterprise: true },
-  { feature: "On-call account manager", free: false, pro: false, agency: false, enterprise: true },
-  { feature: "Support", free: "Community", pro: "Email + chat", agency: "Priority (< 4hr)", enterprise: "Dedicated" },
+  { feature: "Client accounts",            free: "1",         starter: "1",         pro: "Up to 5",   agency: "Up to 50",     enterprise: "Unlimited" },
+  { feature: "Audits per month",           free: "Unlimited", starter: "Unlimited", pro: "Unlimited", agency: "Unlimited",    enterprise: "Unlimited" },
+  { feature: "User seats",                 free: "1",         starter: "1",         pro: "1",         agency: "Up to 10",     enterprise: "Unlimited" },
+  { feature: "Funnel leakage analysis",    free: true,        starter: true,        pro: true,        agency: true,           enterprise: true },
+  { feature: "Tracking failure detection", free: true,        starter: true,        pro: true,        agency: true,           enterprise: true },
+  { feature: "Geographic waste heatmap",   free: true,        starter: true,        pro: true,        agency: true,           enterprise: true },
+  { feature: "Creative performance scoring", free: true,      starter: true,        pro: true,        agency: true,           enterprise: true },
+  { feature: "Demographic deep-dive",      free: true,        starter: true,        pro: true,        agency: true,           enterprise: true },
+  { feature: "Placement & device analysis", free: false,      starter: false,       pro: true,        agency: true,           enterprise: true },
+  { feature: "Weekly trend tracking",      free: false,       starter: false,       pro: true,        agency: true,           enterprise: true },
+  { feature: "PDF export",                 free: "Branded",   starter: "Branded",   pro: "Branded",   agency: "Branded",      enterprise: "Branded" },
+  { feature: "White-label branding",       free: false,       starter: false,       pro: false,       agency: true,           enterprise: true },
+  { feature: "Time-of-day optimization",   free: false,       starter: false,       pro: false,       agency: true,           enterprise: true },
+  { feature: "Budget utilization monitoring", free: false,    starter: false,       pro: false,       agency: true,           enterprise: true },
+  { feature: "AI assistant",               free: "25 lifetime", starter: "200/mo",  pro: "500/mo",    agency: "100/day/seat", enterprise: "Unlimited" },
+  { feature: "SSO / SAML authentication",  free: false,       starter: false,       pro: false,       agency: false,          enterprise: true },
+  { feature: "Dedicated onboarding specialist", free: false,  starter: false,       pro: false,       agency: false,          enterprise: true },
+  { feature: "Custom analysis modules",    free: false,       starter: false,       pro: false,       agency: false,          enterprise: true },
+  { feature: "SLA guarantee (99.9% uptime)", free: false,     starter: false,       pro: false,       agency: false,          enterprise: true },
+  { feature: "Dedicated Slack channel support", free: false,  starter: false,       pro: false,       agency: false,          enterprise: true },
+  { feature: "On-call account manager",    free: false,       starter: false,       pro: false,       agency: false,          enterprise: true },
+  { feature: "Support",                    free: "Community", starter: "Email",     pro: "Email + chat", agency: "Priority (< 4hr)", enterprise: "Dedicated" },
 ];
 
 /* ─── FAQ data ─────────────────────────────────────────────────────────── */
@@ -142,19 +175,27 @@ const COMPARISON: ComparisonRow[] = [
 const FAQ = [
   {
     q: "What happens after my free trial?",
-    a: "After 14 days your account moves to a read-only state. You keep access to all previously generated reports but cannot run new audits until you choose a paid plan. No credit card is required to start the trial.",
+    a: "After 7 days your account is locked — you cannot run new audits, upload new CSVs, or use the AI assistant until you choose a paid plan. Your data is preserved; pick any tier (Starter, Pro, or Agency) and you're back in immediately. No credit card is required to start the trial.",
+  },
+  {
+    q: "Why pay for this instead of just using Claude or ChatGPT?",
+    a: "Because deterministic numbers matter. The audit engine computes every dollar figure in code — same CSV in, same number out. LLMs hallucinate math; you can't put a wrong $3,200-wasted figure in front of a client. The AI assistant inside the tool IS Claude, but with your audit data pre-loaded and scoped — you get Claude's intelligence on top of numbers you can defend.",
+  },
+  {
+    q: "What's the difference between Starter and Pro?",
+    a: "Starter ($49/mo) gives one solo consultant one client account with the full analysis suite. Pro ($99/mo) supports up to 5 client accounts and adds placement / device breakdowns and weekly trend tracking — designed for someone running multiple campaigns or a small in-house team.",
   },
   {
     q: "Can I change plans later?",
-    a: "Yes. You can upgrade or downgrade at any time from the Billing page in your admin panel. When upgrading, you get immediate access to the new features. Downgrades take effect at the end of your current billing cycle.",
+    a: "Yes. You can upgrade or downgrade at any time from the Billing page in your admin panel. Upgrades take effect immediately. Downgrades take effect at the end of your current billing cycle.",
   },
   {
     q: "What's included in white-label branding?",
-    a: "White-label lets you replace all Blank Page Audits branding with your own. Upload your agency logo, set your brand colors and fonts, and generate client-facing PDF reports and dashboards that look entirely like your product.",
+    a: "White-label lets you replace all Blank Page Audits branding with your own. Upload your agency logo, set your brand colors and background, and generate client-facing PDF reports and dashboards that look entirely like your product. Agency tier and above.",
   },
   {
     q: "Do you offer annual billing?",
-    a: "Yes. Use the Monthly / Annual toggle above to see annual pricing. You save roughly 20% on both Pro and Agency plans when billed annually.",
+    a: "Yes. Use the Monthly / Annual toggle above to see annual pricing. You save roughly 20% on Starter, Pro, and Agency plans when billed annually.",
   },
   {
     q: "What payment methods do you accept?",
@@ -162,7 +203,7 @@ const FAQ = [
   },
   {
     q: "What is your refund policy?",
-    a: "All sales are final. No refunds will be issued under any circumstances. You have a full 14-day free trial to evaluate the platform before committing to a paid plan. If you decide to cancel, you can do so at any time from your billing settings — your subscription will remain active through the end of the current billing period, and you will not be charged again.",
+    a: "All sales are final. No refunds will be issued under any circumstances. You have a full 7-day free trial to evaluate the platform before committing to a paid plan. If you decide to cancel, you can do so at any time from your billing settings — your subscription will remain active through the end of the current billing period, and you will not be charged again.",
   },
 ];
 
@@ -237,7 +278,7 @@ function TierBadge({
 export const metadata: Metadata = {
   title: "Pricing — Blank Page Audits",
   description:
-    "Forensic Meta Ads audits starting at $0. Compare Free, Pro, Agency, and Enterprise plans. Stop bleeding ad spend.",
+    "Forensic Meta Ads audits starting at $49/mo. Compare Free, Starter, Pro, Agency, and Enterprise plans. Stop bleeding ad spend.",
 };
 
 export default function PricingPage() {
@@ -268,7 +309,7 @@ export default function PricingPage() {
         {/* ── Billing toggle + Pricing cards ──────────────────── */}
         <BillingProvider>
         <BillingToggle />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           {PLANS.map((p) => (
             <div key={p.plan} className="relative flex flex-col">
               {/* "Most Popular" badge */}
@@ -356,17 +397,18 @@ export default function PricingPage() {
           </div>
 
           <div className="panel overflow-x-auto">
-            <table className="data-table w-full min-w-[640px]">
+            <table className="data-table w-full min-w-[720px]">
               <caption className="sr-only">Feature comparison across all plans</caption>
               <thead>
                 <tr>
-                  <th className="text-left w-[40%]">Feature</th>
-                  <th className="text-center w-[15%]">Free Trial</th>
-                  <th className="text-center w-[15%]">
+                  <th className="text-left w-[32%]">Feature</th>
+                  <th className="text-center w-[12%]">Free Trial</th>
+                  <th className="text-center w-[12%]">Starter</th>
+                  <th className="text-center w-[12%]">
                     <span className="text-[var(--red)]">Pro</span>
                   </th>
-                  <th className="text-center w-[15%]">Agency</th>
-                  <th className="text-center w-[15%]">Enterprise</th>
+                  <th className="text-center w-[16%]">Agency</th>
+                  <th className="text-center w-[16%]">Enterprise</th>
                 </tr>
               </thead>
               <tbody>
@@ -375,6 +417,9 @@ export default function PricingPage() {
                     <td className="text-sm">{row.feature}</td>
                     <td className="text-center">
                       <ComparisonCell value={row.free} />
+                    </td>
+                    <td className="text-center">
+                      <ComparisonCell value={row.starter} />
                     </td>
                     <td className="text-center">
                       <ComparisonCell value={row.pro} />
@@ -423,10 +468,10 @@ export default function PricingPage() {
               Ready to stop wasting ad spend?
             </h3>
             <p className="text-sm text-[var(--text-dim)] mb-6 max-w-md mx-auto">
-              Start your 14-day free trial today. No credit card required.
+              Start your 7-day free trial today. No credit card required.
             </p>
             <Link
-              href="/login"
+              href="/signup"
               className="inline-flex items-center gap-2 bg-[var(--red)] text-white font-mono text-xs uppercase tracking-widest px-8 py-3 hover:opacity-90 transition-opacity"
             >
               <Zap className="h-3.5 w-3.5" />

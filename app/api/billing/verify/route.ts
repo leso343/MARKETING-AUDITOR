@@ -56,7 +56,7 @@ export async function GET(req: Request) {
 
   // Extract the bits we need.
   const agencyId = checkout.client_reference_id ?? undefined;
-  const tier = (checkout.metadata?.tier as "pro" | "agency" | undefined) ?? "pro";
+  const tier = (checkout.metadata?.tier as "starter" | "pro" | "agency" | undefined) ?? "pro";
   const customerId =
     typeof checkout.customer === "string"
       ? checkout.customer

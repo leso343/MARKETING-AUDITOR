@@ -10,7 +10,7 @@ import Logo from "@/components/Logo";
 
 export const metadata: Metadata = {
   title: "Create your account — Blank Page Audits",
-  description: "Start your free 14-day trial of Blank Page Audits.",
+  description: "Start your free 7-day trial of Blank Page Audits.",
 };
 
 export const dynamic = "force-dynamic";
@@ -31,7 +31,7 @@ export default function SignupPage() {
             Start your free trial
           </h1>
           <p className="mt-2 text-sm text-[var(--text-dim)]">
-            14 days, no credit card.
+            7 days, no credit card.
           </p>
         </div>
 

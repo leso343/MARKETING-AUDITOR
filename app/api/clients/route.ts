@@ -14,6 +14,7 @@ import { auth, authEnabled } from "@/auth";
 import { randomUUID } from "node:crypto";
 import { log } from "@/lib/logger";
 import { getBillingState, countAgencyClients } from "@/lib/billing-access";
+import { nextPaidTier, PLANS } from "@/lib/plans";
 import { sanitizeStoredUrl } from "@/lib/url-safety";
 
 import { isSameOriginRequest, csrfRejection } from "@/lib/api-helpers";
@@ -86,10 +87,11 @@ export async function POST(req: Request) {
     if (Number.isFinite(limit)) {
       const total = await countAgencyClients(agencyId);
       if (total >= limit) {
-        const upgrade = billing.plan.id === "free" ? "Pro" : "Agency";
+        const next = nextPaidTier(billing.plan.id);
+        const upgradeLabel = next ? PLANS[next].label : "Enterprise";
         return NextResponse.json(
           {
-            error: `Your ${billing.plan.id} plan allows up to ${limit} client${limit === 1 ? "" : "s"}. Upgrade to ${upgrade} for more.`,
+            error: `Your ${billing.plan.label} plan allows up to ${limit} client${limit === 1 ? "" : "s"}. Upgrade to ${upgradeLabel} for more.`,
             code: "CLIENT_LIMIT",
           },
           { status: 403 },
@@ -121,10 +123,11 @@ export async function POST(req: Request) {
       const totalAfter = await countAgencyClients(agencyId);
       if (totalAfter > limit) {
         await db.delete(schema.clients).where(eq(schema.clients.id, id)).catch(() => {});
-        const upgrade = billing.plan.id === "free" ? "Pro" : "Agency";
+        const next = nextPaidTier(billing.plan.id);
+        const upgradeLabel = next ? PLANS[next].label : "Enterprise";
         return NextResponse.json(
           {
-            error: `Concurrent client creation exceeded your ${billing.plan.id} plan limit. Upgrade to ${upgrade} for more.`,
+            error: `Concurrent client creation exceeded your ${billing.plan.label} plan limit. Upgrade to ${upgradeLabel} for more.`,
             code: "CLIENT_LIMIT_RACE",
           },
           { status: 403 },

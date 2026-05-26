@@ -2,15 +2,16 @@
  * AI assistant — usage tracking + tier limits.
  *
  * Tiers (per the user-facing pricing):
- *   - free   : 25 messages total during the 14-day trial (lifetime cap)
- *   - pro    : 500 messages per calendar month
- *   - agency : unlimited (soft cap of 100/day/seat enforced at the IP layer)
+ *   - free    : 25 messages total during the 7-day trial (lifetime cap)
+ *   - starter : 200 messages per calendar month
+ *   - pro     : 500 messages per calendar month
+ *   - agency  : 100/day/seat soft fair-use cap (resets midnight UTC)
  *
  * Hourly throttle for all tiers: 30 messages/hour (handled by the
  * rate-limit lib at the API route, NOT here).
  */
 import { db, schema, dbAvailable } from "@/lib/db";
-import { and, eq, gte, count, sql } from "drizzle-orm";
+import { and, eq, gte, count } from "drizzle-orm";
 import { PLANS, type PlanId } from "@/lib/plans";
 
 export interface UsageState {
@@ -23,6 +24,7 @@ export interface UsageState {
 }
 
 const FREE_TRIAL_TOTAL = 25;
+const STARTER_MONTHLY = 200;
 const PRO_MONTHLY = 500;
 const AGENCY_DAILY_PER_SEAT = 100;
 
@@ -99,13 +101,28 @@ export async function checkAiUsage(userId: string, planId: PlanId): Promise<Usag
     return { ok: true, used, limit: PRO_MONTHLY };
   }
 
+  // Starter: monthly cap (smaller than Pro)
+  if (planId === "starter") {
+    const used = await countUserMessages(userId, startOfThisMonthMs());
+    if (used >= STARTER_MONTHLY) {
+      return {
+        ok: false,
+        code: "MONTHLY_CAP",
+        reason: `Monthly limit reached (${STARTER_MONTHLY}/mo). Upgrade to Pro for ${PRO_MONTHLY}/mo.`,
+        used,
+        limit: STARTER_MONTHLY,
+      };
+    }
+    return { ok: true, used, limit: STARTER_MONTHLY };
+  }
+
   // Free: lifetime trial cap (no time window — sinceMs=0 counts everything)
   const used = await countUserMessages(userId, 0);
   if (used >= FREE_TRIAL_TOTAL) {
     return {
       ok: false,
       code: "TRIAL_CAP",
-      reason: `Free trial AI cap reached (${FREE_TRIAL_TOTAL} messages). Upgrade to Pro for 500/month.`,
+      reason: `Free trial AI cap reached (${FREE_TRIAL_TOTAL} messages). Upgrade to Starter for ${STARTER_MONTHLY}/mo.`,
       used,
       limit: FREE_TRIAL_TOTAL,
     };
@@ -117,6 +134,7 @@ export async function checkAiUsage(userId: string, planId: PlanId): Promise<Usag
 export function describeTierLimit(planId: PlanId): string {
   const plan = PLANS[planId];
   if (planId === "free") return `${FREE_TRIAL_TOTAL} messages during trial`;
+  if (planId === "starter") return `${STARTER_MONTHLY} messages / month on ${plan.label}`;
   if (planId === "pro") return `${PRO_MONTHLY} messages / month on ${plan.label}`;
   return `Unlimited (${AGENCY_DAILY_PER_SEAT}/day fair use) on ${plan.label}`;
 }

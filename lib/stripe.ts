@@ -55,6 +55,11 @@ export function appUrl(): string {
 
 /** Resolve tier + billing period → Stripe price ID. Returns null for unknown / unset. */
 export function priceIdForTier(tier: string, period: "monthly" | "annual" = "monthly"): string | null {
+  if (tier === "starter") {
+    return period === "annual"
+      ? (process.env.STRIPE_STARTER_ANNUAL_PRICE_ID ?? process.env.STRIPE_STARTER_PRICE_ID ?? null)
+      : (process.env.STRIPE_STARTER_PRICE_ID ?? null);
+  }
   if (tier === "pro") {
     return period === "annual"
       ? (process.env.STRIPE_PRO_ANNUAL_PRICE_ID ?? process.env.STRIPE_PRO_PRICE_ID ?? null)
@@ -66,4 +71,12 @@ export function priceIdForTier(tier: string, period: "monthly" | "annual" = "mon
       : (process.env.STRIPE_AGENCY_PRICE_ID ?? null);
   }
   return null;
+}
+
+/** Maps a tier slug to the env-var name that should hold its price ID. */
+export function priceEnvNameForTier(tier: string): string {
+  if (tier === "starter") return "STRIPE_STARTER_PRICE_ID";
+  if (tier === "pro") return "STRIPE_PRO_PRICE_ID";
+  if (tier === "agency") return "STRIPE_AGENCY_PRICE_ID";
+  return "STRIPE_*_PRICE_ID";
 }

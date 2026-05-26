@@ -30,11 +30,12 @@ import {
   stripeNotConfiguredResponse,
   appUrl,
   priceIdForTier,
+  priceEnvNameForTier,
 } from "@/lib/stripe";
 import { rateLimit, getClientIp, rateLimitHeaders } from "@/lib/rate-limit";
 import { log } from "@/lib/logger";
 
-const ALLOWED_TIERS = new Set(["pro", "agency"]);
+const ALLOWED_TIERS = new Set(["starter", "pro", "agency"]);
 
 export async function POST(req: Request) {
   if (!stripeEnabled || !stripe) {
@@ -70,7 +71,7 @@ export async function POST(req: Request) {
   const tier = (body.tier ?? body.plan ?? "").toLowerCase();
   if (!ALLOWED_TIERS.has(tier)) {
     return NextResponse.json(
-      { error: `Unknown tier "${tier}". Expected "pro" or "agency".` },
+      { error: `Unknown tier "${tier}". Expected "starter", "pro", or "agency".` },
       { status: 400 },
     );
   }
@@ -78,9 +79,8 @@ export async function POST(req: Request) {
   const period: "monthly" | "annual" = body.period === "annual" ? "annual" : "monthly";
   const priceId = priceIdForTier(tier, period);
   if (!priceId) {
-    const envName = tier === "pro" ? "STRIPE_PRO_PRICE_ID" : "STRIPE_AGENCY_PRICE_ID";
     return NextResponse.json(
-      { error: `Stripe not configured — set ${envName}` },
+      { error: `Stripe not configured — set ${priceEnvNameForTier(tier)}` },
       { status: 503 },
     );
   }
@@ -108,7 +108,7 @@ export async function POST(req: Request) {
     await db
       .update(schema.subscriptions)
       .set({
-        plan: tier as "pro" | "agency",
+        plan: tier as "starter" | "pro" | "agency",
         status: "incomplete",
         updatedAt: new Date(),
       })
@@ -117,7 +117,7 @@ export async function POST(req: Request) {
     await db.insert(schema.subscriptions).values({
       id: randomUUID(),
       agencyId,
-      plan: tier as "pro" | "agency",
+      plan: tier as "starter" | "pro" | "agency",
       status: "incomplete",
     });
   }

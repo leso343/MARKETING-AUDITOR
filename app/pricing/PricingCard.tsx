@@ -5,7 +5,7 @@ import { Check } from "lucide-react";
 import { useBillingPeriod } from "./BillingToggle";
 
 interface Props {
-  plan: "free" | "pro" | "agency";
+  plan: "free" | "starter" | "pro" | "agency";
   name: string;
   price: string;
   annualPrice?: string;

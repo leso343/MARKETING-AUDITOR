@@ -23,7 +23,7 @@ interface KeyStatus {
 }
 
 interface Props {
-  planId: "free" | "pro" | "agency";
+  planId: "free" | "starter" | "pro" | "agency";
   /**
    * Live state of the BYO-key feature. When false, the component
    * renders a "Coming soon" pitch card for every plan. When true, the
@@ -121,7 +121,7 @@ function BenefitCard({
 }
 
 /* ── Real management form (feature enabled) ──────────────────────────── */
-function ActiveKeyForm({ planId }: { planId: "free" | "pro" | "agency" }) {
+function ActiveKeyForm({ planId }: { planId: "free" | "starter" | "pro" | "agency" }) {
   const [status, setStatus] = useState<KeyStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);

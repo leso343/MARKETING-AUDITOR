@@ -103,11 +103,12 @@ export const csvFiles = sqliteTable(
 /**
  * Tier 4 — Stripe-backed subscriptions, per-Agency.
  *
- *   plan   : "free" | "pro" | "agency"
+ *   plan   : "free" | "starter" | "pro" | "agency"
  *   status : "trialing" | "active" | "past_due" | "canceled" | "incomplete"
  *
  * Stripe IDs populate on checkout (via /api/billing/verify) and stay in
- * sync via /api/billing/webhook.
+ * sync via /api/billing/webhook. Free plan = trial; locks after
+ * FREE_TRIAL_DAYS (lib/plans.ts) days elapse.
  */
 export const subscriptions = sqliteTable("subscriptions", {
   id: text("id").primaryKey(),
@@ -115,14 +116,14 @@ export const subscriptions = sqliteTable("subscriptions", {
     .notNull()
     .unique()
     .references(() => agencies.id, { onDelete: "cascade" }),
-  /** "free" | "pro" | "agency" */
+  /** "free" | "starter" | "pro" | "agency" */
   plan: text("plan").notNull().default("free"),
   /** "trialing" | "active" | "past_due" | "canceled" | "incomplete" */
   status: text("status").notNull().default("trialing"),
   stripeCustomerId: text("stripe_customer_id").unique(),
   stripeSubscriptionId: text("stripe_subscription_id").unique(),
   currentPeriodEnd: integer("current_period_end", { mode: "timestamp_ms" }),
-  /** Trial start (used to compute the 14-day window without a Stripe customer). */
+  /** Trial start (used to compute the trial window — see FREE_TRIAL_DAYS in lib/plans.ts). */
   trialStartedAt: integer("trial_started_at", { mode: "timestamp_ms" }),
   /**
    * C-10 fix: last Stripe `event.created` ms timestamp we applied. The
@@ -412,7 +413,7 @@ export type MetaConfig = typeof metaConfigs.$inferSelect;
 export type NewMetaConfig = typeof metaConfigs.$inferInsert;
 
 export type Role = "admin" | "agency";
-export type BillingPlan = "free" | "pro" | "agency";
+export type BillingPlan = "free" | "starter" | "pro" | "agency";
 export type BillingStatus =
   | "trialing"
   | "active"

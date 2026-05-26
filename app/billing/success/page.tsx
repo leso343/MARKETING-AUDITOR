@@ -135,6 +135,12 @@ function Confetti({ active }: { active: boolean }) {
 type FeatureIconComponent = (props: { className?: string; color?: string; colorEnd?: string }) => React.JSX.Element;
 
 const TIER_FEATURES: Record<string, { icon: FeatureIconComponent; label: string; desc: string }[]> = {
+  starter: [
+    { icon: IconClients, label: "1 Client Account", desc: "Run unlimited audits on your account" },
+    { icon: IconAnalytics, label: "Full Analytics Suite", desc: "Every breakdown and what-if explorer" },
+    { icon: IconGeo, label: "Geographic Intelligence", desc: "Waste heatmaps and budget reallocation" },
+    { icon: IconChatSupport, label: "Email Support", desc: "Get help when you need it" },
+  ],
   pro: [
     { icon: IconClients, label: "5 Client Accounts", desc: "Manage multiple campaigns simultaneously" },
     { icon: IconAnalytics, label: "Full Analytics Suite", desc: "Every breakdown and what-if explorer" },
@@ -142,10 +148,10 @@ const TIER_FEATURES: Record<string, { icon: FeatureIconComponent; label: string;
     { icon: IconChatSupport, label: "Email + Chat Support", desc: "Get help when you need it" },
   ],
   agency: [
-    { icon: IconUnlimited, label: "Unlimited Clients", desc: "No cap on accounts or audits" },
+    { icon: IconUnlimited, label: "50 Client Accounts", desc: "Scale to 50 active client campaigns" },
     { icon: IconBranding, label: "White-Label Branding", desc: "Your logo, your colors, your reports" },
     { icon: IconSupport, label: "Priority Support", desc: "Under 4-hour response time guaranteed" },
-    { icon: IconDashboard, label: "Client Dashboards", desc: "Share read-only links with your clients" },
+    { icon: IconDashboard, label: "10 Team Seats", desc: "Invite your whole team into the workspace" },
   ],
 };
 
@@ -192,9 +198,10 @@ export default function BillingSuccessPage() {
     })();
   }, []);
 
-  const isAgency = result && "tier" in result && result.tier === "agency";
-  const tierName = isAgency ? "Agency" : "Pro";
-  const tierColor = isAgency ? "#3b82f6" : "#3b82f6";
+  const tier = result && "tier" in result ? result.tier : "pro";
+  const isAgency = tier === "agency";
+  const tierName = tier === "agency" ? "Agency" : tier === "starter" ? "Starter" : "Pro";
+  const tierColor = "#3b82f6";
 
   return (
     <>

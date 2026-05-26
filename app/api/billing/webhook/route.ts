@@ -45,7 +45,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 type SubStatus = "trialing" | "active" | "past_due" | "canceled" | "incomplete";
-type Tier = "pro" | "agency" | "free";
+type Tier = "free" | "starter" | "pro" | "agency";
 
 function mapStripeStatus(s: Stripe.Subscription.Status | string): SubStatus {
   switch (s) {

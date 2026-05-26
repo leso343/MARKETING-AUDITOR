@@ -69,13 +69,14 @@ export default function TermsPage() {
             </h2>
             <p>
               Paid plans are billed monthly or annually through Stripe. <strong>All sales are final.
-              No refunds will be issued under any circumstances.</strong> You have a 14-day free trial
-              to evaluate the platform before committing to a paid plan.
+              No refunds will be issued under any circumstances.</strong> You have a 7-day free trial
+              to evaluate the platform before committing to a paid plan. After the trial ends, your
+              account is locked until you select a paid plan.
             </p>
             <p className="mt-2">
               You may cancel your subscription at any time from your billing settings. Upon cancellation,
               your subscription remains active through the end of the current billing period, after which
-              your account reverts to read-only access. You will not be charged again.
+              your account reverts to a locked state. You will not be charged again.
             </p>
           </section>
 

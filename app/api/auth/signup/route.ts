@@ -13,8 +13,8 @@
  *      suffix on collision)
  *   4. Create the user (role=agency, hashed password)
  *   5. Create a subscriptions row (plan=free, status=trialing,
- *      trialStartedAt=now) → kicks off the 14-day window enforced by
- *      lib/billing-access.getBillingState
+ *      trialStartedAt=now) → kicks off the 7-day window enforced by
+ *      lib/billing-access.getBillingState (FREE_TRIAL_DAYS in lib/plans.ts)
  *   6. Fire-and-forget a welcome email via Resend
  *
  * Client signs in via NextAuth's signIn("credentials") after this
