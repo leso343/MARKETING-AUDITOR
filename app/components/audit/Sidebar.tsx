@@ -97,33 +97,33 @@ export default function Sidebar({ clientName, clientSubtitle, primaryLeak, clien
       label: t("Diagnostic", "What we found"),
       items: [
         { href: "#overview", label: t("Executive Summary", "Top Findings"), icon: FileBarChart },
-        { href: "#leakage", label: t("Funnel Integrity", "Customer Drop-Off"), icon: Activity },
-        { href: "#tracking", label: t("Sentinel Audit", "Is tracking broken?"), icon: AlertTriangle },
+        { href: "#leakage", label: t("Funnel Analysis", "Customer Drop-Off"), icon: Activity },
+        { href: "#tracking", label: t("Tracking Audit", "Is Tracking Broken?"), icon: AlertTriangle },
       ],
     },
     {
-      label: t("Market Segments", "Who saw the ads"),
+      label: t("Market Segments", "Who Saw The Ads"),
       items: [
-        { href: "#geo", label: t("Geographic Sieve", "Cities & areas"), icon: MapPinned },
-        { href: "#creative", label: t("Creative Drill", "How each ad did"), icon: Users },
-        { href: "#demographics", label: t("Demographics", "Age & gender"), icon: PieChart },
+        { href: "#geo", label: t("Geographic Breakdown", "Cities & Areas"), icon: MapPinned },
+        { href: "#creative", label: t("Creative Performance", "How Each Ad Did"), icon: Users },
+        { href: "#demographics", label: t("Demographics", "Age & Gender"), icon: PieChart },
         { href: "#placements", label: t("Placements", "Feed vs Stories"), icon: LayoutGrid },
         { href: "#devices", label: t("Devices", "Mobile vs Desktop"), icon: Monitor },
-        { href: "#dayparting", label: t("Dayparting", "Time of day"), icon: Clock },
+        { href: "#dayparting", label: t("Time of Day", "Time of Day"), icon: Clock },
       ],
     },
     {
-      label: t("What-If Explorers", "Try It Yourself"),
+      label: t("What-If Scenarios", "Try It Yourself"),
       items: [
         { href: "#funnel-explorer", label: t("Funnel Explorer", "Drop-Off Explorer"), icon: Sliders },
-        { href: "#weekly-scrubber", label: t("Weekly CPL Scrubber", "Cost Over Time"), icon: Calendar },
+        { href: "#weekly-scrubber", label: t("Weekly CPL Trends", "Cost Over Time"), icon: Calendar },
         { href: "#geo-reallocator", label: t("Budget Reallocator", "Move Money Around"), icon: Layers },
       ],
     },
     {
-      label: t("Protocol", "What to do next"),
+      label: t("Action Plan", "What To Do Next"),
       items: [
-        { href: "#plan", label: t("30-Day Fix Queue", "Fix list (30 days)"), icon: Crosshair },
+        { href: "#plan", label: t("30-Day Action Plan", "Fix List (30 days)"), icon: Crosshair },
       ],
     },
   ];

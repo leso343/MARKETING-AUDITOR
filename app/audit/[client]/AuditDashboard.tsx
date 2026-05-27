@@ -72,6 +72,19 @@ function HeaderLangToggle() {
   );
 }
 
+/** Page-header H1 that flips with the language toggle. */
+function HeaderTitle({ clientName }: { clientName: string }) {
+  const { t } = useLang();
+  return (
+    <h1
+      className="truncate text-sm font-bold tracking-tight sm:text-lg"
+      style={{ fontFamily: "var(--font-head)" }}
+    >
+      {t("FORENSIC AUDIT:", "AD ACCOUNT REVIEW:")} {clientName.toUpperCase()}
+    </h1>
+  );
+}
+
 /** Button that opens the report viewer via ReportContext */
 function ReportOpenButton() {
   const { openReport } = useReport();
@@ -266,12 +279,7 @@ export default function AuditDashboard({
               }
               style={printMode ? undefined : { background: "var(--header-bg, rgba(3,3,3,0.9))" }}
             >
-              <h1
-                className="truncate text-sm font-bold tracking-tight sm:text-lg"
-                style={{ fontFamily: "var(--font-head)" }}
-              >
-                FORENSIC AUDIT: {audit.clientName.toUpperCase()}
-              </h1>
+              <HeaderTitle clientName={audit.clientName} />
               {!printMode && (
                 <div className="flex flex-wrap items-center gap-2">
                   <ReportOpenButton />

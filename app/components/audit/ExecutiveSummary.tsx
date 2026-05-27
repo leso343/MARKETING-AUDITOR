@@ -9,21 +9,37 @@ interface Props {
 }
 
 interface Finding {
+  /** Professional / Agency Mode title */
   title: string;
+  /** Plain-English title */
   plainTitle: string;
+  /** Professional / Agency Mode detail line */
   detail: string;
+  /** Plain-English detail line */
+  plainDetail: string;
   impactUSD: number;
   severity: "critical" | "warn" | "ok";
 }
 
+/**
+ * Build the findings list. Pre-computes BOTH the professional and the
+ * plain-English copy for each finding so the UI can flip cleanly.
+ *
+ * Agency Mode (titles + detail) is intentionally professional but NOT
+ * melodramatic — earlier copy ("Hemorrhage", "Dead-Weight") read as
+ * corny when shown to client-facing decision makers. The new wording
+ * is the kind a senior strategist would use in a written audit.
+ */
 function topFindings(a: AuditResult): Finding[] {
   const out: Finding[] = [];
 
   if (a.funnel.clickToSessionLossPct > 30) {
+    const wasted = (a.funnel.totalClicks - a.funnel.estimatedSessions).toLocaleString();
     out.push({
-      title: "Click-to-Session Hemorrhage",
+      title: "Click-to-Site Drop-Off",
       plainTitle: "Clicks Not Reaching Your Website",
-      detail: `${a.funnel.clickToSessionLossPct}% of paid clicks never reached the site. Estimated wasted clicks: ${(a.funnel.totalClicks - a.funnel.estimatedSessions).toLocaleString()}.`,
+      detail: `${a.funnel.clickToSessionLossPct}% of paid clicks did not register as site sessions. Estimated lost clicks: ${wasted}.`,
+      plainDetail: `${a.funnel.clickToSessionLossPct}% of the people who clicked your ads never made it to your site. That's about ${wasted} paid clicks lost.`,
       impactUSD: Math.round((a.spend.totalSpend * a.funnel.clickToSessionLossPct) / 100),
       severity: "critical",
     });
@@ -31,10 +47,13 @@ function topFindings(a: AuditResult): Finding[] {
 
   for (const f of a.tracking.failures) {
     if (f.severity === "critical" && f.estimatedImpact > 0) {
+      const proTitle = f.type.replace(/_/g, " ");
+      const plainTitle = proTitle.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
       out.push({
-        title: f.type.replace(/_/g, " "),
-        plainTitle: f.type.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase()),
+        title: proTitle,
+        plainTitle,
         detail: f.description,
+        plainDetail: f.description,
         impactUSD: f.estimatedImpact,
         severity: "critical",
       });
@@ -43,9 +62,10 @@ function topFindings(a: AuditResult): Finding[] {
 
   if (a.geo.wasteUSD > 100) {
     out.push({
-      title: "Geographic Waste",
+      title: "Out-of-Area Spend",
       plainTitle: "Budget Spent Outside Your Service Area",
       detail: a.geo.recommendation,
+      plainDetail: a.geo.recommendation,
       impactUSD: a.geo.wasteUSD,
       severity: "critical",
     });
@@ -53,10 +73,12 @@ function topFindings(a: AuditResult): Finding[] {
 
   if (a.creative.wasters.length > 0) {
     const wasteTotal = a.creative.wasters.reduce((s, w) => s + w.spend, 0);
+    const count = a.creative.wasters.length;
     out.push({
-      title: "Dead-Weight Creative",
+      title: "Underperforming Creative",
       plainTitle: "Ads Spending Money With Zero Results",
-      detail: `${a.creative.wasters.length} ad(s) burned $${Math.round(wasteTotal).toLocaleString()} with zero return.`,
+      detail: `${count} ad${count === 1 ? "" : "s"} accumulated $${Math.round(wasteTotal).toLocaleString()} in spend without producing a tracked lead.`,
+      plainDetail: `${count} of your ads spent $${Math.round(wasteTotal).toLocaleString()} without getting a single lead.`,
       impactUSD: Math.round(wasteTotal),
       severity: "critical",
     });
@@ -84,28 +106,28 @@ export default function ExecutiveSummary({ audit }: Props) {
       <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="panel-label" style={{ marginBottom: 8 }}>
-            {t("Executive_Summary", "The big picture")}
+            {t("Executive Summary", "The Big Picture")}
           </div>
           <h2
             className="text-3xl font-bold tracking-tight"
             style={{ fontFamily: "var(--font-head)" }}
           >
             {findings.length === 0
-              ? t("Account Health Check", "Nothing major broken")
+              ? t("Account Health Check", "Nothing Major Broken")
               : findings.length === 1
-              ? t("Highest-impact finding", "The thing costing you the most")
-              : t(`${findings.length} highest-impact findings`, `Top ${findings.length} Issues to Fix`)}
+              ? t("Highest-Impact Finding", "The Thing Costing You The Most")
+              : t(`Top ${findings.length} Highest-Impact Findings`, `Top ${findings.length} Issues To Fix`)}
           </h2>
           <p className="mt-1 text-xs text-[var(--text-dim)]">
             {t(
-              "Ranked by dollar exposure. Fix in order.",
+              "Ranked by recoverable dollars. Address in order.",
               "Listed from most to least costly. Start at the top.",
             )}
           </p>
         </div>
         <div className="sm:text-right">
           <div className="font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)]">
-            {t("Total Recoverable", "Money you could win back")}
+            {t("Total Recoverable", "Money You Could Win Back")}
           </div>
           <div className="font-mono text-3xl font-extrabold text-[var(--red)]">
             ${totalRecoverable.toLocaleString()}
@@ -115,11 +137,18 @@ export default function ExecutiveSummary({ audit }: Props) {
               className="mt-1 font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)]"
               title={`${hiddenCount} additional finding${hiddenCount === 1 ? "" : "s"} below the top 3 — see the report or scroll for full detail`}
             >
-              Top 3 of {allFindings.length} ·{" "}
+              {t(
+                `Top 3 of ${allFindings.length}`,
+                `Top 3 of ${allFindings.length}`,
+              )}{" "}
+              ·{" "}
               <span className="text-[var(--text)]">
                 ${hiddenRecoverable.toLocaleString()}
               </span>{" "}
-              more in {hiddenCount} other finding{hiddenCount === 1 ? "" : "s"}
+              {t(
+                `more across ${hiddenCount} other finding${hiddenCount === 1 ? "" : "s"}`,
+                `more in ${hiddenCount} other finding${hiddenCount === 1 ? "" : "s"}`,
+              )}
             </div>
           )}
         </div>
@@ -129,7 +158,7 @@ export default function ExecutiveSummary({ audit }: Props) {
         {findings.length === 0 && (
           <div className="col-span-3 border border-[var(--border)] p-6 text-center text-sm text-[var(--text-dim)]">
             {t(
-              "No critical findings detected — account is operating within healthy ranges.",
+              "No critical findings detected — the account is operating within healthy benchmark ranges.",
               "No major issues found — your campaigns look healthy against current benchmarks.",
             )}
           </div>
@@ -145,7 +174,7 @@ export default function ExecutiveSummary({ audit }: Props) {
               <div className="mb-3 flex items-start justify-between">
                 <Icon className="h-5 w-5 text-[var(--red)]" />
                 <span className="status-pill status-critical">
-                  RANK {String(idx + 1).padStart(2, "0")}
+                  {t("RANK", "ISSUE")} {String(idx + 1).padStart(2, "0")}
                 </span>
               </div>
               <div
@@ -155,11 +184,11 @@ export default function ExecutiveSummary({ audit }: Props) {
                 {plain ? f.plainTitle : f.title}
               </div>
               <p className="mb-4 text-xs leading-relaxed text-[var(--text-dim)]">
-                {f.detail}
+                {plain ? f.plainDetail : f.detail}
               </p>
               <div className="border-t border-[var(--border)] pt-3">
                 <div className="font-mono text-[9px] uppercase tracking-wider text-[var(--text-dim)]">
-                  {t("Impact", "What it costs you")}
+                  {t("Recoverable Impact", "What It Costs You")}
                 </div>
                 <div className="font-mono text-lg font-extrabold text-[var(--text)]">
                   ${f.impactUSD.toLocaleString()}
